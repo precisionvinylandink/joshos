@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.DS_Store
+*.dmg
+*.zip
+*.log
+.env
+.env.local
+desktop/.cache/

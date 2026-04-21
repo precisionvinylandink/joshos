@@ -1,0 +1,45 @@
+{
+  "name": "joshos-desktop",
+  "version": "1.0.0",
+  "description": "joshOS — Personal Daily Operating System (macOS Electron App)",
+  "main": "main.js",
+  "author": "Josh Sonnenberg <josh@precisionvinylandink.com>",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder --mac",
+    "build:x64": "electron-builder --mac --x64",
+    "build:arm64": "electron-builder --mac --arm64"
+  },
+  "build": {
+    "appId": "com.sonnenberg.joshos",
+    "productName": "joshOS",
+    "copyright": "© 2026 Josh Sonnenberg",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "assets/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "assets/icon.png",
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] },
+        { "target": "zip", "arch": ["x64", "arm64"] }
+      ]
+    },
+    "dmg": {
+      "title": "joshOS",
+      "backgroundColor": "#0a0a0a"
+    }
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0"
+  }
+}
