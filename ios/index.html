@@ -38,6 +38,14 @@ textarea::placeholder{color:#252525}
 .lh{font-size:11px;color:#333;width:42px;flex-shrink:0;padding-top:1px;font-variant-numeric:tabular-nums}
 .lt{font-size:14px;color:#999;line-height:1.4;flex:1}
 .lempty{font-size:13px;color:#1a1a1a;padding:8px 0}
+.sum-block{margin:0 24px 18px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sum-card{background:#111;border-radius:10px;padding:10px 14px}
+.sum-val{display:block;font-size:28px;font-weight:700;color:#c8f535;letter-spacing:-1px;line-height:1.15;font-variant-numeric:tabular-nums}
+.sum-val.or{color:#ff5c1a}.sum-val.wh{color:#f0ede6}.sum-val.sm{font-size:22px}
+.sum-lbl{display:block;font-size:9px;color:#2a2a2a;text-transform:uppercase;letter-spacing:1.5px;margin-top:3px}
+.sum-bar{height:2px;background:#1a1a1a;border-radius:2px;margin-top:8px;overflow:hidden}
+.sum-fill{height:100%;background:#c8f535;border-radius:2px;width:0%;transition:width .8s}
+.lrow.dsk .lh{color:#3b82f6}
 </style>
 </head>
 <body>
@@ -48,10 +56,29 @@ textarea::placeholder{color:#252525}
   <span id="tDate">--</span>
   <span id="tPrompt">What are you doing <b>right now?</b></span>
 </div>
+<div class="sum-block">
+  <div class="sum-card">
+    <span class="sum-val" id="sumPct">—</span>
+    <span class="sum-lbl">Today's Progress</span>
+    <div class="sum-bar"><div class="sum-fill" id="sumFill"></div></div>
+  </div>
+  <div class="sum-card">
+    <span class="sum-val wh sm" id="sumGrade">—</span>
+    <span class="sum-lbl">Scorecard Grade</span>
+  </div>
+  <div class="sum-card">
+    <span class="sum-val or" id="sumStreak">—</span>
+    <span class="sum-lbl">Day Streak</span>
+  </div>
+  <div class="sum-card">
+    <span class="sum-val or" id="sumWins">—</span>
+    <span class="sum-lbl">Wins Logged</span>
+  </div>
+</div>
 <div class="inp-block">
   <textarea id="inp" placeholder="Type it here..." autocorrect="on" spellcheck="true"></textarea>
   <button id="subBtn" onclick="doSub()">Submit</button>
-  <div class="srow"><div class="sdot on" id="sdot"></div><span class="slbl" id="slbl">Connected</span></div>
+  <div class="srow"><div class="sdot on" id="sdot"></div><span class="slbl" id="slbl">Connecting…</span></div>
 </div>
 <div class="log-block">
   <span class="log-hdr">Today's Log</span>
@@ -61,7 +88,12 @@ textarea::placeholder{color:#252525}
 var SB='https://fxhwqnojrcjetpcyhdwa.supabase.co',SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4aHdxbm9qcmNqZXRwY3loZHdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTk5NjgsImV4cCI6MjA5MDA3NTk2OH0.TAK78LT2AKEEUooIVeKKXsMMM9VeRrTFPGCFAsoJ8jg';
 var entries={},lastNotif=null;
 var HOURS=[7,8,9,10,11,12,13,14,15,16,17,18,19,20];
+var accentColor='#c8f535';
+
+function sbH(){return{'apikey':SK,'Authorization':'Bearer '+SK,'Content-Type':'application/json'};}
+function getDK(){var n=new Date();return n.getFullYear()+'-'+('0'+(n.getMonth()+1)).slice(-2)+'-'+('0'+n.getDate()).slice(-2);}
 function fh(h){var d=h===0?12:h>12?h-12:h;return d+(h<12?' AM':' PM');}
+
 function tick(){
   var n=new Date(),h=n.getHours(),m=n.getMinutes();
   var d=h===0?12:h>12?h-12:h,ms=('0'+m).slice(-2);
@@ -76,11 +108,11 @@ function tick(){
   var inp=document.getElementById('inp');
   if(already&&!inp.value)inp.value=already.text||'';
 }
+
 function doSub(){
   var text=document.getElementById('inp').value.trim();
   if(!text){var t=document.querySelector('textarea');t.style.borderColor='#ef4444';setTimeout(function(){t.style.borderColor='';},700);return;}
-  var n=new Date(),h=n.getHours();
-  var dk=n.getFullYear()+'-'+('0'+(n.getMonth()+1)).slice(-2)+'-'+('0'+n.getDate()).slice(-2);
+  var n=new Date(),h=n.getHours(),dk=getDK();
   var e={date_key:dk,hour:h,text:text,timestamp:n.toISOString(),source:'ios',category:'ios-entry'};
   entries[h]=e;doSave();renderLog();
   var btn=document.getElementById('subBtn');
@@ -89,46 +121,95 @@ function doSub(){
   setTimeout(function(){btn.textContent='Submit';btn.classList.remove('ok');document.getElementById('inp').value='';},1500);
   doPush(e);
 }
+
 function doPush(e){
-  fetch(SB+'/rest/v1/timelog',{method:'POST',headers:{'Content-Type':'application/json','apikey':SK,'Authorization':'Bearer '+SK,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(e)})
+  fetch(SB+'/rest/v1/timelog',{method:'POST',headers:{...sbH(),'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(e)})
   .then(function(r){setSt(r.ok?'synced':'err');})
   .catch(function(){setSt('err');var q=JSON.parse(localStorage.getItem('q')||'[]');q.push(e);localStorage.setItem('q',JSON.stringify(q));});
 }
+
 function doFlush(){
   var q=JSON.parse(localStorage.getItem('q')||'[]');if(!q.length)return;
   q.forEach(function(e){doPush(e);});localStorage.removeItem('q');
 }
+
+function sbPullTimelog(){
+  var dk=getDK();
+  fetch(SB+'/rest/v1/timelog?date_key=eq.'+dk+'&limit=50',{headers:sbH()})
+  .then(function(r){return r.ok?r.json():Promise.reject(r.status);})
+  .then(function(rows){
+    if(!Array.isArray(rows))return;
+    var changed=false;
+    rows.forEach(function(row){
+      if(!entries[row.hour]||(entries[row.hour].source!==row.source&&row.source==='desktop')){
+        entries[row.hour]={hour:row.hour,text:row.text,timestamp:row.timestamp,source:row.source||'remote'};
+        changed=true;
+      }
+    });
+    if(changed){doSave();renderLog();}
+    setSt('synced');
+  })
+  .catch(function(){setSt('err');});
+}
+
+function fetchSummary(){
+  fetch(SB+'/rest/v1/joshos_data?id=eq.1&select=data',{headers:sbH()})
+  .then(function(r){return r.ok?r.json():Promise.reject();})
+  .then(function(rows){
+    if(!rows||!rows.length||!rows[0].data)return;
+    var d=rows[0].data;
+    var pct=d.completionPct||0;
+    var pe=document.getElementById('sumPct');if(pe)pe.textContent=pct+'%';
+    var fe=document.getElementById('sumFill');if(fe)fe.style.width=pct+'%';
+    var ge=document.getElementById('sumGrade');if(ge)ge.textContent=d.grade||'—';
+    var se=document.getElementById('sumStreak');if(se)se.textContent=(d.streak||0)+'d';
+    var we=document.getElementById('sumWins');if(we)we.textContent=d.wins||0;
+  })
+  .catch(function(){});
+}
+
 function fetchTheme(){
-  fetch(SB+'/rest/v1/joshos_theme?id=eq.1&select=data',{headers:{'apikey':SK,'Authorization':'Bearer '+SK}})
+  fetch(SB+'/rest/v1/joshos_theme?id=eq.1&select=data',{headers:sbH()})
   .then(function(r){return r.json();})
   .then(function(rows){
     if(!rows||!rows.length||!rows[0].data)return;
     var t=rows[0].data;
     if(t['--bg'])document.body.style.background=t['--bg'];
     if(t['--accent']){
+      accentColor=t['--accent'];
       document.getElementById('tNum').style.color=t['--accent'];
       document.getElementById('tAP').style.color=t['--accent'];
       document.getElementById('subBtn').style.background=t['--accent'];
+      var fills=document.querySelectorAll('.sum-fill,.sum-val:not(.or):not(.wh)');
+      fills.forEach(function(el){el.style.color=t['--accent'];});
+      document.getElementById('sumFill').style.background=t['--accent'];
     }
+    if(t['--surface'])document.querySelectorAll('.sum-card').forEach(function(c){c.style.background=t['--surface'];});
   }).catch(function(){});
 }
+
 function setSt(s){
   var d=document.getElementById('sdot'),l=document.getElementById('slbl');
   if(s==='synced'){d.className='sdot on';l.textContent='Synced';}
   else if(s==='err'){d.className='sdot err';l.textContent='Offline';}
-  else{d.className='sdot on';l.textContent='Connected';}
+  else{d.className='sdot on';l.textContent='Live';}
 }
+
 function renderLog(){
   var c=document.getElementById('log'),keys=Object.keys(entries);
   if(!keys.length){c.innerHTML='<div class="lempty">Nothing logged yet.</div>';return;}
   keys.sort(function(a,b){return Number(b)-Number(a);});
   c.innerHTML=keys.map(function(k){
-    var h=Number(k);
-    return '<div class="lrow"><div class="lh">'+fh(h)+'</div><div class="lt">'+entries[h].text+'</div></div>';
+    var h=Number(k),e=entries[h];
+    var cls='lrow'+(e.source==='desktop'?' dsk':'');
+    var src=e.source==='desktop'?'🖥 ':'📱 ';
+    return '<div class="'+cls+'"><div class="lh">'+fh(h)+'</div><div class="lt">'+src+e.text+'</div></div>';
   }).join('');
 }
+
 function doSave(){localStorage.setItem('tl_date',new Date().toDateString());localStorage.setItem('tl_e',JSON.stringify(entries));}
 function doLoad(){if(localStorage.getItem('tl_date')===new Date().toDateString()){try{entries=JSON.parse(localStorage.getItem('tl_e')||'{}');}catch(e){entries={};}}}
+
 function checkNotif(){
   if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
   var n=new Date(),h=n.getHours(),m=n.getMinutes();
@@ -137,8 +218,16 @@ function checkNotif(){
   var notif=new Notification('joshOS',{body:fh(h)+' — What are you doing right now?',tag:'jt',requireInteraction:true});
   notif.onclick=function(){window.focus();notif.close();};
 }
-doLoad();tick();renderLog();doFlush();fetchTheme();
-setInterval(tick,20000);setInterval(checkNotif,60000);
+
+doLoad();tick();renderLog();
+doFlush();
+fetchTheme();
+sbPullTimelog();
+fetchSummary();
+setInterval(tick,20000);
+setInterval(checkNotif,60000);
+setInterval(sbPullTimelog,30000);
+setInterval(fetchSummary,60000);
 if(typeof Notification!=='undefined'&&Notification.permission==='default')Notification.requestPermission();
 </script>
 </body>
