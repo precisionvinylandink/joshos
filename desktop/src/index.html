@@ -252,6 +252,10 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);height:
 <div id="tb">
   <div class="tb-name">josh<span>OS</span></div>
   <div id="tbclock" class="tb-clock">—</div>
+  <div id="sbSync" style="-webkit-app-region:no-drag;display:flex;align-items:center;gap:.3rem;opacity:.7">
+    <div id="sbDot" style="width:6px;height:6px;border-radius:50%;background:var(--border);transition:background .5s;flex-shrink:0"></div>
+    <span id="sbLbl" style="font-family:var(--font-mono);font-size:.5rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em">Offline</span>
+  </div>
   <button class="tb-btn" onclick="startFM()">⏱ Focus</button>
   <button class="tb-btn" onclick="confirmReset()">↺ Reset</button>
 </div>
@@ -425,7 +429,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);height:
       <div class="tl-quick">
         <input class="tl-qi" id="tlQI" placeholder="What are you doing this hour?" onkeydown="if(event.key==='Enter')tlLog()">
         <button class="tl-qb" onclick="tlLog()">Log Now</button>
-        <button class="tl-qb" style="background:var(--accent2);margin-left:.25rem" onclick="tlPullPhone()">↓ Pull Phone</button>
+        <button class="tl-qb" style="background:var(--surface2);border-color:var(--border);color:var(--text-dim);margin-left:.25rem" onclick="sbPullTimelog(true)">↓ Sync</button>
       </div>
       <div class="tl-tabs">
         <button class="tl-tab active" onclick="switchTLTab('today',this)">Today</button>
@@ -590,11 +594,11 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);height:
               </div>
             </div>
             <div class="sts" id="ss-data">
-              <h3>Data</h3><p class="sdesc">All data stored locally on your Mac. Supabase syncs with your iPhone Time Log.</p>
+              <h3>Data</h3><p class="sdesc">Data stored locally on your Mac. Supabase syncs real-time with iPhone — time log, scorecard, theme, and live stats.</p>
               <div class="sg"><div class="sgl">Anthropic API Key (ADHD Consultant)</div>
                 <div class="sr"><div class="sl">API Key<span class="ssl">console.anthropic.com → API Keys</span></div><div class="sctl"><input type="password" class="hi" id="apiKeyInput" placeholder="sk-ant-…" style="width:200px" oninput="saveAPIKey(this.value)"><button onclick="toggleKey()" class="ob" id="keyBtn" style="padding:.26rem .55rem">Show</button></div></div>
               </div>
-              <div class="sg"><div class="sgl">iOS Sync (Supabase — joshos-timelog)</div>
+              <div class="sg"><div class="sgl">Live Sync (Supabase — joshos-sync)</div>
                 <div class="sr"><div class="sl">Project URL</div><div class="sctl"><input type="text" class="hi" id="sbUrl" placeholder="https://xxxx.supabase.co" style="width:200px" oninput="saveSB()"></div></div>
                 <div class="sr"><div class="sl">Anon Key</div><div class="sctl"><input type="password" class="hi" id="sbKey" placeholder="eyJ…" style="width:200px" oninput="saveSB()"></div></div>
               </div>
@@ -634,8 +638,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);height:
 
 <script>
 // ── CONSTANTS ──────────────────────────────────────────────
-const SB_URL='https://fxhwqnojrcjetpcyhdwa.supabase.co';
-const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4aHdxbm9qcmNqZXRwY3loZHdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTk5NjgsImV4cCI6MjA5MDA3NTk2OH0.TAK78LT2AKEEUooIVeKKXsMMM9VeRrTFPGCFAsoJ8jg';
+const SB_URL='https://lavbxjegicshhfvytapb.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhdmJ4amVnaWNzaGhmdnl0YXBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMzY0NzYsImV4cCI6MjA5MjkxMjQ3Nn0.ndvlkJyLxxmKi-0DQZBbcQjab1g__enxaOmI8bZVs84';
 const SYS={clarity:['c1','c2','c3','c4'],priority:['p1','p2','p3','p4'],execution:['e1','e2','e3','e4'],consistency:['co1','co2','co3','co4'],bounceback:['b1','b2','b3','b4'],mastery:['m1','m2','m3','m4']};
 const MORN=['mr1','mr2','mr3','mr4','mr5','mr6','mr7','mr8'];
 const SC_M=[{k:'dials',g:60},{k:'connects',g:15},{k:'followups',g:5},{k:'closes',g:1},{k:'touches',g:10},{k:'signups',g:6},{k:'quotes',g:3}];
@@ -674,6 +678,7 @@ async function loadData(){
 async function saveData(){
   try{if(window.electronAPI)await window.electronAPI.saveData(appData);else localStorage.setItem('joshos',JSON.stringify(appData));}
   catch(e){try{localStorage.setItem('joshos',JSON.stringify(appData));}catch(e2){}}
+  pushSnapshot();
 }
 
 function saveDataSync(){try{if(window.electronAPI?.saveDataSync)window.electronAPI.saveDataSync(appData);else localStorage.setItem('joshos',JSON.stringify(appData));}catch(e){}}
@@ -871,28 +876,111 @@ function switchTLTab(tab,btn){
   if(tab==='patterns'){const all=Object.values(appData.timeLog||{}).flatMap(d=>Object.values(d));const c=document.getElementById('tlPat');if(c)c.innerHTML=all.length<5?'<div style="color:var(--text-muted);font-family:var(--font-mono);font-size:.68rem;padding:.85rem 0">Need at least 5 entries to show patterns.</div>':`<div style="color:var(--text-muted);font-family:var(--font-mono);font-size:.75rem;padding:.85rem 0">${all.length} hours logged total. Patterns appear after a week of logging.</div>`;}
 }
 
-async function syncTLEntry(dateKey,hour,entry){
-  const url=appData.settings?.supabaseUrl||SB_URL,key=appData.settings?.supabaseKey||SB_KEY;
-  if(!url||!key)return;
-  try{await fetch(url+'/rest/v1/timelog',{method:'POST',headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+key,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({date_key:dateKey,hour,...entry})});}catch(e){}
+// ── SUPABASE SYNC ──────────────────────────────────────────
+let _snapshotTimer=null;
+
+function setSyncStatus(s){
+  const dot=document.getElementById('sbDot'),lbl=document.getElementById('sbLbl');
+  if(!dot||!lbl)return;
+  if(s==='live'){dot.style.background='var(--success)';lbl.textContent='Live';}
+  else if(s==='synced'){dot.style.background='var(--accent)';lbl.textContent='Synced';}
+  else if(s==='err'){dot.style.background='var(--danger)';lbl.textContent='Offline';}
+  else{dot.style.background='var(--text-muted)';lbl.textContent='Sync…';}
 }
 
-async function tlPullPhone(){
-  const url=appData.settings?.supabaseUrl||SB_URL,key=appData.settings?.supabaseKey||SB_KEY;
-  if(!url||!key){showToast('Supabase not configured');return;}
-  showToast('Pulling from phone…');
+function sbHeaders(){
+  const k=appData.settings?.supabaseKey||SB_KEY;
+  return{'apikey':k,'Authorization':'Bearer '+k,'Content-Type':'application/json'};
+}
+function sbBase(){return appData.settings?.supabaseUrl||SB_URL;}
+
+async function syncTLEntry(dateKey,hour,entry){
   try{
-    const r=await fetch(url+'/rest/v1/timelog?order=date_key.desc&limit=200',{headers:{'apikey':key,'Authorization':'Bearer '+key}});
-    if(!r.ok)throw new Error(r.status);
-    const rows=await r.json();let n=0;
+    const r=await fetch(sbBase()+'/rest/v1/timelog',{method:'POST',headers:{...sbHeaders(),'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({date_key:dateKey,hour,...entry})});
+    if(r.ok)setSyncStatus('synced');else setSyncStatus('err');
+  }catch(e){setSyncStatus('err');}
+}
+
+async function sbPullTimelog(manual=false){
+  if(manual)setSyncStatus('sync…');
+  try{
+    const dk=getTDK();
+    const r=await fetch(sbBase()+`/rest/v1/timelog?date_key=eq.${dk}&limit=50`,{headers:sbHeaders()});
+    if(!r.ok){setSyncStatus('err');if(manual)showToast('Sync error: '+r.status);return;}
+    const rows=await r.json();
+    if(!Array.isArray(rows)||!rows.length){setSyncStatus('synced');if(manual)showToast('Up to date ✓');return;}
+    if(!appData.timeLog)appData.timeLog={};
+    if(!appData.timeLog[dk])appData.timeLog[dk]={};
+    let n=0;
     rows.forEach(row=>{
-      if(!appData.timeLog)appData.timeLog={};
-      if(!appData.timeLog[row.date_key])appData.timeLog[row.date_key]={};
-      if(!appData.timeLog[row.date_key][row.hour]){appData.timeLog[row.date_key][row.hour]=row;n++;}
+      const existing=appData.timeLog[dk][row.hour];
+      if(!existing||(row.source==='ios'&&existing.source!=='ios')||(!existing.text)){
+        appData.timeLog[dk][row.hour]={hour:row.hour,text:row.text,timestamp:row.timestamp,source:row.source||'remote',category:row.category||'remote'};
+        n++;
+      }
     });
-    saveData();renderTLTimeline();updateTLBadge();
-    showToast(`Synced ${n} new entries from phone ✓`);
-  }catch(e){showToast('Sync error: '+e.message);}
+    if(n>0){saveData();renderTLTimeline();updateTLBadge();}
+    setSyncStatus('synced');
+    if(manual)showToast(n>0?`Synced ${n} new entr${n===1?'y':'ies'} ✓`:'Up to date ✓');
+  }catch(e){setSyncStatus('err');if(manual)showToast('Sync error: '+e.message);}
+}
+
+function pushSnapshot(){
+  clearTimeout(_snapshotTimer);
+  _snapshotTimer=setTimeout(async()=>{
+    try{
+      const dk=getTDK();
+      const checks=appData.checks||{};
+      const totalChecks=Object.values(checks).filter(Boolean).length;
+      const completionPct=Math.round(totalChecks/24*100);
+      const tlToday=Object.keys(appData.timeLog?.[dk]||{}).length;
+      const gradeEl=document.getElementById('scGL');
+      const grade=gradeEl?gradeEl.textContent:'—';
+      const snap={completionPct,totalChecks,grade,streak:appData.streak||0,wins:(appData.wins||[]).length,tlToday,date:dk,ts:new Date().toISOString()};
+      await fetch(sbBase()+'/rest/v1/joshos_data',{method:'POST',headers:{...sbHeaders(),'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id:1,data:snap,updated_at:new Date().toISOString()})});
+    }catch(e){}
+  },3000);
+}
+
+// Supabase Realtime via WebSocket (Phoenix protocol)
+let _sbWS=null,_sbWsHB=null,_sbWsRef=0;
+function sbConnect(){
+  if(_sbWS&&(_sbWS.readyState===0||_sbWS.readyState===1))return;
+  const wsUrl=(sbBase()).replace('https://','wss://').replace('http://','ws://')+'/realtime/v1/websocket?apikey='+(appData.settings?.supabaseKey||SB_KEY)+'&vsn=1.0.0';
+  try{
+    _sbWS=new WebSocket(wsUrl);
+    _sbWS.onopen=()=>{
+      setSyncStatus('live');
+      const ref=String(++_sbWsRef);
+      _sbWS.send(JSON.stringify({topic:'realtime:public:timelog',event:'phx_join',payload:{config:{broadcast:{self:false},postgres_changes:[{event:'*',schema:'public',table:'timelog'}]}},ref}));
+      clearInterval(_sbWsHB);
+      _sbWsHB=setInterval(()=>{if(_sbWS?.readyState===1)_sbWS.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:String(++_sbWsRef)}));},25000);
+    };
+    _sbWS.onmessage=(ev)=>{
+      try{
+        const msg=JSON.parse(ev.data);
+        const rec=msg.payload?.data?.record||msg.payload?.record;
+        if(!rec)return;
+        if(msg.event==='INSERT'||msg.event==='UPDATE'||msg.payload?.data?.type==='INSERT'||msg.payload?.data?.type==='UPDATE'){
+          const dk=rec.date_key;if(!dk)return;
+          if(!appData.timeLog)appData.timeLog={};
+          if(!appData.timeLog[dk])appData.timeLog[dk]={};
+          const existing=appData.timeLog[dk][rec.hour];
+          if(!existing||existing.text!==rec.text){
+            appData.timeLog[dk][rec.hour]={hour:rec.hour,text:rec.text,timestamp:rec.timestamp,source:rec.source||'ios',category:rec.category||'ios'};
+            saveData();renderTLTimeline();updateTLBadge();
+            if(rec.source==='ios')showToast(`📱 ${fmtH(rec.hour)} logged from iPhone`);
+          }
+          setSyncStatus('live');
+        }
+      }catch(e){}
+    };
+    _sbWS.onerror=()=>setSyncStatus('err');
+    _sbWS.onclose=()=>{
+      setSyncStatus('err');clearInterval(_sbWsHB);_sbWS=null;
+      setTimeout(sbConnect,12000);
+    };
+  }catch(e){setSyncStatus('err');setTimeout(sbConnect,12000);}
 }
 
 // ── TIMER ──────────────────────────────────────────────────
@@ -1067,6 +1155,11 @@ async function init(){
   document.getElementById('todayDate').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
   setInterval(checkTLAlert,60000);checkTLAlert();
   setInterval(archiveToday,5*60*1000);
+  // Start Supabase real-time sync
+  sbConnect();
+  sbPullTimelog();
+  setInterval(sbPullTimelog,30000);
+  pushSnapshot();
 }
 
 init();
