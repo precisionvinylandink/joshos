@@ -6,7 +6,7 @@ let lastData=null;
 const write=d=>{try{fs.writeFileSync(dataFile,JSON.stringify(d,null,2),'utf8');return true;}catch(e){return false;}};
 let win=null;
 function createWindow(){
-  win=new BrowserWindow({width:1400,height:900,minWidth:900,minHeight:600,titleBarStyle:'hiddenInset',trafficLightPosition:{x:16,y:16},backgroundColor:'#0a0a0a',webPreferences:{nodeIntegration:false,contextIsolation:true,preload:path.join(__dirname,'preload.js')},icon:path.join(__dirname,'assets','icon.icns'),show:false});
+  win=new BrowserWindow({width:1400,height:900,minWidth:900,minHeight:600,titleBarStyle:'hiddenInset',trafficLightPosition:{x:16,y:16},backgroundColor:'#0a0a0a',webPreferences:{nodeIntegration:false,contextIsolation:true,preload:path.join(__dirname,'preload.js')},icon:path.join(__dirname,'assets','icon.png'),show:false});
   win.loadFile(path.join(__dirname,'src','index.html'));
   win.once('ready-to-show',()=>win.show());
   win.on('close',()=>{if(lastData)write(lastData);});
