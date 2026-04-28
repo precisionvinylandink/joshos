@@ -598,7 +598,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);height:
               <div class="sg"><div class="sgl">Anthropic API Key (ADHD Consultant)</div>
                 <div class="sr"><div class="sl">API Key<span class="ssl">console.anthropic.com → API Keys</span></div><div class="sctl"><input type="password" class="hi" id="apiKeyInput" placeholder="sk-ant-…" style="width:200px" oninput="saveAPIKey(this.value)"><button onclick="toggleKey()" class="ob" id="keyBtn" style="padding:.26rem .55rem">Show</button></div></div>
               </div>
-              <div class="sg"><div class="sgl">Live Sync (Supabase — joshos-timelog)</div>
+              <div class="sg"><div class="sgl">Live Sync (Supabase — joshos-sync)</div>
                 <div class="sr"><div class="sl">Project URL</div><div class="sctl"><input type="text" class="hi" id="sbUrl" placeholder="https://xxxx.supabase.co" style="width:200px" oninput="saveSB()"></div></div>
                 <div class="sr"><div class="sl">Anon Key</div><div class="sctl"><input type="password" class="hi" id="sbKey" placeholder="eyJ…" style="width:200px" oninput="saveSB()"></div></div>
               </div>
@@ -638,8 +638,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);height:
 
 <script>
 // ── CONSTANTS ──────────────────────────────────────────────
-const SB_URL='https://fxhwqnojrcjetpcyhdwa.supabase.co';
-const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4aHdxbm9qcmNqZXRwY3loZHdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTk5NjgsImV4cCI6MjA5MDA3NTk2OH0.TAK78LT2AKEEUooIVeKKXsMMM9VeRrTFPGCFAsoJ8jg';
+const SB_URL='https://lavbxjegicshhfvytapb.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhdmJ4amVnaWNzaGhmdnl0YXBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMzY0NzYsImV4cCI6MjA5MjkxMjQ3Nn0.ndvlkJyLxxmKi-0DQZBbcQjab1g__enxaOmI8bZVs84';
 const SYS={clarity:['c1','c2','c3','c4'],priority:['p1','p2','p3','p4'],execution:['e1','e2','e3','e4'],consistency:['co1','co2','co3','co4'],bounceback:['b1','b2','b3','b4'],mastery:['m1','m2','m3','m4']};
 const MORN=['mr1','mr2','mr3','mr4','mr5','mr6','mr7','mr8'];
 const SC_M=[{k:'dials',g:60},{k:'connects',g:15},{k:'followups',g:5},{k:'closes',g:1},{k:'touches',g:10},{k:'signups',g:6},{k:'quotes',g:3}];
