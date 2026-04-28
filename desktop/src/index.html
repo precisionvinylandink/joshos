@@ -640,6 +640,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);height:
 // ── CONSTANTS ──────────────────────────────────────────────
 const SB_URL='https://lavbxjegicshhfvytapb.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhdmJ4amVnaWNzaGhmdnl0YXBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMzY0NzYsImV4cCI6MjA5MjkxMjQ3Nn0.ndvlkJyLxxmKi-0DQZBbcQjab1g__enxaOmI8bZVs84';
+// Stable per-install ID stored in localStorage so multiple Macs are distinguishable
+const DEVICE_ID=(()=>{let id=localStorage.getItem('_joshDevId');if(!id){id='desk-'+Math.random().toString(36).slice(2);localStorage.setItem('_joshDevId',id);}return id;})();
 const SYS={clarity:['c1','c2','c3','c4'],priority:['p1','p2','p3','p4'],execution:['e1','e2','e3','e4'],consistency:['co1','co2','co3','co4'],bounceback:['b1','b2','b3','b4'],mastery:['m1','m2','m3','m4']};
 const MORN=['mr1','mr2','mr3','mr4','mr5','mr6','mr7','mr8'];
 const SC_M=[{k:'dials',g:60},{k:'connects',g:15},{k:'followups',g:5},{k:'closes',g:1},{k:'touches',g:10},{k:'signups',g:6},{k:'quotes',g:3}];
@@ -676,9 +678,10 @@ async function loadData(){
 }
 
 async function saveData(){
+  appData._ts=new Date().toISOString();appData._device=DEVICE_ID;
   try{if(window.electronAPI)await window.electronAPI.saveData(appData);else localStorage.setItem('joshos',JSON.stringify(appData));}
   catch(e){try{localStorage.setItem('joshos',JSON.stringify(appData));}catch(e2){}}
-  pushSnapshot();
+  pushSnapshot();pushFullState();
 }
 
 function saveDataSync(){try{if(window.electronAPI?.saveDataSync)window.electronAPI.saveDataSync(appData);else localStorage.setItem('joshos',JSON.stringify(appData));}catch(e){}}
@@ -942,6 +945,50 @@ function pushSnapshot(){
   },3000);
 }
 
+// ── FULL STATE SYNC (multi-device) ─────────────────────────
+let _fullStateTimer=null,_lastPullTs=0;
+
+function pushFullState(){
+  clearTimeout(_fullStateTimer);
+  _fullStateTimer=setTimeout(async()=>{
+    try{
+      const d={...appData,_device:DEVICE_ID,_ts:new Date().toISOString()};
+      delete d.aiHistory; // skip — too large, device-specific
+      if(d.history){const ks=Object.keys(d.history).sort((a,b)=>new Date(b)-new Date(a)).slice(0,60);const h={};ks.forEach(k=>h[k]=d.history[k]);d.history=h;}
+      await fetch(sbBase()+'/rest/v1/joshos_data',{method:'POST',headers:{...sbHeaders(),'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id:2,data:d,updated_at:d._ts})});
+    }catch(e){}
+  },5000);
+}
+
+async function pullFullState(){
+  try{
+    const r=await fetch(sbBase()+'/rest/v1/joshos_data?id=eq.2&limit=1',{headers:sbHeaders()});
+    if(!r.ok)return false;
+    const rows=await r.json();
+    if(!rows.length||!rows[0].data)return false;
+    const remote=rows[0].data,remoteTs=new Date(rows[0].updated_at||0).getTime();
+    if(remoteTs<=_lastPullTs)return false;
+    _lastPullTs=remoteTs;
+    const localEmpty=!appData.lastDate;
+    const diffDevice=remote._device&&remote._device!==DEVICE_ID;
+    const remoteNewer=remoteTs>(new Date(appData._ts||0).getTime())+30000;
+    if(localEmpty||(diffDevice&&remoteNewer)){
+      const localTL={...appData.timeLog};
+      appData={...appData,...remote};
+      if(!appData.settings)appData.settings={};
+      appData.settings.supabaseUrl=SB_URL;appData.settings.supabaseKey=SB_KEY;
+      // Merge timelog: keep all hours from both devices
+      appData.timeLog={...(remote.timeLog||{})};
+      Object.keys(localTL).forEach(dk=>{
+        if(!appData.timeLog[dk])appData.timeLog[dk]={};
+        Object.assign(appData.timeLog[dk],localTL[dk]);
+      });
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+
 // Supabase Realtime via WebSocket (Phoenix protocol)
 let _sbWS=null,_sbWsHB=null,_sbWsRef=0;
 function sbConnect(){
@@ -1160,6 +1207,25 @@ async function init(){
   sbPullTimelog();
   setInterval(sbPullTimelog,30000);
   pushSnapshot();
+  // Full state sync for multi-device
+  const cloudUpdated=await pullFullState();
+  if(cloudUpdated){
+    initCheckboxes();renderWins();renderSDots();restoreMorning();restoreJournal();
+    renderScorecard();renderTLTimeline();updateTLBadge();
+    showToast('☁️ Synced from another device');
+    saveData();
+  } else {
+    pushFullState();
+  }
+  setInterval(async()=>{
+    const updated=await pullFullState();
+    if(updated){
+      initCheckboxes();renderWins();renderSDots();restoreMorning();restoreJournal();
+      renderScorecard();renderTLTimeline();updateTLBadge();
+      showToast('☁️ Synced from '+((appData._device||'').includes('desk')?'Mac':'iPhone'));
+      saveData();
+    }
+  },60000);
 }
 
 init();
