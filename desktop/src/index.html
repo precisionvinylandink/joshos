@@ -1349,18 +1349,35 @@ const G_CAT={
   flower_pink:  {n:'Tulip',      ico:'🌷',tier:'small', cost:6,  sprite:'flower',pv:'#ef8fc0',fp:1},
   flower_violet:{n:'Iris',       ico:'💠',tier:'small', cost:0,  sprite:'flower',pv:'#9b6fd8',fp:1,unlock:'streak_7'},
   sprout:       {n:'Sprout',     ico:'🌱',tier:'small', cost:3,  sprite:'sprout',fp:1},
+  mushroom:     {n:'Mushrooms',  ico:'🍄',tier:'small', cost:5,  sprite:'mushroom',fp:1},
+  rock:         {n:'Rock',       ico:'🪨',tier:'small', cost:5,  sprite:'rock',fp:1},
   bush:         {n:'Bush',       ico:'🌳',tier:'medium',cost:14, sprite:'bush',fp:1,scale:2},
   tree_oak:     {n:'Oak',        ico:'🌳',tier:'medium',cost:30, sprite:'oak',fp:1,scale:2},
   tree_pine:    {n:'Pine',       ico:'🌲',tier:'medium',cost:30, sprite:'pine',fp:1,scale:2},
+  tree_autumn:  {n:'Autumn Tree',ico:'🍁',tier:'medium',cost:34, sprite:'autumnoak',fp:1,scale:2},
   tree_golden:  {n:'Golden Tree',ico:'🍂',tier:'rare',  cost:0,  sprite:'goldoak',fp:1,scale:2,unlock:'streak_14'},
-  plot:         {n:'Garden Bed', ico:'🥬',tier:'medium',cost:24, sprite:'plot',fp:1},
-  path:         {n:'Path Tile',  ico:'🟫',tier:'small', cost:3,  sprite:null,fp:1,ground:true},
+  bed_carrot:   {n:'Carrot Bed', ico:'🥕',tier:'medium',cost:20, sprite:'bed',crop:'carrot',fp:1},
+  bed_tomato:   {n:'Tomato Bed', ico:'🍅',tier:'medium',cost:20, sprite:'bed',crop:'tomato',fp:1},
+  bed_lettuce:  {n:'Lettuce Bed',ico:'🥬',tier:'medium',cost:20, sprite:'bed',crop:'lettuce',fp:1},
+  bed_corn:     {n:'Corn Bed',   ico:'🌽',tier:'medium',cost:20, sprite:'bed',crop:'corn',fp:1},
+  bed_berry:    {n:'Berry Bed',  ico:'🫐',tier:'medium',cost:22, sprite:'bed',crop:'berry',fp:1},
+  path:         {n:'Dirt Path',  ico:'🟫',tier:'small', cost:3,  sprite:null,fp:1,ground:true,g:'path'},
+  path_stone:   {n:'Stone Path', ico:'⬜',tier:'small', cost:4,  sprite:null,fp:1,ground:true,g:'stone'},
+  fence:        {n:'Fence ⟋',    ico:'🚧',tier:'small', cost:4,  sprite:'fenceA',fp:1},
+  fence2:       {n:'Fence ⟍',    ico:'🚧',tier:'small', cost:4,  sprite:'fenceB',fp:1},
+  bridge:       {n:'Bridge',     ico:'🌉',tier:'small', cost:15, sprite:null,fp:1,water:true,ground:true,g:'bridge'},
   bench:        {n:'Bench',      ico:'🪑',tier:'medium',cost:18, sprite:'bench',fp:1},
   lantern:      {n:'Lantern',    ico:'🏮',tier:'medium',cost:14, sprite:'lantern',fp:1,light:true},
+  well:         {n:'Well',       ico:'⛲',tier:'major', cost:70, sprite:'well',fp:1,scale:2},
   pond:         {n:'Pond',       ico:'💧',tier:'major', cost:90, sprite:'pond',fp:2,flat:true},
   greenhouse:   {n:'Greenhouse', ico:'🏡',tier:'major', cost:140,sprite:'greenhouse',fp:2,light:true},
   cabin:        {n:'Cabin',      ico:'🛖',tier:'major', cost:170,sprite:'cabin',fp:2,light:true},
-  monument:     {n:'Monument',   ico:'🗿',tier:'landmark',cost:0,sprite:'monument',fp:1,light:true,scale:2,unlock:'streak_90'}
+  gazebo:       {n:'Gazebo',     ico:'⛩',tier:'major', cost:130,sprite:'gazebo',fp:2},
+  house_red:    {n:'Cottage · Red', ico:'🏠',tier:'major',cost:220,sprite:'house',hv:'#a8433c',fp:2,light:true},
+  house_blue:   {n:'Cottage · Blue',ico:'🏠',tier:'major',cost:220,sprite:'house',hv:'#3f7fae',fp:2,light:true},
+  house_gold:   {n:'Cottage · Gold',ico:'🏠',tier:'major',cost:220,sprite:'house',hv:'#c9a13b',fp:2,light:true},
+  monument:     {n:'Monument',   ico:'🗿',tier:'landmark',cost:0,sprite:'monument',fp:1,light:true,scale:2,unlock:'streak_90'},
+  plot:         {n:'Garden Bed', ico:'🥬',tier:'medium',cost:24, sprite:'plot',fp:1,legacy:true}
 };
 // meaningful-progress events → coins + growth. cap = max per day (anti-farming)
 const G_EVENTS={
@@ -1374,9 +1391,9 @@ const G_EVENTS={
   task_done:       {coins:2, cap:6, label:'Captured task finished',qualify:true},
   streak_milestone:{coins:0, cap:99,label:'Streak milestone'}
 };
-const G_GROW={small:['flower_red','flower_yellow','flower_white','flower_pink','sprout'],
-              medium:['bush','tree_oak','tree_pine'],
-              major:['pond','greenhouse','cabin']};
+const G_GROW={small:['flower_red','flower_yellow','flower_white','flower_pink','sprout','mushroom'],
+              medium:['bush','tree_oak','tree_pine','bed_carrot','bed_tomato','bed_lettuce'],
+              major:['well','pond','greenhouse','cabin','gazebo','house_red','house_blue','house_gold']};
 const G_STREAK=[
   {days:3, coins:12,           label:'3-day streak'},
   {days:7, item:'flower_violet',label:'7-day streak — rare iris'},
@@ -1400,30 +1417,103 @@ const G_SEASON_GRASS={spring:['#5aa74f','#78c468','#468c3e'],summer:['#4f9c46','
                       autumn:['#8a9440','#a8b055','#6e7a33'],winter:['#a3b3a6','#bccabe','#87977f']};
 
 // ── STATE ────────────────────────────────────────────────────
-function gDefaults(){return{version:1,createdAt:new Date().toISOString(),coins:0,totalEarned:0,
+const G_PARCEL=6; // world grows in 6×6-tile parcels of cleared forest
+function gDefaults(){return{version:2,createdAt:new Date().toISOString(),coins:0,totalEarned:0,
   objects:[],inventory:[],unlocks:[],history:[],dailyEvents:{},fired:{},
+  parcels:[],
   streak:{current:0,best:0,lastQualified:null,claimed:[]},
   window:{day:6,startMin:600,durationMin:60,enabled:true},
-  seed:Math.floor(Math.random()*1e9),size:{w:18,h:14},audio:false,character:true};}
+  seed:Math.floor(Math.random()*1e9),audio:false,character:true};}
 function gEnsure(){
   if(!appData.garden){appData.garden=gDefaults();gSeedStarter();}
   const g=appData.garden;
   ['objects','inventory','unlocks','history'].forEach(k=>{if(!Array.isArray(g[k]))g[k]=[];});
   if(!g.streak)g.streak={current:0,best:0,lastQualified:null,claimed:[]};
   if(!g.window)g.window={day:6,startMin:600,durationMin:60,enabled:true};
-  if(!g.size)g.size={w:18,h:14};
   if(!g.dailyEvents)g.dailyEvents={};if(!g.fired)g.fired={};
   if(!g.seed)g.seed=1234567;
+  if(!Array.isArray(g.parcels)||!g.parcels.length){ // v1→v2 migration: 3×3 starting clearing
+    g.parcels=[];for(let px=0;px<3;px++)for(let py=0;py<3;py++)g.parcels.push({px,py,unlockedAt:g.createdAt||new Date().toISOString()});
+    window._gPSetLen=-1;
+    // relocate any old objects that now sit on water or forest fringe
+    (g.objects||[]).forEach(o=>{if(!gBuildable(o.tx,o.ty,G_CAT[o.type]?.water)){const s=gFindFreeTile(G_CAT[o.type]?.fp||1);if(s){o.tx=s.tx;o.ty=s.ty;}}});
+    g.version=2;
+  }
   return g;
 }
 function gSeedStarter(){
   const g=appData.garden;
-  const put=(type,tx,ty,why)=>g.objects.push({id:'g'+Date.now()+Math.random().toString(36).slice(2,6),type,tx,ty,earnedFor:why,unlockedAt:new Date().toISOString(),placedAt:new Date().toISOString()});
-  [[8,10],[8,9],[9,9],[9,8],[9,7],[10,7]].forEach(([x,y])=>put('path',x,y,'The first path'));
-  put('flower_red',7,9,'Garden founded');put('flower_yellow',10,8,'Garden founded');
-  put('sprout',7,10,'Garden founded');put('bush',11,6,'Garden founded');
-  put('tree_oak',5,5,'Garden founded');put('lantern',10,6,'Garden founded');
-  g.history.unshift({ts:new Date().toISOString(),kind:'founded',label:'Garden founded',detail:'The world begins. Everything from here is earned.'});
+  g.parcels=[];for(let px=0;px<3;px++)for(let py=0;py<3;py++)g.parcels.push({px,py,unlockedAt:new Date().toISOString()});
+  window._gPSetLen=-1;
+  const put=(type,tx,ty,why)=>{if(gBuildable(tx,ty,G_CAT[type]?.water))g.objects.push({id:'g'+Date.now()+Math.random().toString(36).slice(2,6),type,tx,ty,earnedFor:why||'Garden founded',unlockedAt:new Date().toISOString(),placedAt:new Date().toISOString()});};
+  // a small homestead clearing: well, plot with fences, paths, a bridge over the river
+  [[5,8],[5,9],[6,9],[6,10],[7,10],[8,10]].forEach(([x,y])=>put('path_stone',x,y,'The first path'));
+  put('well',5,7,'The old well — here before you');
+  put('bed_carrot',3,9,'Garden founded');put('bed_tomato',3,10,'Garden founded');
+  put('fence',2,8,'Garden founded');put('fence',3,8,'Garden founded');put('fence2',1,9,'Garden founded');put('fence2',1,10,'Garden founded');
+  put('flower_red',6,8,'Garden founded');put('flower_yellow',4,11,'Garden founded');put('sprout',7,12,'Garden founded');
+  put('lantern',6,11,'Garden founded');put('bench',4,7,'Garden founded');
+  put('tree_oak',13,13,'Garden founded');put('bush',14,6,'Garden founded');put('mushroom',12,12,'Garden founded');
+  const ry=8,rx=gRiverX(ry);put('bridge',rx,ry,'The first crossing');put('bridge',rx+1,ry,'The first crossing');
+  [[rx+3,8],[rx+4,8],[rx+5,8]].forEach(([x,y])=>put('path',x,y,'The first path'));
+  g.history.unshift({ts:new Date().toISOString(),kind:'founded',label:'Garden founded',detail:'A clearing in the forest, a well, a river. Everything from here is earned.'});
+}
+// ── WORLD GEOGRAPHY (parcels · river · forest fringe) ────────
+function gParcelSet(){
+  const g=appData.garden||{parcels:[]};
+  if(!window._gPSet||window._gPSetLen!==g.parcels.length){window._gPSet=new Set(g.parcels.map(p=>p.px+','+p.py));window._gPSetLen=g.parcels.length;}
+  return window._gPSet;
+}
+function gBounds(){
+  const g=gEnsure();let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  g.parcels.forEach(p=>{x0=Math.min(x0,p.px*G_PARCEL);y0=Math.min(y0,p.py*G_PARCEL);x1=Math.max(x1,(p.px+1)*G_PARCEL-1);y1=Math.max(y1,(p.py+1)*G_PARCEL-1);});
+  return{x0,y0,x1,y1};
+}
+function gRiverX(ty){const s=(appData.garden?.seed||7)%97;return Math.round(9+1.7*Math.sin(ty*0.24+s)+1.2*Math.sin(ty*0.11+s*1.7));} // gentle meander — never steps >1/row, so the river stays connected
+function gIsWater(tx,ty){const r=gRiverX(ty);return tx===r||tx===r+1;}
+function gIsFringe(tx,ty){ // uncleared forest ring on the border of the known world
+  if(!gOnIsland(tx,ty)||gIsWater(tx,ty))return false;
+  const back=!gOnIsland(tx-1,ty)||!gOnIsland(tx,ty-1);
+  const front=!gOnIsland(tx+1,ty)||!gOnIsland(tx,ty+1);
+  if(!back&&!front)return false;
+  const h=((tx*73+ty*131+(appData.garden?.seed||7))%10+10)%10;
+  return back?h<8:h<4;
+}
+function gBuildable(tx,ty,wantWater){
+  if(!gOnIsland(tx,ty)||gIsFringe(tx,ty))return false;
+  return wantWater?gIsWater(tx,ty):!gIsWater(tx,ty);
+}
+// ── EXPANSION (clear new forest — the 10-year mechanic) ──────
+function gExpandCost(){return 80+50*Math.max(0,(appData.garden?.parcels.length||9)-9);}
+function gAdjacentLocked(){
+  const set=gParcelSet(),out=new Set();
+  gEnsure().parcels.forEach(p=>{[[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{const k=(p.px+dx)+','+(p.py+dy);if(!set.has(k))out.add(k);});});
+  return[...out].map(k=>k.split(',').map(Number));
+}
+function gBuyParcel(px,py){
+  const g=gEnsure(),cost=gExpandCost();
+  if(!gAdjacentLocked().some(([ax,ay])=>ax===px&&ay===py))return;
+  if(g.coins<cost){showToast(`Clearing this land costs ◈${cost}`);return;}
+  g.coins-=cost;
+  g.parcels.push({px,py,unlockedAt:new Date().toISOString()});
+  window._gPSetLen=-1;
+  g.history.unshift({ts:new Date().toISOString(),kind:'expand',label:'New land cleared',detail:'The forest recedes — the world grows.',coins:-cost});
+  // exploration: sometimes the new land holds something
+  const h=((px*7919+py*104729+g.seed)>>>0);
+  if(h%10<4){
+    const finds=['tree_autumn','rock','mushroom','tree_oak','flower_violet'];
+    const type=finds[h%finds.length];
+    for(let i=0;i<36;i++){
+      const tx=px*G_PARCEL+((h+i*5)%G_PARCEL),ty=py*G_PARCEL+((Math.floor(h/7)+i*11)%G_PARCEL);
+      if(gBuildable(tx,ty)&&!gOccupied()[tx+','+ty]){
+        g.objects.push({id:'g'+Date.now(),type,tx,ty,earnedFor:'Discovered while clearing new land',unlockedAt:new Date().toISOString(),placedAt:new Date().toISOString()});
+        g.history.unshift({ts:new Date().toISOString(),kind:'found',label:`${G_CAT[type].n} discovered`,detail:'It was waiting in the forest.',item:type});
+        showToast(`🌲 Land cleared — you found ${G_CAT[type].n.toLowerCase()} in the forest`);
+        break;
+      }
+    }
+  } else showToast('🌲 New land cleared');
+  saveData();gRefreshHUD();gEditBarUI();gWindowUI();
 }
 
 // ── DATE HELPERS ─────────────────────────────────────────────
@@ -1490,21 +1580,19 @@ function gAutoGrow(tier,reason){
 }
 function gOccupied(){
   const g=gEnsure(),m={};
-  g.objects.forEach(o=>{const fp=G_CAT[o.type]?.fp||1;for(let dx=0;dx<fp;dx++)for(let dy=0;dy<fp;dy++){if(!(G_CAT[o.type]?.ground&&false))m[(o.tx+dx)+','+(o.ty+dy)]=o;}});
+  g.objects.forEach(o=>{const fp=G_CAT[o.type]?.fp||1;for(let dx=0;dx<fp;dx++)for(let dy=0;dy<fp;dy++)m[(o.tx+dx)+','+(o.ty+dy)]=o;});
   return m;
 }
 function gOnIsland(tx,ty){
-  const{w,h}=gEnsure().size;
-  if(tx<0||ty<0||tx>=w||ty>=h)return false;
-  if(tx+ty<2||((w-1-tx)+ty)<2||(tx+(h-1-ty))<2||((w-1-tx)+(h-1-ty))<2)return false;
-  return true;
+  return gParcelSet().has(Math.floor(tx/G_PARCEL)+','+Math.floor(ty/G_PARCEL));
 }
 function gFindFreeTile(fp){
-  const g=gEnsure(),occ=gOccupied();
-  for(let tries=0;tries<160;tries++){
-    const tx=Math.floor(Math.random()*g.size.w),ty=Math.floor(Math.random()*g.size.h);
+  const b=gBounds(),occ=gOccupied();
+  const W=b.x1-b.x0+1,H=b.y1-b.y0+1;
+  for(let tries=0;tries<240;tries++){
+    const tx=b.x0+Math.floor(Math.random()*W),ty=b.y0+Math.floor(Math.random()*H);
     let ok=true;
-    for(let dx=0;dx<fp&&ok;dx++)for(let dy=0;dy<fp&&ok;dy++){if(!gOnIsland(tx+dx,ty+dy)||occ[(tx+dx)+','+(ty+dy)])ok=false;}
+    for(let dx=0;dx<fp&&ok;dx++)for(let dy=0;dy<fp&&ok;dy++){if(!gBuildable(tx+dx,ty+dy)||occ[(tx+dx)+','+(ty+dy)])ok=false;}
     if(ok)return{tx,ty};
   }
   return null;
@@ -1531,7 +1619,10 @@ const G_ROWS={
   bench:['BBBBBBBBBBB','B.........B','BBBBBBBBBBB','b.b.....b.b','b.b.....b.b'],
   lantern:['.SSS.','.SNS.','.SSS.','..s..','..s..','..s..','..s..','.sss.'],
   monument:['...ss...','..sSSs..','..sNSs..','..sSSs..','...SS...','...SS...','..sSSs..','..sSSs..','.sSSSSs.','.sSSSSs.','ssSSSSss','sSSSSSSs'],
-  char:['..ooo..','..off..','..fff..','.ccccc.','c.ccc.c','.ccccc.','..c.c..','..t.t..','..t.t..','..u.u..']
+  char:['..ooo..','..off..','..fff..','.ccccc.','c.ccc.c','.ccccc.','..c.c..','..t.t..','..t.t..','..u.u..'],
+  well:['..RRRRRRRRR..','.RRrrrrrrrRR.','..P.......P..','..P..c....P..','..P..c....P..','.SSSSSSSSSSS.','.SsWWWwWWWsS.','.SsWwWWWWWsS.','.SSSSSSSSSSS.','..SSsSSSsSS..','..SSSSSSSSS..'],
+  rock:['...ss....','..sSSs...','.sSSSSs..','sSSSsSSs.','sSSSSSSss','.sssssss.'],
+  mushroom:['..rrr....','.rrwrr...','..ee..rrr','..ee.rrwr','......ee.','......ee.']
 };
 function gPal(sprite,pv){
   const base={G:'#357a3e',g:'#4d9c4e',D:'#22572a',b:'#5c3d22',T:'#7a5230',s:'#3f7d3a'};
@@ -1540,13 +1631,22 @@ function gPal(sprite,pv){
     case 'sprout':return{g:'#6ab85a',s:'#3f7d3a'};
     case 'bush':case 'oak':case 'pine':return base;
     case 'goldoak':return{G:'#d9a53a',g:'#f0c95c',D:'#a8762a',b:'#5c3d22',T:'#7a5230'};
+    case 'autumnoak':return{G:'#c96f2e',g:'#e8973f',D:'#9c4f1e',b:'#5c3d22',T:'#7a5230'};
     case 'plot':return{b:'#5c3d22',p:'#4a3120',q:'#6ab85a'};
     case 'bench':return{B:'#8a6440',b:'#4d3520'};
     case 'lantern':return{S:'#4a4f57',s:'#33373d',N:'#ffd98a'};
     case 'monument':return{S:'#9aa0a8',s:'#6d737b',N:'#8ee6ff'};
     case 'char':return{o:'#3b2a1c',f:'#e8b98a',c:'#4a6b8a',t:'#33373d',u:'#221a12'};
+    case 'well':return{R:'#6b4a2f',r:'#8a6440',P:'#5c3d22',S:'#9aa0a8',s:'#6d737b',W:'#3f9fd8',w:'#7cc7ea',c:'#c9a13b'};
+    case 'rock':return{S:'#9aa0a8',s:'#6d737b'};
+    case 'mushroom':return{r:'#c0392b',w:'#f2e8dc',e:'#e8dcc8'};
   }
   return base;
+}
+function gShade(hex,f){ // f<0 darkens, f>0 lightens
+  const n=parseInt(hex.slice(1),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+  const m=c=>Math.max(0,Math.min(255,Math.round(f<0?c*(1+f):c+(255-c)*f)));
+  return `rgb(${m(r)},${m(g)},${m(b)})`;
 }
 function gSprite(type,pv){
   const cat=G_CAT[type]||{};
@@ -1554,9 +1654,140 @@ function gSprite(type,pv){
   if(sp==='greenhouse')return gBuildGreenhouse();
   if(sp==='cabin')return gBuildCabin();
   if(sp==='pond')return gBuildPond();
-  const rowsKey=sp==='goldoak'?'oak':sp;
+  if(sp==='house')return gBuildHouse(cat.hv||'#a8433c');
+  if(sp==='gazebo')return gBuildGazebo();
+  if(sp==='bridge')return gBuildBridge();
+  if(sp==='fenceA')return gBuildFence(0);
+  if(sp==='fenceB')return gBuildFence(1);
+  if(sp==='bed')return gBuildBed(cat.crop||'carrot',2);
+  const rowsKey=sp==='goldoak'||sp==='autumnoak'?'oak':sp;
   if(!G_ROWS[rowsKey])return null;
   return gSpr({key:sp+(pv||cat.pv||''),rows:G_ROWS[rowsKey],pal:gPal(sp,pv||cat.pv)});
+}
+// crop beds with real-time growth stages (0 = <1 day, 1 = <3 days, 2 = mature)
+function gCropStage(o){const d=(Date.now()-new Date(o.placedAt||o.unlockedAt||0).getTime())/86400000;return d<1?0:d<3?1:2;}
+function gBuildBed(crop,stage){
+  const key='bed'+crop+stage;if(gSprCache[key])return gSprCache[key];
+  const w=16,h=15,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+  const oy=7; // bed diamond occupies rows oy..oy+7
+  for(let y=0;y<8;y++){
+    const half=y<4?(y+1)*2:(8-y)*2;
+    for(let px=8-half;px<8+half;px++){
+      const rim=px===8-half||px===8+half-1||y===0||y===7;
+      x.fillStyle=rim?'#6b4a2f':((px*7+y*13)%9===0?'#3a2817':'#4a3120');
+      x.fillRect(px,y+oy,1,1);
+    }
+  }
+  const spots=[[5,oy+3],[8,oy+2],[11,oy+3],[8,oy+5]];
+  const drawCrop=(cx,cy)=>{
+    if(stage===0){x.fillStyle='#6ab85a';x.fillRect(cx,cy,1,1);return;}
+    switch(crop){
+      case 'carrot':
+        x.fillStyle='#4d9c4e';x.fillRect(cx-1,cy-1,1,1);x.fillRect(cx+1,cy-1,1,1);x.fillRect(cx,cy,1,1);
+        if(stage===2){x.fillStyle='#e8973f';x.fillRect(cx,cy+1,1,1);}break;
+      case 'tomato':
+        x.fillStyle='#357a3e';x.fillRect(cx-1,cy-1,3,2);
+        if(stage===2){x.fillStyle='#d84a3a';x.fillRect(cx-1,cy,1,1);x.fillRect(cx+1,cy-1,1,1);}break;
+      case 'lettuce':
+        x.fillStyle='#a8d878';x.fillRect(cx-1,cy-1,3,2);
+        if(stage===2){x.fillStyle='#7cc463';x.fillRect(cx-1,cy,3,1);x.fillStyle='#d8f0a8';x.fillRect(cx,cy-1,1,1);}break;
+      case 'corn':
+        x.fillStyle='#7aa54a';x.fillRect(cx,cy-2,1,3);
+        if(stage===2){x.fillRect(cx,cy-4,1,2);x.fillStyle='#e8d44a';x.fillRect(cx,cy-3,1,1);x.fillStyle='#5c8a3a';x.fillRect(cx-1,cy-2,1,1);x.fillRect(cx+1,cy-3,1,1);}break;
+      case 'berry':
+        x.fillStyle='#2c5a34';x.fillRect(cx-1,cy-1,3,2);
+        if(stage===2){x.fillStyle='#5677d8';x.fillRect(cx,cy-1,1,1);x.fillRect(cx-1,cy,1,1);x.fillRect(cx+1,cy,1,1);}break;
+    }
+  };
+  spots.forEach(([sx,sy])=>drawCrop(sx,sy));
+  return gSprCache[key]={cv:c,w,h:15,lights:[]};
+}
+function gBuildHouse(hv){
+  const key='house'+hv;if(gSprCache[key])return gSprCache[key];
+  const w=24,h=24,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+  const dark=gShade(hv,-0.3),wall='#e8dcc0',beam='#6b4a2f';
+  for(let y=0;y<10;y++){ // gabled roof
+    const half=Math.floor((y+2)*(w/2)/10);
+    for(let px=Math.max(0,12-half);px<Math.min(w,12+half);px++){x.fillStyle=(y%2===0)?hv:dark;x.fillRect(px,y,1,1);}
+  }
+  x.fillStyle=dark;x.fillRect(1,9,22,1);
+  for(let y=10;y<h-1;y++)for(let px=2;px<w-2;px++){ // walls with timber frame
+    const fr=px===2||px===w-3||y===h-2||px===12;
+    x.fillStyle=fr?beam:((px*5+y*3)%17===0?'#ded0b0':wall);x.fillRect(px,y,1,1);
+  }
+  for(let y=h-9;y<h-1;y++)for(let px=4;px<=8;px++){x.fillStyle=(px===4||px===8||y===h-9)?beam:'#4d3520';x.fillRect(px,y,1,1);} // door
+  const lights=[];
+  for(let y=13;y<=16;y++)for(let px=15;px<=19;px++){const fr=px===15||px===19||y===13||y===16;x.fillStyle=fr?beam:'#ffd98a';x.fillRect(px,y,1,1);if(!fr)lights.push([px,y]);} // window
+  return gSprCache[key]={cv:c,w,h,lights};
+}
+function gBuildGazebo(){
+  if(gSprCache.gazebo)return gSprCache.gazebo;
+  const w=26,h=24,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+  const R='#b0413e',rD='#7e2e2c',P='#c8b89a',S='#9aa0a8';
+  x.fillStyle='#e8d44a';x.fillRect(12,0,2,2);
+  for(let y=2;y<10;y++){const half=Math.floor((y-1)*(w/2)/9);
+    for(let px=13-half;px<13+half;px++){x.fillStyle=(y%2===0)?R:rD;x.fillRect(px,y,1,1);}}
+  x.fillStyle=rD;x.fillRect(2,9,22,1);
+  [[3,10],[21,10],[7,12],[17,12]].forEach(([px,py])=>{x.fillStyle=P;x.fillRect(px,py,2,19-py);});
+  for(let y=0;y<6;y++){ // stone plinth diamond
+    const half=y<3?(y+1)*4:(6-y)*4;
+    for(let px=13-half;px<13+half;px++){x.fillStyle=(y===0||(px+y)%11===0)?'#b8bec6':S;x.fillRect(px,y+17,1,1);}
+  }
+  return gSprCache.gazebo={cv:c,w,h,lights:[]};
+}
+function gBuildBridge(){
+  if(gSprCache.bridge)return gSprCache.bridge;
+  const w=18,h=11,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+  x.fillStyle='#5c3d22';x.fillRect(0,2,2,6);x.fillRect(16,2,2,6);
+  for(let y=3;y<9;y++)for(let px=1;px<17;px++){x.fillStyle=(px%4===0)?'#6b4a2f':(y===3||y===8)?'#7a5230':'#8a6440';x.fillRect(px,y,1,1);}
+  x.fillStyle='#4d3520';x.fillRect(0,1,18,1);
+  return gSprCache.bridge={cv:c,w,h,lights:[]};
+}
+function gBuildFence(dir){
+  const key='fence'+dir;if(gSprCache[key])return gSprCache[key];
+  const w=18,h=13,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+  const posts=dir===0?[[2,1],[8,4],[14,7]]:[[14,1],[8,4],[2,7]];
+  for(let px=2;px<16;px++){ // two rails following the iso edge slope
+    const ry=dir===0?2+Math.floor((px-2)*0.5):2+Math.floor((15-px)*0.5);
+    x.fillStyle='#7a5230';x.fillRect(px,ry+1,1,1);x.fillRect(px,ry+3,1,1);
+  }
+  posts.forEach(([px,py])=>{x.fillStyle='#5c3d22';x.fillRect(px,py,2,6);x.fillStyle='#8a6440';x.fillRect(px,py,2,1);});
+  return gSprCache[key]={cv:c,w,h,lights:[]};
+}
+function gWaterTile(frame,variant,mask){ // mask bits: 1=UL land 2=UR 4=LR 8=LL — sand banks only against land
+  const key='water'+frame+variant+'m'+mask;if(gSprCache[key])return gSprCache[key];
+  const c=document.createElement('canvas');c.width=16;c.height=8;const x=c.getContext('2d');
+  for(let y=0;y<8;y++){
+    const half=y<4?(y+1)*2:(8-y)*2;
+    for(let px=8-half;px<8+half;px++){
+      let bank=false;
+      if(y===0)bank=(px<8?(mask&1):(mask&2));
+      else if(y===7)bank=(px<8?(mask&8):(mask&4));
+      else if(y<4)bank=(px===8-half&&(mask&1))||(px===8+half-1&&(mask&2));
+      else bank=(px===8-half&&(mask&8))||(px===8+half-1&&(mask&4));
+      let col;
+      if(bank)col='#c9b482';
+      else{
+        col='#3f9fd8';
+        const hsh=(px*29+y*41+variant*7+frame*13)%19;
+        if(hsh===0)col='#7cc7ea';else if(hsh===1)col='#66b8e8';else if(hsh===2&&frame)col='#d8f0fa';
+      }
+      x.fillStyle=col;x.fillRect(px,y,1,1);
+    }
+  }
+  return gSprCache[key]={cv:c,w:16,h:8};
+}
+function gWaterfall(frame){
+  const key='wfall'+frame;if(gSprCache[key])return gSprCache[key];
+  const c=document.createElement('canvas');c.width=16;c.height=30;const x=c.getContext('2d');
+  for(let y=0;y<30;y++)for(let px=2;px<14;px++){
+    const hsh=(px*17+((y+frame*3)*7))%13;
+    x.fillStyle=hsh<2?'#d8f0fa':hsh<5?'#9fd8f2':'#66b8e8';
+    if((px===2||px===13)&&y%3===frame)continue;
+    x.fillRect(px,y,1,1);
+  }
+  for(let px=1;px<15;px++){if((px*7+frame)%3)continue;x.fillStyle='#eef8fc';x.fillRect(px,27+(px%2),1,1);}
+  return gSprCache[key]={cv:c,w:16,h:30};
 }
 function gBuildPond(){
   if(gSprCache.pond)return gSprCache.pond;
@@ -1608,33 +1839,44 @@ function gTile(kind,variant){
   const season=gSeason(),key='t'+kind+season+variant;
   if(gSprCache[key])return gSprCache[key];
   const c=document.createElement('canvas');c.width=16;c.height=8;const x=c.getContext('2d');
-  const[base,light,dark]=kind==='path'?['#b09268','#c4a87a','#93755a']:G_SEASON_GRASS[season];
+  const[base,light,dark]=kind==='path'?['#b09268','#c4a87a','#93755a']:kind==='stone'?['#b3ada0','#c9c4b8','#928c7e']:kind==='bridge'?['#96714a','#ab8659','#7a5a38']:G_SEASON_GRASS[season];
   for(let y=0;y<8;y++){
     const half=y<4?(y+1)*2:(8-y)*2;
     for(let px=8-half;px<8+half;px++){
       let col=base;const hsh=(px*31+y*17+variant*57)%41;
-      if(hsh===0)col=light;else if(hsh===1)col=dark;
+      if(kind==='bridge'){ // iso plank deck with rails on the long edges
+        col=((px+y*2)%5===0)?'#7a5a38':((px*7+y)%13===0?'#ab8659':base);
+        if((y<4&&px===8-half)||(y>=4&&px===8+half-1)||y===0)col='#4d3520';
+      }
+      else if(hsh===0)col=light;else if(hsh===1)col=dark;
       x.fillStyle=col;x.fillRect(px,y,1,1);
     }
   }
   return gSprCache[key]={cv:c,w:16,h:8};
 }
-function gCliff(side){ // side: 'l' or 'r' front faces
+function gCliff(side){ // deep rocky underside — 'l' or 'r' front face, with strata
   const key='cliff'+side;if(gSprCache[key])return gSprCache[key];
-  const c=document.createElement('canvas');c.width=8;c.height=14;const x=c.getContext('2d');
-  for(let y=0;y<14;y++)for(let px=0;px<8;px++){
+  const H=30,c=document.createElement('canvas');c.width=8;c.height=H;const x=c.getContext('2d');
+  for(let y=0;y<H;y++)for(let px=0;px<8;px++){
     const slope=side==='r'?(px/2):((7-px)/2);
-    if(y<4-slope||y>12-slope+4)continue;
-    const hsh=(px*13+y*7)%17;
-    x.fillStyle=y<5-slope?'#6e4f33':hsh<2?'#55402a':hsh<4?'#7a5a3b':'#634629';
-    x.fillRect(px,y,1,1);
+    const top=4-slope,bot=H-4-slope;
+    if(y<top||y>bot)continue;
+    const d=y-top,hsh=(px*13+y*7)%17;
+    let col;
+    if(d<1)col='#4a6b34';                                  // grass lip
+    else if(d<6)col=hsh<3?'#55402a':'#6e4f33';             // topsoil
+    else if(d<7)col=hsh<8?'#2f9fae':'#37b3c2';             // aquifer accent line
+    else if(d<15)col=hsh<2?'#4a3c30':hsh<5?'#6a5844':'#5a4a3a'; // stone
+    else if(d<21)col=hsh<3?'#3a2f26':hsh<7?'#514336':'#463a2e';
+    else{ if(hsh<(24-d))col='#33291f';else continue; }     // rocky taper
+    x.fillStyle=col;x.fillRect(px,y,1,1);
   }
-  return gSprCache[key]={cv:c,w:8,h:14};
+  return gSprCache[key]={cv:c,w:8,h:H};
 }
 
 // ── CAMERA + RENDER ──────────────────────────────────────────
 let gCam={x:0,y:0,z:1.4},gActive=false,gWorldDirty=true,gRAF=null,gLastMinute=-1;
-let gDragSt=null,gPlacing=null,gSelected=null,gHoverTile=null,gEditOpen=false;
+let gDragSt=null,gPlacing=null,gSelected=null,gHoverTile=null,gEditOpen=false,gExpandMode=false;
 let gFireflies=[],gChar=null,gReduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 function gArtCenter(tx,ty){return{x:(tx-ty)*8,y:(tx+ty)*4};}
 function gTileAt(mx,my,cw,ch){
@@ -1655,9 +1897,9 @@ function gLighting(){
          dark:gLerp(a.dark,b.dark,t)};
 }
 function gCamReset(){
-  const g=gEnsure();
-  const c=gArtCenter((g.size.w-1)/2,(g.size.h-1)/2);
-  gCam.x=c.x;gCam.y=c.y+2;gCam.z=1.4;
+  const b=gBounds();
+  const c=gArtCenter((b.x0+b.x1)/2,(b.y0+b.y1)/2);
+  gCam.x=c.x;gCam.y=c.y+4;gCam.z=1.4;
 }
 function gZoomBy(f){gCam.z=Math.min(4,Math.max(0.6,gCam.z*f));}
 function gDraw(){
@@ -1693,44 +1935,89 @@ function gDraw(){
   }
   // world → offscreen at native art resolution (single scaled blit = no seams)
   const SC=gCam.z*3;
-  const WOX=(g.size.h+2)*8+24,WOY=48,WW=(g.size.w+g.size.h)*8+48,WH=(g.size.w+g.size.h)*4+128;
+  const B=gBounds();
+  const WOX=-((B.x0-B.y1)*8-56),WOY=-((B.x0+B.y0)*4-72),WW=(B.x1-B.y0)*8+56+WOX,WH=(B.x1+B.y1)*4+88+WOY;
   const lightSpots=[];
   if(!window._gWorldCv||window._gWorldCv.width!==WW||window._gWorldCv.height!==WH){window._gWorldCv=document.createElement('canvas');window._gWorldCv.width=WW;window._gWorldCv.height=WH;}
   const wcv=window._gWorldCv,wx=wcv.getContext('2d');
   wx.imageSmoothingEnabled=false;
-  wx.clearRect(0,0,WW,WH);
+  wx.setTransform(1,0,0,1,0,0);wx.clearRect(0,0,WW,WH);
   wx.setTransform(1,0,0,1,WOX,WOY);
-  const _mainX=x,_screenOf=(axp,ayp)=>[(axp-gCam.x)*SC+cw/2,(ayp-gCam.y)*SC+ch/2];
   { // draw world into offscreen using wx
   const x=wx;
-  const occ={},grounds={};
-  g.objects.forEach(o=>{if(G_CAT[o.type]?.ground)grounds[o.tx+','+o.ty]=o.type;});
-  // terrain + cliffs
-  for(let ty=0;ty<g.size.h;ty++)for(let tx=0;tx<g.size.w;tx++){
+  const grounds={};
+  g.objects.forEach(o=>{if(G_CAT[o.type]?.ground)grounds[o.tx+','+o.ty]=G_CAT[o.type].g||'path';});
+  const wfFrame=gReduced?0:Math.floor(now*2.5)%2;
+  const decCols=['#e05252','#f4d03f','#f2f2ea','#ef8fc0','#9b6fd8'];
+  // terrain: grass/paths/river + decor + deep cliffs + waterfalls
+  for(let ty=B.y0;ty<=B.y1;ty++)for(let tx=B.x0;tx<=B.x1;tx++){
     if(!gOnIsland(tx,ty))continue;
     const c0=gArtCenter(tx,ty);
-    const kind=grounds[tx+','+ty]==='path'?'path':'grass';
-    const t=gTile(kind,(tx*7+ty*13)%4);
-    x.drawImage(t.cv,c0.x-8,c0.y-4);
-    if(!gOnIsland(tx,ty+1)){const cl=gCliff('l');x.drawImage(cl.cv,c0.x-8,c0.y);}
-    if(!gOnIsland(tx+1,ty)){const cr=gCliff('r');x.drawImage(cr.cv,c0.x,c0.y);}
+    const water=gIsWater(tx,ty);
+    if(water&&grounds[tx+','+ty]==='bridge'){
+      x.drawImage(gTile('bridge',(tx*7+ty*13)%4).cv,c0.x-8,c0.y-4);
+    } else if(water){
+      const land=(ax,ay)=>gOnIsland(ax,ay)&&!gIsWater(ax,ay);
+      const mask=(land(tx-1,ty)?1:0)|(land(tx,ty-1)?2:0)|(land(tx+1,ty)?4:0)|(land(tx,ty+1)?8:0);
+      const t=gWaterTile(gReduced?0:Math.floor(now*1.8+(tx*3+ty*5)%2)%2,(tx*7+ty*13)%2,mask);
+      x.drawImage(t.cv,c0.x-8,c0.y-4);
+    } else {
+      const kind=grounds[tx+','+ty]||'grass';
+      const t=gTile(kind,(tx*7+ty*13)%4);
+      x.drawImage(t.cv,c0.x-8,c0.y-4);
+      if(kind==='grass'&&!gIsFringe(tx,ty)){ // scattered decor — free richness, no state
+        const dh=((tx*53+ty*97+g.seed)%100+100)%100;
+        if(dh<8){const col=decCols[(tx+ty*3)%decCols.length];x.fillStyle=col;x.fillRect(c0.x-3+(dh%5),c0.y-1+(dh%2),1,1);x.fillRect(c0.x+1+(dh%3),c0.y+(dh%2),1,1);}
+        else if(dh<11){x.fillStyle='#8d9298';x.fillRect(c0.x-2+(dh%4),c0.y,2,1);}
+        else if(dh<15){x.fillStyle='#2c6633';x.fillRect(c0.x+(dh%5)-2,c0.y-1,1,2);x.fillRect(c0.x+(dh%3),c0.y,1,1);}
+      }
+    }
+    if(!gOnIsland(tx,ty+1)){
+      if(water)x.drawImage(gWaterfall(wfFrame).cv,c0.x-8,c0.y+2);
+      else x.drawImage(gCliff('l').cv,c0.x-8,c0.y);
+    }
+    if(!gOnIsland(tx+1,ty)){
+      if(water)x.drawImage(gWaterfall(wfFrame).cv,c0.x-4,c0.y+2);
+      else x.drawImage(gCliff('r').cv,c0.x,c0.y);
+    }
+  }
+  // expansion ghosts (Garden Time + expand mode): survey plots in the forest
+  if(gEditOpen&&gExpandMode){
+    gAdjacentLocked().forEach(([px,py])=>{
+      for(let dy=0;dy<G_PARCEL;dy++)for(let dx=0;dx<G_PARCEL;dx++){
+        const c1=gArtCenter(px*G_PARCEL+dx,py*G_PARCEL+dy);
+        const border=dx===0||dy===0||dx===G_PARCEL-1||dy===G_PARCEL-1;
+        x.fillStyle=border?'rgba(200,245,120,0.4)':'rgba(140,200,110,0.16)';
+        x.beginPath();x.moveTo(c1.x,c1.y-4);x.lineTo(c1.x+8,c1.y);x.lineTo(c1.x,c1.y+4);x.lineTo(c1.x-8,c1.y);x.closePath();x.fill();
+      }
+    });
   }
   // hover highlight (edit mode)
-  if(gEditOpen&&gHoverTile&&gOnIsland(gHoverTile.tx,gHoverTile.ty)){
-    const fp=gPlacing?(G_CAT[gPlacing.type]?.fp||1):1;
+  if(gEditOpen&&!gExpandMode&&gHoverTile&&gOnIsland(gHoverTile.tx,gHoverTile.ty)){
+    const pcat=gPlacing?G_CAT[gPlacing.type]:null;
+    const fp=pcat?(pcat.fp||1):1;
     let ok=true;const occm=gOccupied();
-    for(let dx=0;dx<fp;dx++)for(let dy=0;dy<fp;dy++){const k=(gHoverTile.tx+dx)+','+(gHoverTile.ty+dy);if(!gOnIsland(gHoverTile.tx+dx,gHoverTile.ty+dy)||(gPlacing&&occm[k]&&!(G_CAT[gPlacing.type]?.ground)))ok=false;}
+    for(let dx=0;dx<fp;dx++)for(let dy=0;dy<fp;dy++){const k=(gHoverTile.tx+dx)+','+(gHoverTile.ty+dy);if(!gBuildable(gHoverTile.tx+dx,gHoverTile.ty+dy,pcat?.water)||(gPlacing&&occm[k]&&!pcat?.ground))ok=false;}
     for(let dx=0;dx<fp;dx++)for(let dy=0;dy<fp;dy++){
       const c1=gArtCenter(gHoverTile.tx+dx,gHoverTile.ty+dy);
       x.fillStyle=ok?'rgba(200,245,120,0.35)':'rgba(240,80,80,0.35)';
       x.beginPath();x.moveTo(c1.x,c1.y-4);x.lineTo(c1.x+8,c1.y);x.lineTo(c1.x,c1.y+4);x.lineTo(c1.x-8,c1.y);x.closePath();x.fill();
     }
   }
-  // objects (painter's order)
-  const objs=g.objects.filter(o=>!G_CAT[o.type]?.ground).slice().sort((a,b)=>(a.tx+a.ty)-(b.tx+b.ty)||a.tx-b.tx);
+  // objects + uncleared forest fringe (painter's order)
+  const objs=g.objects.filter(o=>!G_CAT[o.type]?.ground).slice();
+  for(let ty=B.y0;ty<=B.y1;ty++)for(let tx=B.x0;tx<=B.x1;tx++){
+    if(!gIsFringe(tx,ty))continue;
+    const h=((tx*67+ty*151+g.seed)%100+100)%100;
+    objs.push({type:h<12?'tree_autumn':h<45?'tree_pine':'tree_oak',tx,ty,_fringe:true});
+  }
+  objs.sort((a,b)=>(a.tx+a.ty)-(b.tx+b.ty)||a.tx-b.tx);
   objs.forEach(o=>{
     const cat=G_CAT[o.type];if(!cat)return;
-    const spr=gSprite(o.type);if(!spr)return;
+    let spr;
+    if(cat.sprite==='bed')spr=gBuildBed(cat.crop,gCropStage(o));
+    else spr=gSprite(o.type);
+    if(!spr)return;
     const fp=cat.fp||1,sc=cat.scale||1;
     const c0=gArtCenter(o.tx+(fp-1)/2,o.ty+(fp-1)/2);
     const sw=spr.w*sc,sh=spr.h*sc;
@@ -1756,6 +2043,17 @@ function gDraw(){
   x.setTransform(dpr,0,0,dpr,0,0);
   x.imageSmoothingEnabled=false;
   x.drawImage(wcv,(-WOX-gCam.x)*SC+cw/2,(-WOY-gCam.y)*SC+ch/2,WW*SC,WH*SC);
+  // expansion price tags (screen space, crisp text)
+  if(gEditOpen&&gExpandMode){
+    x.font='700 12px "IBM Plex Mono",monospace';x.textAlign='center';
+    gAdjacentLocked().forEach(([ppx,ppy])=>{
+      const c1=gArtCenter(ppx*G_PARCEL+(G_PARCEL-1)/2,ppy*G_PARCEL+(G_PARCEL-1)/2);
+      const sx=(c1.x-gCam.x)*SC+cw/2,sy=(c1.y-gCam.y)*SC+ch/2;
+      x.fillStyle='rgba(8,10,16,0.75)';x.fillRect(sx-40,sy-11,80,22);
+      x.fillStyle='#c8f535';x.fillText('+ CLEAR ◈'+gExpandCost(),sx,sy+4);
+    });
+    x.textAlign='start';
+  }
   // ambient overlay
   x.setTransform(dpr,0,0,dpr,0,0);
   const[ar,ag,ab,aa]=L.amb;
@@ -1836,7 +2134,7 @@ function gWindowUI(){
   if(inf.active){
     chips+=`<div class="gchip edit">✦ Garden Time — ${inf.endsIn} min left${gEditOpen?'':' <button onclick="gToggleEdit()">Edit</button>'}${gEditOpen?' <button onclick="gToggleEdit()">Done</button>':''}</div>`;
   } else {
-    if(gEditOpen){gEditOpen=false;gPlacing=null;gSelected=null;gEditBarUI();}
+    if(gEditOpen){gEditOpen=false;gPlacing=null;gSelected=null;gExpandMode=false;gEditBarUI();}
     chips+=`<div class="gchip">Your garden is resting · next Garden Time: <b>${inf.nextLabel}</b></div>`;
   }
   if(g.inventory.length)chips+=`<div class="gchip">📦 ${g.inventory.length} earned item${g.inventory.length>1?'s':''} waiting to be placed</div>`;
@@ -1847,10 +2145,11 @@ function gWindowUI(){
 function gToggleEdit(){
   const inf=gWinInfo();
   if(!inf.active){showToast('Your garden is resting — changes open during your next Garden Window');return;}
-  gEditOpen=!gEditOpen;gPlacing=null;gSelected=null;
+  gEditOpen=!gEditOpen;gPlacing=null;gSelected=null;gExpandMode=false;
   gEditBarUI();gWindowUI();
   document.getElementById('gCanvas').classList.toggle('placing',false);
 }
+function gExpandToggle(){gExpandMode=!gExpandMode;gPlacing=null;gSelected=null;gEditBarUI();}
 function gEditBarUI(){
   const bar=document.getElementById('gEditBar');if(!bar)return;
   bar.classList.toggle('open',gEditOpen);
@@ -1861,6 +2160,8 @@ function gEditBarUI(){
     const o=g.objects.find(x=>x.id===gSelected);
     if(o){html+=`<div class="gchip edit" style="align-self:center">${G_CAT[o.type]?.n||o.type} selected — click a tile to move · <button onclick="gStoreSelected()">Store</button> <button onclick="gSelected=null;gEditBarUI()">Cancel</button></div>`;}
   }
+  // clear new forest land — how the world grows over the years
+  html+=`<div class="gitem ${gExpandMode?'sel':''}" onclick="gExpandToggle()" style="border-color:${gExpandMode?'var(--accent)':'rgba(140,200,110,.5)'}"><div class="gi-ico">🌲</div><div class="gi-n">Clear Land</div><div class="gi-c">◈ ${gExpandCost()}</div></div>`;
   // inventory (earned, free to place)
   g.inventory.forEach(it=>{
     const cat=G_CAT[it.type];if(!cat)return;
@@ -1868,6 +2169,7 @@ function gEditBarUI(){
   });
   // purchasable catalog
   Object.entries(G_CAT).forEach(([key,cat])=>{
+    if(cat.legacy)return;
     if(cat.unlock&&!g.unlocks.includes(cat.unlock))return;
     if(cat.cost===0&&cat.unlock)return; // milestone items arrive via inventory
     const afford=g.coins>=cat.cost;
@@ -1930,7 +2232,8 @@ function gWinSet(k,v){gEnsure().window[k]=v;saveData();gWindowUI();if(gPanelOpen
       const SC=gCam.z*3;
       gCam.x=gDragSt.cx-dx/SC;gCam.y=gDragSt.cy-dy/SC;
       // keep the island reachable
-      const g=gEnsure(),c=gArtCenter((g.size.w-1)/2,(g.size.h-1)/2),lim=120;
+      const b=gBounds(),c=gArtCenter((b.x0+b.x1)/2,(b.y0+b.y1)/2);
+      const lim=Math.max(140,((b.x1-b.x0)+(b.y1-b.y0))*4+80);
       gCam.x=Math.max(c.x-lim,Math.min(c.x+lim,gCam.x));gCam.y=Math.max(c.y-lim,Math.min(c.y+lim,gCam.y));
     }
     if(gActive&&wrap){
@@ -1957,15 +2260,21 @@ function gCanvasClick(t){
     if(o&&o.earnedFor){const d=new Date(o.unlockedAt||o.placedAt);showToast(`${G_CAT[o.type]?.ico||''} ${G_CAT[o.type]?.n}: ${o.earnedFor} · ${d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`);}
     return;
   }
+  // expansion: click a surveyed forest plot to clear it
+  if(gExpandMode){
+    const px=Math.floor(t.tx/G_PARCEL),py=Math.floor(t.ty/G_PARCEL);
+    if(gAdjacentLocked().some(([ax,ay])=>ax===px&&ay===py))gBuyParcel(px,py);
+    return;
+  }
   if(!gOnIsland(t.tx,t.ty))return;
   const occ=gOccupied();
   // selected object → move it
   if(gSelected){
     const o=g.objects.find(x=>x.id===gSelected);
     if(o){
-      const fp=G_CAT[o.type]?.fp||1;let ok=true;
-      for(let dx=0;dx<fp;dx++)for(let dy=0;dy<fp;dy++){const k=(t.tx+dx)+','+(t.ty+dy);if(!gOnIsland(t.tx+dx,t.ty+dy)||(occ[k]&&occ[k].id!==o.id))ok=false;}
-      if(!ok){showToast('That spot is taken');return;}
+      const cat=G_CAT[o.type],fp=cat?.fp||1;let ok=true;
+      for(let dx=0;dx<fp;dx++)for(let dy=0;dy<fp;dy++){const k=(t.tx+dx)+','+(t.ty+dy);if(!gBuildable(t.tx+dx,t.ty+dy,cat?.water)||(occ[k]&&occ[k].id!==o.id))ok=false;}
+      if(!ok){showToast(cat?.water?'Bridges need water':'That spot is taken');return;}
       o.tx=t.tx;o.ty=t.ty;o.placedAt=new Date().toISOString();
       gSelected=null;saveData();gEditBarUI();showToast('Moved ✓');
     }
@@ -1975,9 +2284,8 @@ function gCanvasClick(t){
   if(gPlacing){
     const cat=G_CAT[gPlacing.type],fp=cat.fp||1;
     let ok=true;
-    for(let dx=0;dx<fp;dx++)for(let dy=0;dy<fp;dy++){const k=(t.tx+dx)+','+(t.ty+dy);if(!gOnIsland(t.tx+dx,t.ty+dy)||(occ[k]&&!cat.ground))ok=false;}
-    if(cat.ground&&gOccupied()[t.tx+','+t.ty])ok=!g.objects.some(o=>G_CAT[o.type]?.ground&&o.tx===t.tx&&o.ty===t.ty);
-    if(!ok){showToast('That spot is taken');return;}
+    for(let dx=0;dx<fp;dx++)for(let dy=0;dy<fp;dy++){const k=(t.tx+dx)+','+(t.ty+dy);if(!gBuildable(t.tx+dx,t.ty+dy,cat.water)||(occ[k]&&!cat.ground))ok=false;}
+    if(!ok){showToast(cat.water?'Bridges go on the river':'That spot is taken');return;}
     let earnedFor='Placed during Garden Time';
     if(gPlacing.invId){
       const idx=g.inventory.findIndex(i=>i.id===gPlacing.invId);
@@ -1987,6 +2295,9 @@ function gCanvasClick(t){
     } else {
       if(g.coins<cat.cost){showToast('Not enough credits');return;}
       g.coins-=cat.cost;
+    }
+    if(cat.ground){ // ground tiles replace any existing ground on that tile
+      g.objects=g.objects.filter(o=>!(G_CAT[o.type]?.ground&&o.tx===t.tx&&o.ty===t.ty));
     }
     g.objects.push({id:'g'+Date.now()+Math.random().toString(36).slice(2,5),type:gPlacing.type,tx:t.tx,ty:t.ty,earnedFor,unlockedAt:new Date().toISOString(),placedAt:new Date().toISOString()});
     if(gPlacing.invId)gPlacing=null;
