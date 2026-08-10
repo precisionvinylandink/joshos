@@ -6,6 +6,7 @@ import { LoadingSkeleton } from '../../shared/ui';
 // __LIFEOS_ENABLED__ (see router.tsx), so nothing here reaches the web bundle.
 const TimelogPage = lazy(() => import('./domains/timelog/TimelogPage'));
 const ScorecardPage = lazy(() => import('./domains/scorecard/ScorecardPage'));
+const TasksPage = lazy(() => import('./domains/tasks/TasksPage'));
 const HealthPage = lazy(() => import('./domains/health/HealthPage'));
 const MoneyPage = lazy(() => import('./domains/money/MoneyPage'));
 const HabitsPage = lazy(() => import('./domains/habits/HabitsPage'));
@@ -18,6 +19,7 @@ export default function LifeOSRoutes() {
         <Route index element={<Navigate to="timelog" replace />} />
         <Route path="timelog" element={<TimelogPage />} />
         <Route path="scorecard" element={<ScorecardPage />} />
+        <Route path="tasks" element={<TasksPage />} />
         <Route path="health" element={<HealthPage />} />
         <Route path="money" element={<MoneyPage />} />
         <Route path="habits" element={<HabitsPage />} />

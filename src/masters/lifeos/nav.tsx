@@ -1,6 +1,7 @@
 import {
   Clock,
   ClipboardCheck,
+  ListChecks,
   Pill,
   Dumbbell,
   UtensilsCrossed,
@@ -24,6 +25,7 @@ export const lifeosNav: NavGroup[] = [
     items: [
       { label: 'Time Log', to: '/life/timelog', icon: Clock },
       { label: 'Scorecard', to: '/life/scorecard', icon: ClipboardCheck },
+      { label: 'Tasks', to: '/life/tasks', icon: ListChecks },
     ],
   },
   {

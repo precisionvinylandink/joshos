@@ -25,10 +25,10 @@ function NotFound() {
 // import) from the web bundle. This is the enforcement point for the hard rule.
 const desktopRoutes: RouteObject[] = [];
 if (__LIFEOS_ENABLED__) {
-  const TodayPage = lazy(() => import('./shell/today/TodayPage'));
+  const CommandCenter = lazy(() => import('./joshos/today/CommandCenter'));
   const LifeOSRoutes = lazy(() => import('./masters/lifeos/routes'));
   desktopRoutes.push(
-    { path: 'today', element: wrap(<TodayPage />) },
+    { path: 'today', element: wrap(<CommandCenter />) },
     { path: 'life/*', element: wrap(<LifeOSRoutes />) },
   );
 }
