@@ -396,7 +396,10 @@ export default function CommandCenter() {
             </div>
           </Section>
 
-          <div className="pt-1 text-center">
+          <div className="flex justify-center gap-4 pt-1 text-center">
+            <Link to="/life/calendar" className="text-xs text-muted underline-offset-2 hover:text-dim hover:underline">
+              Open calendar →
+            </Link>
             <Link to="/life/goals" className="text-xs text-muted underline-offset-2 hover:text-dim hover:underline">
               View all goals →
             </Link>

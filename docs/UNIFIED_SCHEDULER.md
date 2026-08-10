@@ -27,9 +27,19 @@ it can grow toward: "You have 45 minutes before your next commitment — finish 
 CPG proposal?", "You've been working 2 hours — take a break?", "Your afternoon is
 overloaded — move this to tomorrow?".
 
+## Calendar surface (`src/joshos/calendar/`) — built
+
+Unified day + week views at `/life/calendar` (desktop). `model.ts` interleaves
+events + blocks + timed JobOS deadlines + due tasks into one `CalItem` stream and
+lane-packs overlaps; `DayView` is a positioned time grid with a "now" line and a
+due-tasks strip; `WeekView` is a 7-day agenda; `NewEventForm` (SlideOver) creates
+events. ALL/LIFE/WORK is a filter across everything. Linked from the Command
+Center and the LifeOS nav.
+
 ## Next build-out
 
-- A real calendar surface (day/week) rendering events + blocks + JobOS deadlines +
-  meals/breaks with the ALL/LIFE/WORK filter.
 - Routines (Part XX) that generate ScheduleBlocks.
-- Duration/availability-aware auto-fit of flexible tasks into open time.
+- Drag-to-reschedule and duration/availability-aware auto-fit of flexible tasks
+  into open time (evolving `recommendNext` toward the scheduler).
+- Optional `Task.scheduledStart` so flexible tasks can be placed on the grid, not
+  only shown as due chips.

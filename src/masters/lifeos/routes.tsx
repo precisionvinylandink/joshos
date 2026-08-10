@@ -7,6 +7,7 @@ import { LoadingSkeleton } from '../../shared/ui';
 const TimelogPage = lazy(() => import('./domains/timelog/TimelogPage'));
 const ScorecardPage = lazy(() => import('./domains/scorecard/ScorecardPage'));
 const TasksPage = lazy(() => import('./domains/tasks/TasksPage'));
+const CalendarPage = lazy(() => import('../../joshos/calendar/CalendarPage'));
 const HealthPage = lazy(() => import('./domains/health/HealthPage'));
 const MoneyPage = lazy(() => import('./domains/money/MoneyPage'));
 const HabitsPage = lazy(() => import('./domains/habits/HabitsPage'));
@@ -20,6 +21,7 @@ export default function LifeOSRoutes() {
         <Route path="timelog" element={<TimelogPage />} />
         <Route path="scorecard" element={<ScorecardPage />} />
         <Route path="tasks" element={<TasksPage />} />
+        <Route path="calendar" element={<CalendarPage />} />
         <Route path="health" element={<HealthPage />} />
         <Route path="money" element={<MoneyPage />} />
         <Route path="habits" element={<HabitsPage />} />

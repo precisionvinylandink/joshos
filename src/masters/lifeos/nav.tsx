@@ -2,6 +2,7 @@ import {
   Clock,
   ClipboardCheck,
   ListChecks,
+  CalendarDays,
   Pill,
   Dumbbell,
   UtensilsCrossed,
@@ -26,6 +27,7 @@ export const lifeosNav: NavGroup[] = [
       { label: 'Time Log', to: '/life/timelog', icon: Clock },
       { label: 'Scorecard', to: '/life/scorecard', icon: ClipboardCheck },
       { label: 'Tasks', to: '/life/tasks', icon: ListChecks },
+      { label: 'Calendar', to: '/life/calendar', icon: CalendarDays },
     ],
   },
   {
