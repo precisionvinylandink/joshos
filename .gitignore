@@ -1,9 +1,13 @@
 node_modules/
 dist/
+dist-electron/
+release/
 .DS_Store
 *.dmg
 *.zip
 *.log
 .env
 .env.local
+.env.*.local
+.vercel
 desktop/.cache/

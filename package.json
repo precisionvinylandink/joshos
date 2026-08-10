@@ -1,0 +1,79 @@
+{
+  "name": "joshos",
+  "version": "2.0.0",
+  "private": true,
+  "description": "JoshOS — personal operating system shell hosting two masters: JobOS (Precision Vinyl & Ink operations) and LifeOS (personal health, money, habits, goals).",
+  "author": "Josh Sonnenberg <josh@precisionvinylandink.com>",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "dev:desktop": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "build:web": "VITE_BUILD_TARGET=web vite build",
+    "build:desktop": "VITE_BUILD_TARGET=desktop npm run build && electron-builder --mac",
+    "pack": "npm run build:desktop -- --dir",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.electron.json --noEmit",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "@tanstack/react-query": "^5.56.2",
+    "date-fns": "^3.6.0",
+    "electron-updater": "^6.3.4",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
+    "lucide-react": "^0.445.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hot-toast": "^2.4.1",
+    "react-router-dom": "^6.26.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.5",
+    "@types/react": "^18.3.8",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^8.2.2",
+    "electron": "^31.4.0",
+    "electron-builder": "^24.13.3",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.12",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.6",
+    "vite-plugin-electron": "^0.28.8",
+    "vite-plugin-electron-renderer": "^0.14.6",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.joshsonnenberg.joshos",
+    "productName": "JoshOS",
+    "copyright": "© 2026 Josh Sonnenberg",
+    "mac": {
+      "category": "public.app-category.business",
+      "icon": "assets/icon.icns",
+      "target": [{ "target": "dmg", "arch": ["arm64", "x64"] }],
+      "darkModeSupport": true,
+      "extendInfo": {
+        "LSUIElement": false,
+        "NSUserNotificationAlertStyle": "alert"
+      }
+    },
+    "dmg": {
+      "title": "JoshOS ${version}"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "assets/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets",
+      "output": "release"
+    },
+    "protocols": [
+      { "name": "JoshOS", "schemes": ["joshos"] }
+    ]
+  }
+}

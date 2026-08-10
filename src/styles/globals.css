@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * JoshOS theme variables.
+ * Themeable vars (--bg … --radius) are the ported theme system: the ThemeProvider
+ * overwrites them at runtime and persists to the joshos_theme table (mirrored to
+ * mobile). Fixed shell vars (--brand, --sidebar-bg, --login-bg) are JoshOS chrome
+ * and are intentionally NOT themeable.
+ */
+:root {
+  /* Themeable content palette (default: JoshOS neutral-dark + orange) */
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface2: #1a1a1a;
+  --border: #262626;
+  --text: #fafafa;
+  --text-dim: #a3a3a3;
+  --text-muted: #737373;
+  --text-faint: #525252;
+  --accent: #d94f00;
+  --accent2: #f97316;
+  --accent3: #378add;
+  --radius: 8px;
+
+  /* Fixed shell chrome */
+  --brand: #d94f00;
+  --sidebar-bg: #0f0f0f;
+  --login-bg: #0a0a0a;
+
+  /* Status */
+  --success: #22c55e;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+
+  /* Typography */
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-body: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Thin dark scrollbars to match the shell */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Electron: make the custom title-bar region draggable */
+.app-drag {
+  -webkit-app-region: drag;
+}
+.app-no-drag {
+  -webkit-app-region: no-drag;
+}
