@@ -4,8 +4,14 @@
     {
       "name": "joshos-desktop-static",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8741", "--directory", "desktop/src"],
-      "port": 8741
+      "runtimeArgs": ["-m", "http.server", "8742", "--directory", "desktop/src"],
+      "port": 8742
+    },
+    {
+      "name": "joshos-ios-static",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8743", "--directory", "ios"],
+      "port": 8743
     }
   ]
 }
