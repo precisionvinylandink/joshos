@@ -1758,6 +1758,12 @@ kbd{
                 <div class="sr"><div class="sl">Status</div><div class="sctl"><span class="status" id="sbStatusLine">Unknown</span></div></div>
               </div>
               <div class="sg">
+                <div class="sgl">Business work (WorkOS)</div>
+                <div class="sr"><div class="sl">Bridge URL<span class="ssl">The read-only WorkOS bridge endpoint. JoshOS never holds business database credentials.</span></div><div class="sctl"><input type="text" class="hi" id="wobUrl" placeholder="https://…/api/joshos-bridge" style="width:220px" oninput="wobSaveSettings()"></div></div>
+                <div class="sr"><div class="sl">Bridge token<span class="ssl">Scoped read token issued by WorkOS. Not a service key.</span></div><div class="sctl"><input type="password" class="hi" id="wobToken" placeholder="jos_…" style="width:220px" oninput="wobSaveSettings()"></div></div>
+                <div class="sr"><div class="sl">Status</div><div class="sctl"><span class="status" id="wobStatusLine">Not configured</span><button class="btn quiet sm" onclick="wobSyncNow()">Sync now</button></div></div>
+              </div>
+              <div class="sg">
                 <div class="sgl">Maintenance</div>
                 <div class="sr"><div class="sl">Reset today<span class="ssl">Clears today&rsquo;s checkboxes. Journals, wins and history are kept.</span></div><div class="sctl"><button class="btn quiet" onclick="confirmReset()">Reset</button></div></div>
                 <div class="sr"><div class="sl">Export everything<span class="ssl">A full JSON snapshot of appData</span></div><div class="sctl"><button class="btn quiet" onclick="exportData()"><span data-ico="save"></span>Export JSON</button></div></div>
@@ -5556,6 +5562,905 @@ function azBoot(){
     if(document.getElementById('page-dashboard')?.classList.contains('active'))renderHome();
   },60000);
 }
+/* ═══════════════════════════════════════════════════════════════════════════
+   WORKOS-BRIDGE:BEGIN
+   ───────────────────────────────────────────────────────────────────────────
+   The boundary between JoshOS (personal execution) and WorkOS/JobOS (the
+   business system of record).
+
+   OWNERSHIP. WorkOS owns customers, quotes, jobs, invoices and every business
+   status/timestamp. JoshOS owns what Josh is doing, work sessions, personal
+   next-actions and the calendar. This layer holds *references and snapshots*
+   of WorkOS records — never a second copy of the business model, never a
+   business record JoshOS invented.
+
+   IDENTITY. A WorkOS record is only ever identified by (source, externalId).
+   Names, emails and titles are display snapshots and ranking hints; they are
+   never identity. Renaming a customer in WorkOS must not fork a record here.
+
+   PURITY. Deliberately DOM-free and clock-injectable (`now` is always passed
+   in) so desktop/test/workos-bridge.test.js can extract this exact block and
+   execute it. Do not reach for document/window inside the engine.
+   ═══════════════════════════════════════════════════════════════════════════ */
+var WOB=(function(){
+  'use strict';
+
+  var DAY=864e5;
+  var iso=function(d){return new Date(d).toISOString();};
+  var ms=function(t){return t?new Date(t).getTime():0;};
+  var addDays=function(t,n){return iso(ms(t)+n*DAY);};
+  var daysBetween=function(a,b){return Math.floor((ms(b)-ms(a))/DAY);};
+
+  /* Canonical lifecycle vocabulary. WorkOS tables each use their own words
+     (pvi_quotes.status, cpg_opportunities.stage, invoices.status…); the bridge
+     normalizes on the way in so the rule engine has one vocabulary. Anything
+     unrecognized is preserved verbatim and simply matches no rule — an unknown
+     status must never be silently treated as a known one. */
+  var STATUS_MAP={
+    'new':'new','request':'new','requested':'new','open':'new','pending':'new',
+    'draft':'in_progress','working':'in_progress','in_progress':'in_progress','preparing':'in_progress',
+    'prepared':'prepared','ready':'prepared',
+    'sent':'sent','emailed':'sent','delivered':'sent','awaiting_customer':'sent',
+    'accepted':'won','approved':'won','won':'won','converted':'won',
+    'declined':'lost','rejected':'lost','lost':'lost','cancelled':'lost','canceled':'lost',
+    'scheduled':'scheduled','in_production':'in_production','production':'in_production',
+    'complete':'completed','completed':'completed','shipped':'completed','fulfilled':'completed',
+    'invoiced':'invoiced','partial':'invoiced',
+    'paid':'paid','closed':'closed'
+  };
+  var CLOSED={lost:1,paid:1,closed:1};
+  function canonicalStatus(raw){
+    if(raw==null||raw==='')return null;
+    var k=String(raw).trim().toLowerCase().replace(/[\s-]+/g,'_');
+    return STATUS_MAP[k]||k;
+  }
+
+  /* ── State ──────────────────────────────────────────────────────────────
+     Lives on appData.work so it rides the existing save/sync path. */
+  function ensure(app){
+    if(!app.work)app.work={};
+    var w=app.work;
+    if(!w.items||typeof w.items!=='object'||Array.isArray(w.items))w.items={};
+    /* pendingLinks: activities Josh typed that could not be resolved with
+       confidence. Kept verbatim so nothing is lost and so he can link them
+       later — never a licence to invent a business record. */
+    ['sessions','actions','outbox','pendingLinks'].forEach(function(k){if(!Array.isArray(w[k]))w[k]=[];});
+    if(!w.seenEvents||typeof w.seenEvents!=='object')w.seenEvents={};
+    if(!w.sync)w.sync={status:'never',lastPullAt:null,lastOkAt:null,error:null,failures:0};
+    return w;
+  }
+
+  /* Deterministic local id. Same WorkOS record ⇒ same JoshOS id, forever.
+     This is the backbone of idempotency: a replayed event cannot fork a row. */
+  function refId(source,externalId){
+    return 'wi_'+String(source||'workos')+'_'+String(externalId);
+  }
+
+  /* ── Work item references ───────────────────────────────────────────────
+     A snapshot sufficient to execute and render, plus the stable external id.
+     Business fields are only ever written from WorkOS payloads. */
+  function upsertItem(w,p,now){
+    if(!p||!p.externalId)return{item:null,created:false,reason:'missing_external_id'};
+    var id=refId(p.source,p.externalId),cur=w.items[id],created=!cur;
+    var it=cur||{
+      id:id,source:p.source||'workos',externalId:String(p.externalId),
+      createdAt:p.createdAt||now,startedAt:null,firstSeenAt:now
+    };
+    /* Business-owned fields: overwritten from the source of truth. */
+    ['externalTable','business','type','title','customerId','contactId','companyId',
+     'customerLabel','companyLabel','url','amount','createdAt','followUpDays'].forEach(function(k){
+      if(p[k]!==undefined&&p[k]!==null)it[k]=p[k];
+    });
+    if(p.status!==undefined&&p.status!==null){it.status=canonicalStatus(p.status);it.rawStatus=p.status;}
+    ['sentAt','completedAt','wonAt','lostAt','dueAt','lastActivityAt'].forEach(function(k){
+      if(p[k])it[k]=p[k];
+    });
+    /* WorkOS may carry its own next action (cpg_opportunities.next_action).
+       We keep it as business intent; JoshOS still derives its own execution
+       action from the rules below — the two are not the same thing. */
+    if(p.nextAction!==undefined)it.businessNextAction=p.nextAction;
+    if(p.nextActionDueAt!==undefined)it.businessNextActionDueAt=p.nextActionDueAt;
+    it.syncedAt=now;it.syncStatus='live';
+    w.items[id]=it;
+    return{item:it,created:created};
+  }
+
+  function itemLabel(it){
+    if(!it)return'';
+    return it.companyLabel||it.customerLabel||it.title||it.externalId;
+  }
+
+  /* ── Work sessions ──────────────────────────────────────────────────────
+     The execution clock. Distinct from the customer clock (sentAt). At most
+     one session may be open per work item — that invariant is what makes a
+     duplicated `work_session.started` event a no-op rather than a second row. */
+  function openSession(w,workItemId){
+    for(var i=0;i<w.sessions.length;i++){
+      if(w.sessions[i].workItemId===workItemId&&!w.sessions[i].endedAt)return w.sessions[i];
+    }
+    return null;
+  }
+
+  function startSession(w,o){
+    o=o||{};
+    var at=o.at||o.now,wid=o.workItemId;
+    if(!wid)return{session:null,created:false,reason:'missing_work_item'};
+    /* Idempotency key: an explicit one when the caller has a stable event id,
+       otherwise the item + start instant. Either way a replay is a no-op. */
+    var key=o.clientKey||(wid+'@'+at);
+    for(var i=0;i<w.sessions.length;i++){
+      if(w.sessions[i].key===key)return{session:w.sessions[i],created:false,reason:'duplicate_key'};
+    }
+    var open=openSession(w,wid);
+    if(open)return{session:open,created:false,reason:'already_open'};
+    var s={
+      id:'ws_'+key,key:key,workItemId:wid,startedAt:at,endedAt:null,
+      note:o.note||null,source:o.source||'joshos'
+    };
+    w.sessions.push(s);
+    var it=w.items[wid];
+    /* startedAt is JoshOS-owned and sticky: it is when Josh FIRST began, and
+       it is what the "open for N days" procrastination clock reads. Later
+       sessions must not reset it. */
+    if(it){if(!it.startedAt)it.startedAt=at;it.lastActivityAt=at;}
+    return{session:s,created:true};
+  }
+
+  function endSession(w,o){
+    o=o||{};
+    var s=o.sessionId?w.sessions.filter(function(x){return x.id===o.sessionId;})[0]
+                     :openSession(w,o.workItemId);
+    if(!s)return{session:null,ended:false,reason:'no_open_session'};
+    if(s.endedAt)return{session:s,ended:false,reason:'already_ended'};
+    s.endedAt=o.at;
+    if(o.note)s.note=o.note;
+    var it=w.items[s.workItemId];
+    if(it)it.lastActivityAt=o.at;
+    return{session:s,ended:true};
+  }
+
+  function sessionsFor(w,workItemId){
+    return w.sessions.filter(function(s){return s.workItemId===workItemId;});
+  }
+
+  /* ── The two clocks ─────────────────────────────────────────────────────
+     Collapsing these into one updatedAt is the specific bug this replaces:
+       openMs      — how long the WORK has been unfinished  (Josh's clock)
+       awaitingMs  — how long the CUSTOMER has been silent   (their clock)
+     They answer different questions and drive different UI. */
+  function clocks(w,it,now){
+    if(!it)return{startedAt:null,openMs:0,sentAt:null,awaitingMs:0,workedMs:0};
+    var ss=sessionsFor(w,it.id),worked=0;
+    ss.forEach(function(s){worked+=Math.max(0,ms(s.endedAt||now)-ms(s.startedAt));});
+    return{
+      startedAt:it.startedAt||null,
+      openMs:it.startedAt&&!it.completedAt?Math.max(0,ms(now)-ms(it.startedAt)):0,
+      sentAt:it.sentAt||null,
+      awaitingMs:it.sentAt&&!CLOSED[it.status]?Math.max(0,ms(now)-ms(it.sentAt)):0,
+      workedMs:worked,
+      openSession:openSession(w,it.id)
+    };
+  }
+
+  /* ── Next-action rules ──────────────────────────────────────────────────
+     A registry, not a hardcoded quote→follow-up→invoice chain. Each rule maps
+     BUSINESS STATE to ONE PERSONAL EXECUTION ACTION. `anchor` is the business
+     timestamp the action derives from: it makes the action's id deterministic
+     (replay-safe) while still letting a genuinely new business event — a
+     re-send with a later sentAt — produce a genuinely new action.
+     Add a rule here; nothing else needs to change. */
+  var RULES=[
+    {id:'lead_prepare_quote',
+     match:function(it){return(it.type==='lead'||it.type==='quote_request')&&(it.status==='new'||it.status==='in_progress');},
+     build:function(it){return{kind:'prepare_quote',owner:'josh',
+       title:'Prepare quote — '+itemLabel(it),
+       dueAt:addDays(it.createdAt||it.firstSeenAt,1),anchor:it.createdAt||it.firstSeenAt};}},
+
+    {id:'quote_open_send',
+     match:function(it){return it.type==='quote'&&(it.status==='in_progress'||it.status==='prepared'||it.status==='new');},
+     build:function(it){return{kind:'send_quote',owner:'josh',
+       title:'Send quote — '+itemLabel(it),
+       dueAt:addDays(it.createdAt||it.firstSeenAt,1),anchor:it.createdAt||it.firstSeenAt};}},
+
+    {id:'quote_sent_follow_up',
+     match:function(it){return(it.type==='quote'||it.type==='opportunity')&&it.status==='sent'&&!!it.sentAt;},
+     build:function(it){return{kind:'follow_up',owner:'customer',
+       title:'Follow up with '+itemLabel(it),
+       dueAt:addDays(it.sentAt,it.followUpDays||3),anchor:it.sentAt};}},
+
+    {id:'quote_won_send_invoice',
+     match:function(it){return(it.type==='quote'||it.type==='opportunity')&&it.status==='won';},
+     build:function(it){return{kind:'send_invoice',owner:'josh',
+       title:'Send invoice — '+itemLabel(it),
+       dueAt:addDays(it.wonAt||it.lastActivityAt||it.firstSeenAt,1),
+       anchor:it.wonAt||it.lastActivityAt||it.firstSeenAt};}},
+
+    {id:'job_won_schedule',
+     match:function(it){return it.type==='job'&&(it.status==='won'||it.status==='scheduled');},
+     build:function(it){return{kind:'schedule_production',owner:'josh',
+       title:'Schedule production — '+itemLabel(it),
+       dueAt:it.dueAt?addDays(it.dueAt,-2):addDays(it.wonAt||it.firstSeenAt,1),
+       anchor:it.wonAt||it.dueAt||it.firstSeenAt};}},
+
+    {id:'invoice_sent_chase',
+     match:function(it){return it.type==='invoice'&&(it.status==='sent'||it.status==='invoiced');},
+     build:function(it){return{kind:'payment_follow_up',owner:'customer',
+       title:'Chase payment — '+itemLabel(it),
+       dueAt:it.dueAt||addDays(it.sentAt||it.firstSeenAt,14),
+       anchor:it.sentAt||it.dueAt||it.firstSeenAt};}}
+  ];
+
+  function deriveActions(it,now){
+    if(!it||CLOSED[it.status])return[];
+    var out=[];
+    RULES.forEach(function(r){
+      if(!r.match(it))return;
+      var a=r.build(it);
+      if(!a||!a.anchor)return;
+      a.ruleId=r.id;a.workItemId=it.id;
+      a.id='act_'+it.id+'_'+a.kind+'_'+ms(a.anchor);
+      out.push(a);
+    });
+    return out;
+  }
+
+  /* Upsert derived actions without ever duplicating or resurrecting.
+     A completed action stays completed for its anchor; only a NEW anchor
+     (real new business state) creates a new action. */
+  function reconcileActions(w,it,now){
+    var desired=deriveActions(it,now),created=[],kept=[];
+    desired.forEach(function(d){
+      var cur=w.actions.filter(function(a){return a.id===d.id;})[0];
+      if(cur){kept.push(cur);return;}
+      var a={
+        id:d.id,workItemId:d.workItemId,ruleId:d.ruleId,kind:d.kind,owner:d.owner,
+        title:d.title,dueAt:d.dueAt,anchor:d.anchor,
+        createdAt:now,completedAt:null,source:'derived'
+      };
+      w.actions.push(a);created.push(a);
+    });
+    /* Retire any open derived action this state no longer calls for. Two cases,
+       both handled by "not in the desired set":
+         · the rule re-anchored — a re-sent quote replaces its old follow-up;
+         · the rule stopped matching — a WON quote must not still ask Josh to
+           chase the customer.
+       Only `derived` actions are retired; anything Josh made himself is his. */
+    var live={};desired.forEach(function(d){live[d.id]=1;});
+    w.actions.forEach(function(a){
+      if(a.workItemId!==it.id||a.completedAt||a.supersededAt)return;
+      if(a.source==='derived'&&!live[a.id])a.supersededAt=now;
+    });
+    return{created:created,kept:kept};
+  }
+
+  function actionsFor(w,workItemId,opts){
+    opts=opts||{};
+    return w.actions.filter(function(a){
+      if(a.workItemId!==workItemId)return false;
+      if(!opts.includeDone&&(a.completedAt||a.supersededAt))return false;
+      return true;
+    });
+  }
+
+  /* ── Classification ─────────────────────────────────────────────────────
+     The distinction the whole system turns on: work sitting on JOSH is
+     procrastination; work sitting on the CUSTOMER is not. `stale` is never
+     true for awaiting_customer — silence from a customer is not a failure of
+     Josh's, and flagging it as one would train him to ignore the signal. */
+  function classify(w,it,now,opts){
+    opts=opts||{};
+    var staleAfterDays=opts.staleAfterDays||3;
+    var c=clocks(w,it,now);
+    var open=actionsFor(w,it.id);
+    var overdue=open.filter(function(a){return a.owner==='josh'&&a.dueAt&&ms(a.dueAt)<=ms(now);});
+    var dueFollowUps=open.filter(function(a){return a.dueAt&&ms(a.dueAt)<=ms(now);});
+
+    if(CLOSED[it.status]||it.completedAt){
+      return{state:'closed',owner:'none',stale:false,staleReason:null,
+             openDays:0,awaitingDays:0,clocks:c,dueActions:[]};
+    }
+    var openDays=c.startedAt?daysBetween(c.startedAt,now):0;
+    var awaitingDays=c.sentAt?daysBetween(c.sentAt,now):0;
+
+    /* Sent and waiting. A due follow-up flips ownership back to Josh — the
+       ACTION is his even though the RESPONSE is theirs. */
+    if(it.sentAt&&!CLOSED[it.status]){
+      var fu=dueFollowUps[0];
+      if(fu){
+        var late=daysBetween(fu.dueAt,now);
+        return{state:late>0?'follow_up_overdue':'follow_up_due',owner:'josh',
+               stale:late>0,staleReason:late>0?'follow_up_overdue':null,
+               openDays:openDays,awaitingDays:awaitingDays,clocks:c,dueActions:dueFollowUps};
+      }
+      return{state:'awaiting_customer',owner:'customer',
+             stale:false,staleReason:null,             /* never procrastination */
+             openDays:openDays,awaitingDays:awaitingDays,clocks:c,dueActions:[]};
+    }
+    if(c.startedAt){
+      var st=openDays>=staleAfterDays;
+      return{state:'in_progress',owner:'josh',
+             stale:st,staleReason:st?'open_'+openDays+'d':null,
+             openDays:openDays,awaitingDays:0,clocks:c,dueActions:overdue};
+    }
+    var age=daysBetween(it.createdAt||it.firstSeenAt,now);
+    var un=age>=staleAfterDays;
+    return{state:'unstarted',owner:'josh',
+           stale:un,staleReason:un?'never_started_'+age+'d':null,
+           openDays:0,awaitingDays:0,clocks:c,dueActions:overdue,ageDays:age};
+  }
+
+  /* ── Activity resolution ────────────────────────────────────────────────
+     "Sending an email to Heather Moore with City of Elgin" must attach to the
+     work that already exists. Ranking uses text, but IDENTITY is always the
+     matched record's externalId — we are choosing among records WorkOS already
+     told us about, never minting one from a name. Below the confidence floor
+     the activity is preserved unlinked for later linking; we do not guess, and
+     we never create a business record from typed text. */
+  function tokens(s){
+    return String(s||'').toLowerCase().replace(/[^a-z0-9 ]+/g,' ').split(/\s+/)
+      .filter(function(t){return t.length>2&&!STOP[t];});
+  }
+  var STOP={the:1,and:1,for:1,with:1,about:1,from:1,that:1,this:1,are:1,was:1,
+            you:1,your:1,his:1,her:1,them:1,they:1,send:1,sending:1,sent:1,
+            email:1,emailing:1,call:1,calling:1,quote:1,quoting:1,working:1,
+            work:1,job:1,invoice:1,follow:1,following:1,than:1,then:1,out:1,
+            new:1,get:1,got:1,doing:1,just:1,now:1};
+
+  function resolveActivity(w,text,now,opts){
+    opts=opts||{};
+    var floor=opts.confidenceFloor!==undefined?opts.confidenceFloor:0.45;
+    var toks=tokens(text),lower=String(text||'').toLowerCase();
+    var cands=[];
+    Object.keys(w.items).forEach(function(id){
+      var it=w.items[id],score=0,why=[];
+
+      /* 1. An explicit external id in the text is decisive. */
+      if(it.externalId&&lower.indexOf(String(it.externalId).toLowerCase())>=0){
+        score+=100;why.push('external id');
+      }
+      /* 2. Identity-bearing labels WorkOS gave us (company, then contact). */
+      var comp=tokens(it.companyLabel),cust=tokens(it.customerLabel);
+      var compHit=comp.filter(function(t){return toks.indexOf(t)>=0;}).length;
+      var custHit=cust.filter(function(t){return toks.indexOf(t)>=0;}).length;
+      if(comp.length&&compHit===comp.length){score+=40;why.push('company');}
+      else if(compHit){score+=18*compHit;why.push('company partial');}
+      if(cust.length&&custHit===cust.length){score+=35;why.push('contact');}
+      else if(custHit){score+=15*custHit;why.push('contact partial');}
+      /* 3. Title overlap — weakest signal, never sufficient alone. */
+      var tHit=tokens(it.title).filter(function(t){return toks.indexOf(t)>=0;}).length;
+      if(tHit)score+=6*tHit;
+      /* 4. Recency/among-active tiebreak only; cannot create a match by itself. */
+      if(score>0){
+        if(openSession(w,it.id))score+=12;
+        if(!CLOSED[it.status])score+=6;
+        var d=daysBetween(it.lastActivityAt||it.syncedAt||it.firstSeenAt,now);
+        if(d<=7)score+=4;
+        cands.push({item:it,score:score,why:why});
+      }
+    });
+    cands.sort(function(a,b){return b.score-a.score;});
+    var best=cands[0]||null;
+    /* Confidence is relative: a clear winner beats a field of near-ties. */
+    var conf=0;
+    if(best){
+      var second=cands[1]?cands[1].score:0;
+      conf=Math.min(1,best.score/100)*(second?Math.min(1,(best.score-second)/25*0.5+0.5):1);
+    }
+    var ambiguous=!!(best&&cands[1]&&(best.score-cands[1].score)<10);
+    return{
+      best:best&&conf>=floor&&!ambiguous?best.item:null,
+      confidence:best?Number(conf.toFixed(3)):0,
+      ambiguous:ambiguous,
+      candidates:cands.slice(0,5).map(function(c){return{item:c.item,score:c.score,why:c.why};}),
+      /* Never a licence to create a business record — only to keep the text. */
+      unresolved:!(best&&conf>=floor&&!ambiguous)
+    };
+  }
+
+  /* ── Inbound events (WorkOS → JoshOS) ───────────────────────────────────
+     Every event carries a stable id; a replay is recorded and dropped. This is
+     the guarantee behind "same event twice ⇒ one session, one follow-up". */
+  function applyEvent(w,ev,now){
+    if(!ev||!ev.id)return{applied:false,reason:'missing_event_id'};
+    if(w.seenEvents[ev.id])return{applied:false,reason:'duplicate',eventId:ev.id};
+    w.seenEvents[ev.id]=now;
+
+    var res={applied:true,eventId:ev.id,type:ev.type,item:null,session:null,actions:[]};
+    var p=ev.data||{};
+
+    if(ev.type==='work_session.started'||ev.type==='work_session.completed'){
+      /* JoshOS-owned, but WorkOS may echo one back (e.g. logged elsewhere). */
+      var wid=p.workItemId||(p.externalId?refId(p.source,p.externalId):null);
+      if(!wid)return(res.applied=false,res.reason='missing_work_item',res);
+      if(ev.type==='work_session.started'){
+        res.session=startSession(w,{workItemId:wid,at:p.at||ev.at||now,clientKey:ev.id,
+                                    note:p.note,source:p.source||'workos'}).session;
+      }else{
+        res.session=endSession(w,{workItemId:wid,at:p.at||ev.at||now,note:p.note}).session;
+      }
+      return res;
+    }
+
+    /* Business events: upsert the reference, then re-derive actions. */
+    var up=upsertItem(w,p,now);
+    if(!up.item)return(res.applied=false,res.reason=up.reason,res);
+    res.item=up.item;res.created=up.created;
+    res.actions=reconcileActions(w,up.item,now).created;
+    return res;
+  }
+
+  /* ── Outbound events (JoshOS → WorkOS) ──────────────────────────────────
+     An append-only outbox. Nothing is reported as synced until the transport
+     confirms it; a failure increments attempts and stays pending so it can be
+     retried and so the UI can honestly say "not synced". */
+  function enqueue(w,type,data,now){
+    var ev={
+      id:'jos_'+type+'_'+ms(now)+'_'+Math.random().toString(36).slice(2,8),
+      type:type,data:data||{},at:now,
+      status:'pending',attempts:0,lastError:null,lastAttemptAt:null
+    };
+    w.outbox.push(ev);
+    return ev;
+  }
+
+  function backoffReady(ev,now){
+    if(!ev.lastAttemptAt)return true;
+    var wait=Math.min(30*60e3,Math.pow(2,ev.attempts)*30e3); /* 30s → 30m */
+    return ms(now)-ms(ev.lastAttemptAt)>=wait;
+  }
+
+  /* transport.send(event) → Promise. Resolve = WorkOS accepted. Reject/throw =
+     it did not. We never convert a rejection into success. */
+  function flushOutbox(w,transport,now){
+    var pending=w.outbox.filter(function(e){return e.status==='pending'&&backoffReady(e,now);});
+    if(!transport||!transport.send){
+      w.sync.status='not_configured';
+      return Promise.resolve({sent:0,failed:0,pending:w.outbox.filter(function(e){return e.status==='pending';}).length,
+                              reason:'no_transport'});
+    }
+    var sent=0,failed=0;
+    return pending.reduce(function(chain,ev){
+      return chain.then(function(){
+        ev.attempts++;ev.lastAttemptAt=now;
+        return Promise.resolve(transport.send(ev)).then(function(r){
+          ev.status='sent';ev.sentAt=now;ev.lastError=null;
+          if(r&&r.externalId)ev.externalId=r.externalId;
+          sent++;
+        },function(err){
+          ev.lastError=String(err&&err.message||err);
+          failed++;
+          if(ev.attempts>=8){ev.status='failed';ev.failedAt=now;}
+        });
+      });
+    },Promise.resolve()).then(function(){
+      var stillPending=w.outbox.filter(function(e){return e.status==='pending';}).length;
+      if(failed>0){w.sync.status='error';w.sync.error='outbox: '+failed+' event(s) not accepted';w.sync.failures++;}
+      else if(sent>0){w.sync.status='ok';w.sync.error=null;w.sync.failures=0;w.sync.lastOkAt=now;}
+      return{sent:sent,failed:failed,pending:stillPending};
+    });
+  }
+
+  /* Completing a calendar action is a JoshOS fact that WorkOS should learn
+     about. We record it locally and enqueue — we do NOT locally advance the
+     business status, because that is WorkOS's to decide. */
+  function completeAction(w,actionId,now,opts){
+    opts=opts||{};
+    var a=w.actions.filter(function(x){return x.id===actionId;})[0];
+    if(!a)return{action:null,completed:false,reason:'not_found'};
+    if(a.completedAt)return{action:a,completed:false,reason:'already_completed'};
+    a.completedAt=now;
+    if(opts.note)a.note=opts.note;
+    var it=w.items[a.workItemId];
+    if(it)it.lastActivityAt=now;
+    var ev=enqueue(w,'calendar_action.completed',{
+      workItemId:a.workItemId,
+      externalId:it?it.externalId:null,
+      source:it?it.source:'workos',
+      actionKind:a.kind,ruleId:a.ruleId,completedAt:now,note:opts.note||null
+    },now);
+    return{action:a,completed:true,event:ev};
+  }
+
+  /* ── Staleness of the CACHE (distinct from staleness of the work) ───────
+     If we have not heard from WorkOS recently, say so rather than presenting
+     old business state as current. */
+  function markStale(w,now,opts){
+    opts=opts||{};
+    var maxAge=(opts.staleAfterMinutes||30)*60e3;
+    var n=0;
+    Object.keys(w.items).forEach(function(id){
+      var it=w.items[id];
+      if(!it.syncedAt||ms(now)-ms(it.syncedAt)>maxAge){
+        if(it.syncStatus!=='stale'){it.syncStatus='stale';n++;}
+      }
+    });
+    return n;
+  }
+
+  function pull(w,transport,now){
+    if(!transport||!transport.fetchWork){
+      w.sync.status='not_configured';
+      w.sync.error='No WorkOS bridge configured';
+      markStale(w,now);
+      return Promise.resolve({ok:false,applied:0,reason:'not_configured'});
+    }
+    w.sync.lastPullAt=now;
+    return Promise.resolve(transport.fetchWork({since:w.sync.lastOkAt})).then(function(res){
+      var events=(res&&res.events)||[],applied=0;
+      events.forEach(function(ev){if(applyEvent(w,ev,now).applied)applied++;});
+      /* A snapshot payload is upserted the same way, through the same ids. */
+      ((res&&res.items)||[]).forEach(function(p){
+        var u=upsertItem(w,p,now);
+        if(u.item)reconcileActions(w,u.item,now);
+      });
+      w.sync.status='ok';w.sync.lastOkAt=now;w.sync.error=null;w.sync.failures=0;
+      return{ok:true,applied:applied,items:((res&&res.items)||[]).length};
+    },function(err){
+      /* Do not fake success and do not discard what we have — mark it stale. */
+      w.sync.status='error';
+      w.sync.error=String(err&&err.message||err);
+      w.sync.failures=(w.sync.failures||0)+1;
+      markStale(w,now);
+      return{ok:false,applied:0,error:w.sync.error};
+    });
+  }
+
+  /* ── Calendar projection ────────────────────────────────────────────────
+     Actions Josh must perform — never a dump of business records. Each item
+     keeps its originating WorkOS id so completing it can inform the business. */
+  function calendarItems(w,now,opts){
+    opts=opts||{};
+    var horizon=ms(now)+(opts.days||7)*DAY;
+    return w.actions.filter(function(a){
+      if(a.completedAt||a.supersededAt)return false;
+      if(!a.dueAt)return false;
+      return ms(a.dueAt)<=horizon;
+    }).map(function(a){
+      var it=w.items[a.workItemId]||{};
+      var cls=it.id?classify(w,it,now):null;
+      return{
+        id:a.id,title:a.title,kind:a.kind,dueAt:a.dueAt,owner:a.owner,
+        overdue:ms(a.dueAt)<ms(now),
+        workItemId:a.workItemId,externalId:it.externalId||null,source:it.source||null,
+        business:it.business||null,type:it.type||null,
+        label:itemLabel(it),
+        syncStatus:it.syncStatus||'unsynced',
+        state:cls?cls.state:null,
+        sentAt:it.sentAt||null,startedAt:it.startedAt||null
+      };
+    }).sort(function(x,y){return ms(x.dueAt)-ms(y.dueAt);});
+  }
+
+  /* Everything that needs Josh, ranked — feeds the Now page. */
+  function attention(w,now,opts){
+    var out=[];
+    Object.keys(w.items).forEach(function(id){
+      var it=w.items[id],c=classify(w,it,now,opts);
+      if(c.state==='closed')return;
+      if(c.owner!=='josh'&&!c.stale)return;
+      var due=c.dueActions[0]||actionsFor(w,id)[0]||null;
+      var score=c.state==='follow_up_overdue'?90:
+                c.state==='follow_up_due'?75:
+                c.stale?60+Math.min(c.openDays,10):
+                c.state==='unstarted'?40:50;
+      out.push({item:it,cls:c,action:due,score:score,label:itemLabel(it)});
+    });
+    return out.sort(function(a,b){return b.score-a.score;});
+  }
+
+  /* Bound growth of the replay ledger and the finished-work tail. */
+  function prune(w,now,opts){
+    opts=opts||{};
+    var keepDays=opts.keepDays||45,cut=ms(now)-keepDays*DAY;
+    Object.keys(w.seenEvents).forEach(function(k){if(ms(w.seenEvents[k])<cut)delete w.seenEvents[k];});
+    w.outbox=w.outbox.filter(function(e){return e.status==='pending'||ms(e.at)>=cut;});
+    w.actions=w.actions.filter(function(a){
+      return(!a.completedAt&&!a.supersededAt)||ms(a.completedAt||a.supersededAt)>=cut;
+    });
+    w.sessions=w.sessions.filter(function(s){return!s.endedAt||ms(s.endedAt)>=cut;});
+  }
+
+  return{
+    ensure:ensure,refId:refId,canonicalStatus:canonicalStatus,itemLabel:itemLabel,
+    upsertItem:upsertItem,applyEvent:applyEvent,
+    startSession:startSession,endSession:endSession,openSession:openSession,sessionsFor:sessionsFor,
+    clocks:clocks,classify:classify,
+    deriveActions:deriveActions,reconcileActions:reconcileActions,actionsFor:actionsFor,
+    completeAction:completeAction,resolveActivity:resolveActivity,
+    enqueue:enqueue,flushOutbox:flushOutbox,pull:pull,markStale:markStale,
+    calendarItems:calendarItems,attention:attention,prune:prune,
+    RULES:RULES,_tokens:tokens
+  };
+})();
+if(typeof window!=='undefined')window.WOB=WOB;
+/* WORKOS-BRIDGE:END */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WORKOS BRIDGE — JoshOS glue (DOM-aware; deliberately outside the tested
+   engine block above). Extends the existing az layer rather than replacing it.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function wobState(){return WOB.ensure(appData);}
+
+/* Transport. The bridge is a SERVER-SIDE endpoint owned by WorkOS; JoshOS holds
+   only a scoped read token. The business database's service-role key must never
+   reach this browser — see docs/WORKOS_BRIDGE_CONTRACT.md. */
+function wobTransport(){
+  var s=appData.settings||{},url=(s.workosBridgeUrl||'').trim(),tok=(s.workosBridgeToken||'').trim();
+  if(!url)return null;
+  var headers={'Content-Type':'application/json'};
+  if(tok)headers['Authorization']='Bearer '+tok;
+  var call=function(path,init){
+    return fetch(url.replace(/\/$/,'')+path,Object.assign({headers:headers},init||{})).then(function(r){
+      if(!r.ok)throw new Error('WorkOS bridge '+r.status+' '+r.statusText);
+      return r.json();
+    });
+  };
+  return{
+    fetchWork:function(o){
+      var q=o&&o.since?'?since='+encodeURIComponent(o.since):'';
+      return call('/work'+q);
+    },
+    send:function(ev){
+      return call('/events',{method:'POST',body:JSON.stringify(ev)});
+    }
+  };
+}
+
+function wobSaveSettings(){
+  if(!appData.settings)appData.settings={};
+  var u=document.getElementById('wobUrl'),t=document.getElementById('wobToken');
+  if(u)appData.settings.workosBridgeUrl=u.value.trim();
+  if(t)appData.settings.workosBridgeToken=t.value.trim();
+  saveData();wobRenderStatus();
+}
+
+function wobRenderStatus(){
+  var el=document.getElementById('wobStatusLine');if(!el)return;
+  var w=wobState(),s=w.sync,n=Object.keys(w.items).length;
+  var pending=w.outbox.filter(function(e){return e.status==='pending';}).length;
+  var txt,cls='';
+  if(s.status==='not_configured'||s.status==='never'&&!wobTransport()){txt='Not configured — business work is not linked';}
+  else if(s.status==='error'){txt='Not synced — '+(s.error||'unavailable');cls='warn';}
+  else if(s.status==='ok'){txt=n+' work item'+(n===1?'':'s')+' · synced '+wobAgo(s.lastOkAt);cls='live';}
+  else txt='Waiting for first sync';
+  if(pending)txt+=' · '+pending+' change'+(pending===1?'':'s')+' queued';
+  el.textContent=txt;el.className='status '+cls;
+}
+
+function wobAgo(ts){
+  if(!ts)return'never';
+  var m=Math.floor((Date.now()-new Date(ts).getTime())/60000);
+  if(m<1)return'just now';
+  if(m<60)return m+'m ago';
+  var h=Math.floor(m/60);if(h<24)return h+'h ago';
+  return Math.floor(h/24)+'d ago';
+}
+
+/* Pull business state, then push anything queued. Failures are surfaced, never
+   swallowed — this is the one place in JoshOS that must not `.catch(()=>{})`. */
+function wobSync(silent){
+  var w=wobState(),t=wobTransport(),now=new Date().toISOString();
+  if(!t){w.sync.status='not_configured';wobRenderStatus();return Promise.resolve({ok:false});}
+  return WOB.pull(w,t,now).then(function(res){
+    return WOB.flushOutbox(w,t,new Date().toISOString()).then(function(out){
+      WOB.prune(w,new Date().toISOString());
+      saveData();wobRenderStatus();
+      if(!silent){
+        if(res.ok)showToast('WorkOS synced — '+(res.items||0)+' work item'+(res.items===1?'':'s'));
+        else showToast('WorkOS unavailable — '+(res.error||'not synced'));
+      }
+      if(document.getElementById('page-now')?.classList.contains('active'))renderNow();
+      if(document.getElementById('page-calendar')?.classList.contains('active'))renderCalAhead();
+      return{pull:res,outbox:out};
+    });
+  });
+}
+function wobSyncNow(){showToast('Contacting WorkOS…');wobSync(false);}
+
+/* ── Resolution: attach a typed activity to work that already exists ────────
+   Never creates a business record. On a confident match we link and open a
+   work session; otherwise the text is preserved and offered for linking. */
+function wobResolveAndLink(text,opts){
+  opts=opts||{};
+  var w=wobState(),now=new Date().toISOString();
+  var r=WOB.resolveActivity(w,text,now);
+  if(r.best){
+    var st=WOB.startSession(w,{workItemId:r.best.id,at:now,note:text,source:'joshos'});
+    if(st.created){
+      WOB.enqueue(w,'work_session.started',{
+        workItemId:r.best.id,externalId:r.best.externalId,source:r.best.source,at:now,note:text
+      },now);
+    }
+    saveData();
+    if(!opts.quiet){
+      showToast((st.created?'Working on ':'Already on ')+WOB.itemLabel(r.best)+
+                ' — '+(r.best.type||'work')+' linked');
+    }
+    return{linked:true,item:r.best,session:st.session};
+  }
+  /* Not confident enough to link, and we will not guess. Keep the activity —
+     it stays a personal record either way — and offer it for linking later. */
+  if(r.candidates.length){
+    var pl={id:'pl_'+Date.now().toString(36),text:text,ts:now,
+            candidateIds:r.candidates.map(function(c){return c.item.id;}).slice(0,4)};
+    w.pendingLinks.unshift(pl);
+    w.pendingLinks=w.pendingLinks.slice(0,12);
+    saveData();
+    if(!opts.quiet)showToast('Captured — tap “link to business work” on Now to attach it');
+  }
+  return{linked:false,candidates:r.candidates,ambiguous:r.ambiguous};
+}
+
+/* Linking is always to a record WorkOS already gave us, chosen by its id. */
+function wobLinkTo(itemId,pendingId){
+  var w=wobState(),now=new Date().toISOString(),it=w.items[itemId];
+  if(!it)return;
+  var pl=w.pendingLinks.filter(function(p){return p.id===pendingId;})[0];
+  var note=pl?pl.text:null;
+  var st=WOB.startSession(w,{workItemId:itemId,at:now,note:note,source:'joshos'});
+  if(st.created)WOB.enqueue(w,'work_session.started',{
+    workItemId:itemId,externalId:it.externalId,source:it.source,at:now,note:note},now);
+  w.pendingLinks=w.pendingLinks.filter(function(p){return p.id!==pendingId;});
+  saveData();
+  showToast('Linked to '+WOB.itemLabel(it));
+  if(document.getElementById('page-now')?.classList.contains('active'))renderNow();
+}
+
+function wobDismissPending(pendingId){
+  var w=wobState();
+  w.pendingLinks=w.pendingLinks.filter(function(p){return p.id!==pendingId;});
+  saveData();renderNow();
+}
+
+/* Unresolved activities surface on Now — the "allow later linking" path. */
+var _renderNowBase=renderNow;
+renderNow=function(){
+  _renderNowBase();
+  var el=document.getElementById('nowBody');if(!el)return;
+  try{
+    var w=wobState();
+    if(!w.pendingLinks.length)return;
+    var html='<section class="az-sec"><h3>Link to business work<small>captured activity we could not match with confidence</small></h3>'+
+      w.pendingLinks.map(function(p){
+        var opts=p.candidateIds.map(function(id){
+          var it=w.items[id];if(!it)return'';
+          return '<button class="btn quiet sm" onclick="wobLinkTo(\''+it.id+'\',\''+p.id+'\')">'+
+            azEsc(WOB.itemLabel(it))+' · '+azEsc(it.type||'work')+'</button>';
+        }).filter(Boolean).join(' ');
+        return '<div class="az-row"><span class="grow">&ldquo;'+azEsc(p.text)+'&rdquo;</span>'+opts+
+          '<button class="btn ghost sm" onclick="wobDismissPending(\''+p.id+'\')">Personal</button></div>';
+      }).join('')+'</section>';
+    el.insertAdjacentHTML('beforeend',html);
+  }catch(e){}
+};
+
+/* ── Surfacing into the existing engines ───────────────────────────────────
+   azOpenLoops and azNextAction stay authoritative; these feed them. Both are
+   wrapped rather than rewritten so the personal logic is untouched. */
+var _azOpenLoopsBase=azOpenLoops;
+azOpenLoops=function(){
+  var loops=_azOpenLoopsBase();
+  try{
+    var w=wobState(),now=new Date().toISOString();
+    WOB.attention(w,now).forEach(function(a){
+      var c=a.cls,txt;
+      if(c.state==='follow_up_overdue')txt=a.label+' — follow-up overdue by '+
+        Math.max(0,Math.floor((Date.now()-new Date(a.action.dueAt).getTime())/864e5))+'d';
+      else if(c.state==='follow_up_due')txt=a.label+' — follow-up due today';
+      else if(c.state==='in_progress')txt=a.label+' — '+(a.item.type||'work')+' open '+c.openDays+'d, not finished';
+      else if(c.state==='unstarted')txt=a.label+' — '+(a.item.type||'work')+' never started';
+      else return;
+      loops.push({w:a.score/10,text:txt,src:'workos',workItemId:a.item.id});
+    });
+    loops.sort(function(x,y){return y.w-x.w;});
+  }catch(e){}
+  return loops.slice(0,9);
+};
+
+var _azNextActionBase=azNextAction;
+azNextAction=function(){
+  var na=_azNextActionBase();
+  try{
+    var w=wobState(),now=new Date().toISOString();
+    if(na.firewall)return na;                 /* personal time stays personal */
+    var extra=[];
+    WOB.attention(w,now).forEach(function(a){
+      var c=a.cls,score=a.score;
+      var title=c.state==='follow_up_overdue'||c.state==='follow_up_due'
+        ? (a.action?a.action.title:'Follow up — '+a.label)
+        : (a.action?a.action.title:(a.item.title||a.label));
+      extra.push({
+        score:score,title:title,kind:'workos',
+        workItem:a.item,cls:c,action:a.action,
+        why:'Real business work in WorkOS — '+(a.item.business||'business')+' · '+
+            (a.item.type||'item')+(a.item.syncStatus==='stale'?' (cached, not current)':'')
+      });
+    });
+    if(!extra.length)return na;
+    var all=[na.best].concat(na.alts||[]).filter(Boolean).concat(extra)
+      .sort(function(x,y){return y.score-x.score;});
+    na.best=all[0]||null;na.alts=all.slice(1,3);
+  }catch(e){}
+  return na;
+};
+
+/* Hour check-in becomes a resolution point: what Josh types is matched against
+   real work before it is filed as an anonymous string. */
+var _tlLogBase=tlLog;
+tlLog=function(){
+  var inp=document.getElementById('tlQI'),text=inp?inp.value.trim():'';
+  _tlLogBase();
+  if(!text)return;
+  try{
+    var res=wobResolveAndLink(text,{quiet:false});
+    if(res.linked){
+      var key=getTDK(),h=new Date().getHours();
+      if(appData.timeLog&&appData.timeLog[key]&&appData.timeLog[key][h]){
+        appData.timeLog[key][h].workItemId=res.item.id;
+        appData.timeLog[key][h].externalId=res.item.externalId;
+        saveData();renderTLTimeline();
+      }
+    }
+  }catch(e){}
+};
+
+/* Calendar: actions Josh must perform, not a dump of business records. */
+var _renderCalAheadBase=renderCalAhead;
+renderCalAhead=function(){
+  _renderCalAheadBase();
+  var el=document.getElementById('calAhead');if(!el)return;
+  try{
+    var w=wobState(),now=new Date().toISOString();
+    var items=WOB.calendarItems(w,now,{days:14});
+    if(!items.length)return;
+    var html='<div class="sgl" style="margin-top:var(--s5)">Business work</div>'+items.map(function(c){
+      var when=new Date(c.dueAt),d=when.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      var meta=[c.business,c.type].filter(Boolean).join(' · ');
+      var clock=c.sentAt?'sent '+wobAgo(c.sentAt):c.startedAt?'open since '+wobAgo(c.startedAt):'';
+      return '<div class="az-row'+(c.overdue?' warn':'')+'">'+
+        '<span class="grow"><b>'+azEsc(c.title)+'</b>'+
+        '<small style="display:block;color:var(--text-muted)">'+azEsc(meta)+
+        (clock?' · '+azEsc(clock):'')+
+        (c.syncStatus==='stale'?' · cached':'')+'</small></span>'+
+        '<span class="tag">'+(c.overdue?'overdue':d)+'</span>'+
+        '<button class="btn sm" onclick="wobCompleteAction(\''+c.id+'\')">Done</button></div>';
+    }).join('');
+    el.insertAdjacentHTML('beforeend',html);
+  }catch(e){}
+};
+
+function wobCompleteAction(actionId){
+  var w=wobState(),now=new Date().toISOString();
+  var r=WOB.completeAction(w,actionId,now);
+  if(!r.completed){showToast('Already done');return;}
+  saveData();
+  if(typeof gardenEvent==='function')gardenEvent('task_done',r.action.title);
+  showToast('Done — telling WorkOS');
+  var t=wobTransport();
+  if(!t){showToast('Recorded locally — WorkOS bridge not configured');wobRenderStatus();renderCalAhead();return;}
+  WOB.flushOutbox(w,t,new Date().toISOString()).then(function(out){
+    saveData();wobRenderStatus();
+    if(out.failed)showToast('Saved, but WorkOS did not confirm — will retry');
+    renderCalAhead();
+  });
+}
+
+function wobBoot(){
+  if(!appData||!appData.lastDate){setTimeout(wobBoot,150);return;}
+  wobState();
+  var u=document.getElementById('wobUrl'),t=document.getElementById('wobToken');
+  if(u)u.value=appData.settings?.workosBridgeUrl||'';
+  if(t)t.value=appData.settings?.workosBridgeToken||'';
+  wobRenderStatus();
+  if(wobTransport())wobSync(true);
+  setInterval(function(){
+    WOB.markStale(wobState(),new Date().toISOString());
+    if(wobTransport())wobSync(true);else wobRenderStatus();
+  },5*60000);
+}
+wobBoot();
+
 azBoot();
 </script>
 </body>
