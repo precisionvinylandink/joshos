@@ -25,6 +25,20 @@ const HourlyAlerts = __LIFEOS_ENABLED__
     )
   : null;
 
+// Live notification bell + the app-wide notification scheduler — desktop only.
+const NotificationBell = __LIFEOS_ENABLED__
+  ? lazy(() =>
+      import('../joshos/notifications/NotificationBell').then((m) => ({ default: m.NotificationBell })),
+    )
+  : null;
+const NotificationScheduler = __LIFEOS_ENABLED__
+  ? lazy(() =>
+      import('../joshos/notifications/NotificationScheduler').then((m) => ({
+        default: m.NotificationScheduler,
+      })),
+    )
+  : null;
+
 function activeMasterFromPath(pathname: string): MasterId {
   if (pathname.startsWith('/life')) return 'life';
   if (pathname.startsWith('/today')) return 'today';
@@ -153,7 +167,18 @@ export function AppShell() {
         onSignOut={signOut}
       />
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar title={title} onOpenPalette={() => setPaletteOpen(true)} userInitials={initials} />
+        <TopBar
+          title={title}
+          onOpenPalette={() => setPaletteOpen(true)}
+          userInitials={initials}
+          notificationSlot={
+            NotificationBell ? (
+              <Suspense fallback={<span className="h-7 w-7" />}>
+                <NotificationBell />
+              </Suspense>
+            ) : undefined
+          }
+        />
         <main className="flex-1 overflow-y-auto">
           <Outlet />
         </main>
@@ -162,6 +187,11 @@ export function AppShell() {
       {HourlyAlerts && (
         <Suspense fallback={null}>
           <HourlyAlerts />
+        </Suspense>
+      )}
+      {NotificationScheduler && (
+        <Suspense fallback={null}>
+          <NotificationScheduler />
         </Suspense>
       )}
     </div>

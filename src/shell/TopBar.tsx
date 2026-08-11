@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Bell, Search } from 'lucide-react';
 import { cn } from '../shared/lib/cn';
 
@@ -6,9 +7,11 @@ export interface TopBarProps {
   onOpenPalette: () => void;
   notifications?: number;
   userInitials: string;
+  /** Desktop supplies a live notification bell here; web falls back to a static one. */
+  notificationSlot?: ReactNode;
 }
 
-export function TopBar({ title, onOpenPalette, notifications = 0, userInitials }: TopBarProps) {
+export function TopBar({ title, onOpenPalette, notifications = 0, userInitials, notificationSlot }: TopBarProps) {
   return (
     <header className="app-drag flex h-14 shrink-0 items-center gap-4 border-b border-border bg-bg px-4">
       <div className="shrink-0 text-sm font-medium text-text">{title}</div>
@@ -23,21 +26,23 @@ export function TopBar({ title, onOpenPalette, notifications = 0, userInitials }
       </button>
 
       <div className="app-no-drag flex shrink-0 items-center gap-3">
-        <button
-          className="relative rounded-theme p-1.5 text-muted transition hover:bg-white/5 hover:text-text"
-          aria-label="Notifications"
-        >
-          <Bell size={18} />
-          {notifications > 0 && (
-            <span
-              className={cn(
-                'absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold text-white',
-              )}
-            >
-              {notifications > 9 ? '9+' : notifications}
-            </span>
-          )}
-        </button>
+        {notificationSlot ?? (
+          <button
+            className="relative rounded-theme p-1.5 text-muted transition hover:bg-white/5 hover:text-text"
+            aria-label="Notifications"
+          >
+            <Bell size={18} />
+            {notifications > 0 && (
+              <span
+                className={cn(
+                  'absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold text-white',
+                )}
+              >
+                {notifications > 9 ? '9+' : notifications}
+              </span>
+            )}
+          </button>
+        )}
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white">
           {userInitials}
         </div>

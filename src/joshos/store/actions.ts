@@ -274,3 +274,38 @@ export function markNotificationRead(id: string): void {
 export function dismissNotification(id: string): void {
   set<AppNotification[]>(K.notifications, (ns) => ns.filter((n) => n.id !== id), []);
 }
+
+export function markAllNotificationsRead(): void {
+  set<AppNotification[]>(K.notifications, (ns) => ns.map((n) => ({ ...n, read: true })), []);
+}
+
+export function snoozeNotification(id: string, minutes: number): void {
+  const until = new Date(Date.now() + minutes * 60_000).toISOString();
+  set<AppNotification[]>(
+    K.notifications,
+    (ns) => ns.map((n) => (n.id === id ? { ...n, read: true, snoozedUntil: until } : n)),
+    [],
+  );
+}
+
+/**
+ * Idempotent notification emit used by the scheduler: fires once per unique
+ * `key` (persisted, so it won't repeat across reloads), and mirrors to a native
+ * OS notification on desktop.
+ */
+export function emitOnce(
+  key: string,
+  input: {
+    category: NotificationCategory;
+    title: string;
+    body?: string;
+    actionLabel?: string;
+    actionHref?: string;
+  },
+): void {
+  const seen = get<string[]>(K.notifKeys, []);
+  if (seen.includes(key)) return;
+  set<string[]>(K.notifKeys, (ks) => [key, ...ks].slice(0, 500), []);
+  pushNotification(input);
+  window.joshOS?.showNotification?.(input.title, input.body ?? '', { route: input.actionHref });
+}

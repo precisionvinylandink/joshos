@@ -9,4 +9,5 @@ export const K = {
   progress: 'joshos.progress',
   motivation: 'joshos.motivation',
   notifications: 'joshos.notifications',
+  notifKeys: 'joshos.notifKeys',
 } as const;

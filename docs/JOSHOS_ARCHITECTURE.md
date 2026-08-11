@@ -71,4 +71,4 @@ implemented end-to-end in `joshos/store/actions.ts` + `today/CommandCenter.tsx` 
 - [JOSHOS_COMMAND_CENTER.md](JOSHOS_COMMAND_CENTER.md)
 - [LIFEOS.md](LIFEOS.md) · [WORKOS.md](WORKOS.md) · [JOBOS_INTEGRATION.md](JOBOS_INTEGRATION.md)
 - [MOTIVATION_SYSTEM.md](MOTIVATION_SYSTEM.md) · [UNIFIED_SCHEDULER.md](UNIFIED_SCHEDULER.md)
-- [MEDIA_BANK.md](MEDIA_BANK.md) *(planned)*
+- [NOTIFICATIONS.md](NOTIFICATIONS.md) · [MEDIA_BANK.md](MEDIA_BANK.md) *(planned)*
