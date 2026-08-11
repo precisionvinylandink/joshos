@@ -334,21 +334,33 @@ boundary is drawn this way, and they are worth addressing on their own.
 - Settings UI for bridge URL + scoped token
 - 30 integration tests, run against the shipped engine
 
-### 🔌 REQUIRES WORKOS CHANGE (specified, not built)
-Nothing in this list exists yet. See `docs/workos/`:
-- `GET /work` and `POST /events` (reference implementation:
-  `docs/workos/joshos-bridge.ts`, a Supabase Edge Function)
-- Event outbox + triggers + idempotency ledger + token table
-  (`docs/workos/001_joshos_bridge.sql`, **not applied**)
-- Dedupe on inbound `event.id`
+### ✅ BUILT AND DEPLOYED (business side, 2026-08-11)
+- Schema: three additive migrations, **applied** — see
+  [`docs/workos/APPLIED_MIGRATIONS.md`](workos/APPLIED_MIGRATIONS.md)
+- Endpoint: `joshos-bridge` edge function, **deployed** to
+  `siwotzlqfwgmhhnnnppc`, source in [`docs/workos/joshos-bridge.ts`](workos/joshos-bridge.ts)
+  - `GET https://siwotzlqfwgmhhnnnppc.supabase.co/functions/v1/joshos-bridge/work`
+  - `POST https://siwotzlqfwgmhhnnnppc.supabase.co/functions/v1/joshos-bridge/events`
+- Auth: scoped bearer token (`joshos-desktop`), SHA-256 hashed at rest
+- JoshOS activity lands in the **existing `activity_log`**, not a competing store
+- Verified live against the real Heather Moore / City of Elgin `quote_requests`
+  row: `desktop/test/bridge-live.test.js`, 19 assertions across 3 phases
 
 ### ⚙️ REQUIRES MANUAL CONFIGURATION
-- Apply `001_joshos_bridge.sql` to `siwotzlqfwgmhhnnnppc` after review
-- Deploy the edge function; set `SUPABASE_SERVICE_ROLE_KEY` server-side only
-- Mint a bridge token; paste URL + token into JoshOS → Settings → Data & sync
+- **Paste the bridge URL + token into JoshOS → Settings → Data & sync.** This is
+  the only step between here and a live connection. The token is deliberately
+  *not* committed: the `joshos` GitHub repo is **public**.
 - **Resume the paused `joshos-sync` Supabase project** (`lavbxjegicshhfvytapb`)
   — unrelated to this work, but JoshOS's own multi-device sync is dead until
   then (DNS does not resolve; every call fails silently)
+
+### 🔌 STILL REQUIRES A BUSINESS-SIDE DECISION
+- `quote_requests` has no FK to `clients`, and `pvi_quotes.client_id` references
+  `profiles(id)` while `jobs`/`invoices` reference `clients(id)`. The bridge
+  works around this (it uses each table's denormalised labels), but the customer
+  model is genuinely forked and only the business side can reconcile it.
+- Nothing yet writes `quote_requests.pvi_quote_id`; the column exists so the
+  request → formal quote chain *can* be linked when a PVI admin creates one.
 
 ### 🚧 NOT IMPLEMENTED (deliberate)
 - Webhook push WorkOS→JoshOS. The desktop app has no public URL; polling every

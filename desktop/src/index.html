@@ -5599,8 +5599,10 @@ var WOB=(function(){
   var STATUS_MAP={
     'new':'new','request':'new','requested':'new','open':'new','pending':'new',
     'draft':'in_progress','working':'in_progress','in_progress':'in_progress','preparing':'in_progress',
+    'reviewing':'in_progress',
     'prepared':'prepared','ready':'prepared',
-    'sent':'sent','emailed':'sent','delivered':'sent','awaiting_customer':'sent',
+    /* PVI's quote_status enum calls the send step "quoted". */
+    'sent':'sent','emailed':'sent','delivered':'sent','awaiting_customer':'sent','quoted':'sent',
     'accepted':'won','approved':'won','won':'won','converted':'won',
     'declined':'lost','rejected':'lost','lost':'lost','cancelled':'lost','canceled':'lost',
     'scheduled':'scheduled','in_production':'in_production','production':'in_production',
@@ -5763,13 +5765,15 @@ var WOB=(function(){
        dueAt:addDays(it.createdAt||it.firstSeenAt,1),anchor:it.createdAt||it.firstSeenAt};}},
 
     {id:'quote_sent_follow_up',
-     match:function(it){return(it.type==='quote'||it.type==='opportunity')&&it.status==='sent'&&!!it.sentAt;},
+     match:function(it){return(it.type==='quote'||it.type==='opportunity'||it.type==='quote_request')
+       &&it.status==='sent'&&!!it.sentAt;},
      build:function(it){return{kind:'follow_up',owner:'customer',
        title:'Follow up with '+itemLabel(it),
        dueAt:addDays(it.sentAt,it.followUpDays||3),anchor:it.sentAt};}},
 
     {id:'quote_won_send_invoice',
-     match:function(it){return(it.type==='quote'||it.type==='opportunity')&&it.status==='won';},
+     match:function(it){return(it.type==='quote'||it.type==='opportunity'||it.type==='quote_request')
+       &&it.status==='won';},
      build:function(it){return{kind:'send_invoice',owner:'josh',
        title:'Send invoice — '+itemLabel(it),
        dueAt:addDays(it.wonAt||it.lastActivityAt||it.firstSeenAt,1),
