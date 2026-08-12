@@ -98,10 +98,17 @@ in the marked block `WORKOS-BRIDGE:BEGIN … END` inside `index.html`.
 - JoshOS holds only a scoped bridge token — **never** the business project's service
   role key or anon key.
 
+A converted PVI order arrives over the same bridge as `type: 'job'` and becomes a
+backward-scheduled execution plan (artwork → purchasing → production → QC →
+packaging → delivery) anchored on the CUSTOMER due date. PVI owns the production
+lead times and sends them as `stages`; JoshOS owns the schedule. Never
+substitute a quote's `valid_until` for a production due date — they are
+different facts, and §6.1 of the contract explains why.
+
 Full contract: [`docs/WORKOS_BRIDGE_CONTRACT.md`](docs/WORKOS_BRIDGE_CONTRACT.md).
 
 ```bash
-node desktop/test/workos-bridge.test.js
+node desktop/test/workos-bridge.test.js && node desktop/test/order-execution.test.js
 ```
 
 ## Do Not

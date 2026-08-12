@@ -5890,14 +5890,25 @@ var WOB=(function(){
     'accepted':'won','approved':'won','won':'won','converted':'won',
     'declined':'lost','rejected':'lost','lost':'lost','cancelled':'lost','canceled':'lost',
     'scheduled':'scheduled','in_production':'in_production','production':'in_production',
+    /* orders.status vocabulary: a paid order is committed work waiting to
+       start, and QC is the tail of production rather than a terminal state. */
+    'payment_received':'scheduled','quality_check':'in_production',
     'complete':'completed','completed':'completed','shipped':'completed','fulfilled':'completed',
     'invoiced':'invoiced','partial':'invoiced',
-    'paid':'paid','closed':'closed'
+    'paid':'paid','closed':'closed','refunded':'closed'
   };
+  /* Per-table overrides. One raw word can mean two different things depending
+     on the table it came from, and guessing is worse than being explicit:
+     `delivered` on a QUOTE means "we sent it to the customer" (=> sent), on an
+     ORDER it means "the goods arrived" (=> completed). The shared map keeps the
+     quote reading; orders override it here. */
+  var STATUS_BY_TABLE={orders:{'delivered':'completed'}};
   var CLOSED={lost:1,paid:1,closed:1};
-  function canonicalStatus(raw){
+  function canonicalStatus(raw,externalTable){
     if(raw==null||raw==='')return null;
     var k=String(raw).trim().toLowerCase().replace(/[\s-]+/g,'_');
+    var byTable=externalTable&&STATUS_BY_TABLE[externalTable];
+    if(byTable&&byTable[k])return byTable[k];
     return STATUS_MAP[k]||k;
   }
 
@@ -5932,12 +5943,24 @@ var WOB=(function(){
       id:id,source:p.source||'workos',externalId:String(p.externalId),
       createdAt:p.createdAt||now,startedAt:null,firstSeenAt:now
     };
-    /* Business-owned fields: overwritten from the source of truth. */
+    /* Business-owned fields: overwritten from the source of truth.
+       `priority` and `stages` join this list because both are WorkOS's to
+       decide — priority is the order's own rush flag, and `stages` is WorkOS's
+       production lead-time CONFIG (not a schedule; JoshOS still does the
+       scheduling from it). */
     ['externalTable','business','type','title','customerId','contactId','companyId',
-     'customerLabel','companyLabel','url','amount','createdAt','followUpDays'].forEach(function(k){
+     'customerLabel','companyLabel','url','amount','createdAt','followUpDays',
+     'priority','stages'].forEach(function(k){
       if(p[k]!==undefined&&p[k]!==null)it[k]=p[k];
     });
-    if(p.status!==undefined&&p.status!==null){it.status=canonicalStatus(p.status);it.rawStatus=p.status;}
+    /* rush is a boolean and false is meaningful — an order downgraded from
+       rush to normal must actually lose the flag, so it cannot ride the
+       skip-null loop above. */
+    if(p.rush!==undefined&&p.rush!==null)it.rush=!!p.rush;
+    if(p.status!==undefined&&p.status!==null){
+      it.status=canonicalStatus(p.status,p.externalTable||it.externalTable);
+      it.rawStatus=p.status;
+    }
     ['sentAt','completedAt','wonAt','lostAt','dueAt','lastActivityAt'].forEach(function(k){
       if(p[k])it[k]=p[k];
     });
@@ -6028,6 +6051,134 @@ var WOB=(function(){
     };
   }
 
+  /* ── Execution plan ─────────────────────────────────────────────────────
+     A converted order is not one task called "finish the order". It is a chain
+     of stages scheduled BACKWARD from the date the CUSTOMER needs it.
+
+     Division of labour, so neither system holds a copy of the other's model:
+     WorkOS owns the production LEAD TIMES (it sends them as `stages`); JoshOS
+     owns the SCHEDULE and places the blocks. If WorkOS sends no lead time for a
+     stage, JoshOS does not invent one — it raises a scheduling task instead.
+
+       due date
+         └─ delivery ─ packaging ─ QC ─ production ─ purchasing ─ artwork/proof
+            (walked right to left; each stage ends where the next one begins) */
+
+  function isRush(it){
+    /* One question, one answer: `rush` is the boolean WorkOS derives, priority
+       is the raw vocabulary. Either is sufficient; neither is invented here. */
+    return !!(it&&(it.rush===true||it.priority==='rush'||it.priority==='urgent'));
+  }
+
+  function hasStageConfig(it){
+    return !!(it&&Array.isArray(it.stages)&&it.stages.length);
+  }
+
+  /* Which work gets an execution plan: production work with a customer due
+     date. `job` covers both PVI orders and the legacy jobs table — they are
+     the same concept in the canonical vocabulary. */
+  function isExecutionWork(it){
+    /* `completed` is deliberately not in CLOSED — an invoice can still be
+       chased after the job is done — so a finished order has to be excluded
+       here explicitly, or it would keep generating production stages after it
+       shipped. */
+    return !!(it&&it.type==='job'&&!CLOSED[it.status]
+              &&it.status!=='completed'&&!it.completedAt);
+  }
+
+  function leadDaysFor(stage,rush){
+    var v=rush?stage.leadDaysRush:stage.leadDaysNormal;
+    return(v===null||v===undefined||isNaN(Number(v)))?null:Number(v);
+  }
+
+  /**
+   * Build the backward schedule.
+   *
+   * Returns `null` when the item is not execution work at all. Otherwise it
+   * always returns a plan, even a degenerate one, because "we cannot schedule
+   * this" is itself information Josh needs rather than silence.
+   *
+   *   dueAt          the customer due date, or null
+   *   rush           elevated priority
+   *   blocks         [{stage,label,startAt,endAt,leadDays,...}] in run order
+   *   unscheduled    stages WorkOS has no lead time for — never guessed at
+   *   provisional    the durations are placeholders WorkOS has not confirmed
+   *   feasible       the plan fits between now and the due date
+   *   compressed     it did not, so every block was squeezed to fit
+   *   overdue        the due date has already passed
+   */
+  function buildPlan(it,now){
+    if(!isExecutionWork(it))return null;
+    var rush=isRush(it);
+    var plan={
+      workItemId:it.id,dueAt:it.dueAt||null,rush:rush,priority:it.priority||'normal',
+      blocks:[],unscheduled:[],provisional:false,feasible:true,compressed:false,
+      overdue:false,requiredMs:0,availableMs:0
+    };
+    /* No due date ⇒ nothing to schedule backward from. This is the single
+       precondition of the whole feature, so it is reported, not defaulted. */
+    if(!it.dueAt)return(plan.reason='missing_due_date',plan);
+    if(!hasStageConfig(it))return(plan.reason='missing_stage_config',plan);
+
+    var stages=it.stages.slice().sort(function(a,b){return(a.sequence||0)-(b.sequence||0);});
+    var usable=[];
+    stages.forEach(function(s){
+      var lead=leadDaysFor(s,rush);
+      if(lead===null){plan.unscheduled.push({stage:s.stage,label:s.label||s.stage});return;}
+      if(s.confirmed===false)plan.provisional=true;
+      usable.push({stage:s.stage,label:s.label||s.stage,leadDays:lead,
+                   requiresVendor:!!s.requiresVendor});
+    });
+    if(!usable.length)return(plan.reason='no_configured_stages',plan);
+
+    plan.requiredMs=usable.reduce(function(a,s){return a+s.leadDays*DAY;},0);
+    plan.availableMs=ms(it.dueAt)-ms(now);
+    plan.overdue=plan.availableMs<=0;
+
+    /* If the work does not fit in the time left, squeeze it proportionally
+       rather than scattering the blocks into the past. The blocks stay
+       actionable and `compressed`/`feasible:false` says plainly that this
+       cannot be done at normal lead times — which is the real finding. */
+    var scale=1;
+    if(plan.requiredMs>plan.availableMs){
+      plan.feasible=false;
+      plan.compressed=!plan.overdue;
+      scale=plan.overdue?0:plan.availableMs/plan.requiredMs;
+    }
+
+    /* The walk itself: right to left from the due date. */
+    var cursor=ms(it.dueAt);
+    for(var i=usable.length-1;i>=0;i--){
+      var s=usable[i],dur=s.leadDays*DAY*scale;
+      var endAt=cursor,startAt=cursor-dur;
+      plan.blocks.unshift({
+        stage:s.stage,label:s.label,leadDays:s.leadDays,requiresVendor:s.requiresVendor,
+        startAt:iso(startAt),endAt:iso(endAt),
+        compressed:plan.compressed,provisional:plan.provisional,rush:rush
+      });
+      cursor=startAt;
+    }
+    plan.startsAt=plan.blocks.length?plan.blocks[0].startAt:null;
+    return plan;
+  }
+
+  /* The stage the order is actually in: the first block whose work is not yet
+     done. Completion is JoshOS's own record (the action), never inferred from
+     business status — WorkOS's `in_production` says production is happening,
+     not that packaging is finished. */
+  function currentStage(w,it,now){
+    var plan=buildPlan(it,now);
+    if(!plan||!plan.blocks.length)return null;
+    for(var i=0;i<plan.blocks.length;i++){
+      var b=plan.blocks[i];
+      var a=w.actions.filter(function(x){
+        return x.workItemId===it.id&&x.kind==='stage_'+b.stage&&!x.supersededAt;
+      })[0];
+      if(!a||!a.completedAt)return b;
+    }
+    return null; /* every stage done */
+  }
+
   /* ── Next-action rules ──────────────────────────────────────────────────
      A registry, not a hardcoded quote→follow-up→invoice chain. Each rule maps
      BUSINESS STATE to ONE PERSONAL EXECUTION ACTION. `anchor` is the business
@@ -6063,12 +6214,80 @@ var WOB=(function(){
        dueAt:addDays(it.wonAt||it.lastActivityAt||it.firstSeenAt,1),
        anchor:it.wonAt||it.lastActivityAt||it.firstSeenAt};}},
 
+    /* The placeholder that predates the execution plan. It still covers a job
+       WorkOS gave us no lead times for; once a real plan exists the plan
+       supersedes it, and leaving both would ask Josh to schedule work that is
+       already scheduled. */
     {id:'job_won_schedule',
-     match:function(it){return it.type==='job'&&(it.status==='won'||it.status==='scheduled');},
+     match:function(it){return it.type==='job'&&(it.status==='won'||it.status==='scheduled')
+       &&!(it.dueAt&&hasStageConfig(it));},
      build:function(it){return{kind:'schedule_production',owner:'josh',
        title:'Schedule production — '+itemLabel(it),
        dueAt:it.dueAt?addDays(it.dueAt,-2):addDays(it.wonAt||it.firstSeenAt,1),
        anchor:it.wonAt||it.dueAt||it.firstSeenAt};}},
+
+    /* ── The execution plan, as actions ───────────────────────────────────
+       This is the one rule that returns MANY actions: an order becomes a chain
+       of scheduled stages, not a single "finish the order".
+
+       ANCHORING. Every action here anchors on the order's `createdAt`, which
+       never changes. That is deliberate and is what makes Phase 7 work: when
+       the due date moves or rush is toggled, the action IDs stay the same, so
+       reconcileActions UPDATES the existing blocks' deadlines instead of
+       minting a second set — and stages Josh already completed stay completed
+       rather than reappearing. (Contrast `quote_sent_follow_up`, which anchors
+       on `sentAt` precisely because a re-send SHOULD produce a new follow-up.) */
+    {id:'order_execution_plan',
+     match:function(it){return isExecutionWork(it)&&!!it.dueAt&&hasStageConfig(it);},
+     build:function(it,now){
+       var plan=buildPlan(it,now);
+       if(!plan)return null;
+       var anchor=it.createdAt||it.firstSeenAt;
+       var rush=plan.rush,label=itemLabel(it);
+       /* "RUSH — Murphy Construction — Production": the prefix makes rush work
+          structurally identifiable wherever a title is rendered, including any
+          calendar surface that knows nothing about our flags. */
+       var name=function(stageLabel){
+         return(rush?'RUSH — ':'')+label+' — '+stageLabel;
+       };
+       var out=plan.blocks.map(function(b){
+         return{kind:'stage_'+b.stage,owner:'josh',title:name(b.label),
+                dueAt:b.endAt,startAt:b.startAt,anchor:anchor,
+                stage:b.stage,stageLabel:b.label,rush:rush,priority:plan.priority,
+                provisional:b.provisional,compressed:b.compressed};
+       });
+       /* A stage WorkOS has no lead time for gets a scheduling task, never an
+          invented duration. The order still runs; this one step is unplanned
+          and says so. */
+       plan.unscheduled.forEach(function(u){
+         out.push({kind:'needs_scheduling_'+u.stage,owner:'josh',
+           title:(rush?'RUSH — ':'')+'Schedule '+u.label+' — '+label,
+           dueAt:plan.startsAt||it.dueAt,anchor:anchor,
+           stage:u.stage,stageLabel:u.label,rush:rush,priority:plan.priority,
+           needsConfig:true});
+       });
+       /* The durations are placeholders WorkOS has not confirmed. The plan is
+          still built — an approximate schedule beats no schedule — but Josh is
+          asked to confirm rather than told the dates are accurate. */
+       if(plan.provisional&&plan.blocks.length){
+         out.push({kind:'confirm_schedule',owner:'josh',
+           title:'Confirm production lead times — '+label,
+           dueAt:plan.startsAt||it.dueAt,anchor:anchor,
+           rush:rush,priority:plan.priority,needsConfig:true});
+       }
+       return out;
+     }},
+
+    /* Production work with no customer due date cannot be scheduled at all.
+       Surfacing that is the whole point: silence would look like "nothing to
+       do" on an order that is quietly running late. */
+    {id:'job_missing_due_date',
+     match:function(it){return isExecutionWork(it)&&!it.dueAt&&hasStageConfig(it);},
+     build:function(it){return{kind:'needs_due_date',owner:'josh',
+       title:'Set customer due date — '+itemLabel(it),
+       dueAt:addDays(it.createdAt||it.firstSeenAt,1),
+       anchor:it.createdAt||it.firstSeenAt,
+       rush:isRush(it),priority:it.priority||'normal',needsConfig:true};}},
 
     {id:'invoice_sent_chase',
      match:function(it){return it.type==='invoice'&&(it.status==='sent'||it.status==='invoiced');},
@@ -6078,33 +6297,59 @@ var WOB=(function(){
        anchor:it.sentAt||it.dueAt||it.firstSeenAt};}}
   ];
 
+  /* A rule may return one action or many — an order's execution plan is a
+     chain of stages, and forcing it through one-rule-one-action would mean
+     either a fake rule per stage or a single useless "finish the order". */
   function deriveActions(it,now){
     if(!it||CLOSED[it.status])return[];
     var out=[];
     RULES.forEach(function(r){
       if(!r.match(it))return;
-      var a=r.build(it);
-      if(!a||!a.anchor)return;
-      a.ruleId=r.id;a.workItemId=it.id;
-      a.id='act_'+it.id+'_'+a.kind+'_'+ms(a.anchor);
-      out.push(a);
+      var built=r.build(it,now);
+      if(!built)return;
+      (Array.isArray(built)?built:[built]).forEach(function(a){
+        if(!a||!a.anchor)return;
+        a.ruleId=r.id;a.workItemId=it.id;
+        a.id='act_'+it.id+'_'+a.kind+'_'+ms(a.anchor);
+        out.push(a);
+      });
     });
     return out;
   }
+
+  /* Fields a re-derivation is allowed to change on an action that already
+     exists. Deadlines move when the due date moves and rush is toggled; the
+     action's IDENTITY and its completion never change here. */
+  var ACTION_MUTABLE=['title','dueAt','startAt','owner','stage','stageLabel',
+                      'rush','priority','provisional','compressed','needsConfig'];
 
   /* Upsert derived actions without ever duplicating or resurrecting.
      A completed action stays completed for its anchor; only a NEW anchor
      (real new business state) creates a new action. */
   function reconcileActions(w,it,now){
-    var desired=deriveActions(it,now),created=[],kept=[];
+    var desired=deriveActions(it,now),created=[],kept=[],updated=[];
     desired.forEach(function(d){
       var cur=w.actions.filter(function(a){return a.id===d.id;})[0];
-      if(cur){kept.push(cur);return;}
+      if(cur){
+        /* Reconcile, do not duplicate. A completed stage is left exactly as it
+           is — Phase 7's "preserve completed work" — while an open one picks up
+           the new deadline and rush state. Reopening completed work would need
+           an explicit reason, and a due-date edit is not one. */
+        if(!cur.completedAt){
+          var changed=false;
+          ACTION_MUTABLE.forEach(function(k){
+            if(d[k]!==undefined&&cur[k]!==d[k]){cur[k]=d[k];changed=true;}
+          });
+          if(changed){cur.updatedAt=now;updated.push(cur);}
+        }
+        kept.push(cur);return;
+      }
       var a={
         id:d.id,workItemId:d.workItemId,ruleId:d.ruleId,kind:d.kind,owner:d.owner,
         title:d.title,dueAt:d.dueAt,anchor:d.anchor,
         createdAt:now,completedAt:null,source:'derived'
       };
+      ACTION_MUTABLE.forEach(function(k){if(d[k]!==undefined)a[k]=d[k];});
       w.actions.push(a);created.push(a);
     });
     /* Retire any open derived action this state no longer calls for. Two cases,
@@ -6118,7 +6363,7 @@ var WOB=(function(){
       if(a.workItemId!==it.id||a.completedAt||a.supersededAt)return;
       if(a.source==='derived'&&!live[a.id])a.supersededAt=now;
     });
-    return{created:created,kept:kept};
+    return{created:created,kept:kept,updated:updated};
   }
 
   function actionsFor(w,workItemId,opts){
@@ -6137,7 +6382,10 @@ var WOB=(function(){
      Josh's, and flagging it as one would train him to ignore the signal. */
   function classify(w,it,now,opts){
     opts=opts||{};
-    var staleAfterDays=opts.staleAfterDays||3;
+    /* Rush escalates sooner. Three days of silence on a normal job is a
+       nudge; on a rush job it is most of the runway, so the threshold drops
+       rather than the signal arriving too late to act on. */
+    var staleAfterDays=opts.staleAfterDays||(isRush(it)?(opts.rushStaleAfterDays||1):3);
     var c=clocks(w,it,now);
     var open=actionsFor(w,it.id);
     var overdue=open.filter(function(a){return a.owner==='josh'&&a.dueAt&&ms(a.dueAt)<=ms(now);});
@@ -6414,9 +6662,21 @@ var WOB=(function(){
         label:itemLabel(it),
         syncStatus:it.syncStatus||'unsynced',
         state:cls?cls.state:null,
-        sentAt:it.sentAt||null,startedAt:it.startedAt||null
+        sentAt:it.sentAt||null,startedAt:it.startedAt||null,
+        /* Execution shape, so a calendar block is structurally identifiable as
+           rush without the renderer having to parse the title. */
+        startAt:a.startAt||null,stage:a.stage||null,stageLabel:a.stageLabel||null,
+        rush:!!a.rush,priority:a.priority||'normal',
+        provisional:!!a.provisional,compressed:!!a.compressed,
+        needsConfig:!!a.needsConfig,
+        customerDueAt:it.dueAt||null
       };
-    }).sort(function(x,y){return ms(x.dueAt)-ms(y.dueAt);});
+    }).sort(function(x,y){
+      /* Rush first within the same instant, so a squeezed rush block never
+         sorts below a normal one that happens to share its deadline. */
+      var d=ms(x.dueAt)-ms(y.dueAt);
+      return d!==0?d:(x.rush===y.rush?0:(x.rush?-1:1));
+    });
   }
 
   /* Everything that needs Josh, ranked — feeds the Now page. */
@@ -6425,15 +6685,143 @@ var WOB=(function(){
     Object.keys(w.items).forEach(function(id){
       var it=w.items[id],c=classify(w,it,now,opts);
       if(c.state==='closed')return;
-      if(c.owner!=='josh'&&!c.stale)return;
+      var dl=deadlineFor(w,it,now,opts);
+      /* An order in trouble surfaces even while the customer technically owns
+         the current step — a late vendor is still Josh's deadline to miss. */
+      if(c.owner!=='josh'&&!c.stale&&!(dl&&(dl.overdue||dl.atRisk)))return;
       var due=c.dueActions[0]||actionsFor(w,id)[0]||null;
-      var score=c.state==='follow_up_overdue'?90:
+      var score=dl&&dl.overdue?100:
+                c.state==='follow_up_overdue'?90:
+                dl&&dl.atRisk?85:
                 c.state==='follow_up_due'?75:
                 c.stale?60+Math.min(c.openDays,10):
                 c.state==='unstarted'?40:50;
-      out.push({item:it,cls:c,action:due,score:score,label:itemLabel(it)});
+      /* Rush outranks a normal item in the same condition. It never invents
+         urgency on its own — it breaks ties in favour of the tighter deadline. */
+      if(isRush(it))score+=8;
+      out.push({item:it,cls:c,action:dl&&dl.nextAction||due,score:score,
+                label:itemLabel(it),deadline:dl,rush:isRush(it)});
     });
     return out.sort(function(a,b){return b.score-a.score;});
+  }
+
+  /* ── Deadline monitoring ────────────────────────────────────────────────
+     Answers one question for every open order: "what has to happen right now
+     for this to go out on time?"
+
+     Day windows are ROLLING, matching daysBetween elsewhere in this engine:
+     "due today" is the next 24 hours, not a calendar date. That keeps the whole
+     block clock-injectable and free of timezone assumptions. */
+  function deadlineFor(w,it,now,opts){
+    opts=opts||{};
+    if(!isExecutionWork(it))return null;
+
+    var rush=isRush(it);
+    var plan=buildPlan(it,now);
+    var cls=classify(w,it,now,opts);
+    var stage=currentStage(w,it,now);
+    var open=actionsFor(w,it.id).slice().sort(function(a,b){
+      return ms(a.dueAt||it.dueAt)-ms(b.dueAt||it.dueAt);
+    });
+    /* The next required action is the next STAGE — the thing on the critical
+       path to shipping. Configuration tasks ("confirm the lead times", "set a
+       due date") are real work but they are not a production step, and letting
+       one of them answer "what do I do next?" for every order would bury the
+       actual answer. They come back as `blockers` instead. */
+    var stageQueue=open.filter(function(a){return/^stage_/.test(a.kind||'');});
+    var blockers=open.filter(function(a){return a.needsConfig;});
+    var next=stageQueue[0]||open[0]||null;
+    var remainingMs=it.dueAt?ms(it.dueAt)-ms(now):null;
+
+    /* Behind schedule: a stage whose window has closed but whose work is not
+       done. This is measured against JoshOS's own completion record, never
+       against WorkOS's status — `in_production` says production started, not
+       that packaging finished. */
+    var behind=open.filter(function(a){
+      return a.dueAt&&ms(a.dueAt)<ms(now)&&/^stage_/.test(a.kind||'');
+    });
+
+    var overdue=remainingMs!==null&&remainingMs<0;
+    /* Slack is the honest measure of risk: time available minus time the
+       configured lead times actually need. Rush tolerates less of it, which is
+       what "escalate sooner" means concretely. */
+    var slackMs=plan&&plan.dueAt?plan.availableMs-plan.requiredMs:null;
+    /* The warning threshold is a FRACTION of the work's own lead time, not a
+       fixed number of days. A day of slack means something very different on a
+       twelve-day build than on a two-day one, and a fixed window would nag on
+       long jobs while staying silent on short ones.
+
+       Rush escalates sooner in the only sense that survives the plan getting
+       shorter: it demands twice the proportional buffer (50% vs 25%), so an
+       equally-buffered rush order is flagged while the normal one is not.
+       The floor keeps very small plans from having a near-zero threshold. */
+    var ratio=rush?(opts.rushWarnRatio||0.5):(opts.warnRatio||0.25);
+    var warnMs=Math.max((opts.minWarnDays||1)*DAY,
+                        (plan&&plan.requiredMs||0)*ratio);
+    var reasons=[];
+    if(overdue)reasons.push('past_due');
+    if(behind.length)reasons.push('stage_overdue');
+    if(plan&&plan.reason==='missing_due_date')reasons.push('no_due_date');
+    if(plan&&plan.reason==='missing_stage_config')reasons.push('no_stage_config');
+    if(plan&&plan.unscheduled.length)reasons.push('unscheduled_stages');
+    if(plan&&!plan.feasible&&!overdue)reasons.push('does_not_fit');
+    if(slackMs!==null&&slackMs<warnMs&&slackMs>=0)reasons.push('low_slack');
+    var atRisk=!overdue&&reasons.length>0;
+
+    /* Work parked on someone else. Not an excuse — the deadline still counts —
+       but it changes what Josh should do about it. */
+    var waiting=cls.state==='awaiting_customer'||!!(stage&&stage.requiresVendor);
+
+    return{
+      workItemId:it.id,externalId:it.externalId,source:it.source,
+      externalTable:it.externalTable||null,
+      label:itemLabel(it),title:it.title||null,
+      dueAt:it.dueAt||null,remainingMs:remainingMs,
+      remainingDays:remainingMs===null?null:Math.floor(remainingMs/DAY),
+      rush:rush,priority:it.priority||'normal',
+      stage:stage?stage.stage:null,stageLabel:stage?stage.label:null,
+      nextAction:next,nextActionDueAt:next?next.dueAt:null,blockers:blockers,
+      onSchedule:!overdue&&!atRisk,
+      atRisk:atRisk,overdue:overdue,waiting:waiting,
+      riskReasons:reasons,slackMs:slackMs,plan:plan,state:cls.state
+    };
+  }
+
+  /**
+   * Every open order, bucketed for the daily execution view. An order can
+   * appear in several buckets — a rush order due today that is already behind
+   * belongs in all three, and dropping it from two of them to keep the lists
+   * tidy is how something gets missed.
+   */
+  function deadlines(w,now,opts){
+    opts=opts||{};
+    var all=[];
+    Object.keys(w.items).forEach(function(id){
+      var d=deadlineFor(w,w.items[id],now,opts);
+      if(d)all.push(d);
+    });
+    /* Worst first: overdue, then at risk, then soonest. */
+    all.sort(function(a,b){
+      var rank=function(x){return x.overdue?0:x.atRisk?1:2;};
+      var r=rank(a)-rank(b);
+      if(r!==0)return r;
+      if(a.rush!==b.rush)return a.rush?-1:1;
+      return(a.remainingMs===null?Infinity:a.remainingMs)-
+             (b.remainingMs===null?Infinity:b.remainingMs);
+    });
+    var within=function(d,lo,hi){
+      return d.remainingMs!==null&&d.remainingMs>=lo*DAY&&d.remainingMs<hi*DAY;
+    };
+    return{
+      all:all,
+      overdue:  all.filter(function(d){return d.overdue;}),
+      dueToday: all.filter(function(d){return!d.overdue&&within(d,0,1);}),
+      dueTomorrow:all.filter(function(d){return!d.overdue&&within(d,1,2);}),
+      atRisk:   all.filter(function(d){return d.atRisk;}),
+      rush:     all.filter(function(d){return d.rush;}),
+      waiting:  all.filter(function(d){return d.waiting;}),
+      onSchedule:all.filter(function(d){return d.onSchedule;})
+    };
   }
 
   /* Bound growth of the replay ledger and the finished-work tail. */
@@ -6457,6 +6845,10 @@ var WOB=(function(){
     completeAction:completeAction,resolveActivity:resolveActivity,
     enqueue:enqueue,flushOutbox:flushOutbox,pull:pull,markStale:markStale,
     calendarItems:calendarItems,attention:attention,prune:prune,
+    /* Execution layer: the backward schedule and the deadline monitor. */
+    isRush:isRush,isExecutionWork:isExecutionWork,hasStageConfig:hasStageConfig,
+    buildPlan:buildPlan,currentStage:currentStage,
+    deadlineFor:deadlineFor,deadlines:deadlines,
     RULES:RULES,_tokens:tokens
   };
 })();
@@ -6641,6 +7033,22 @@ azOpenLoops=function(){
       else return;
       loops.push({w:a.score/10,text:txt,src:'workos',workItemId:a.item.id});
     });
+    /* Orders in trouble outrank everything else in the open-loop list. A quote
+       nobody followed up on costs a lead; a production deadline that slips
+       costs a delivered promise, so it is stated as a deadline and not as
+       generic "stale work". */
+    WOB.deadlines(w,now).all.forEach(function(d){
+      if(!d.overdue&&!d.atRisk)return;
+      var when=d.remainingDays===null?'':
+        d.overdue?'overdue by '+Math.abs(d.remainingDays)+'d':
+        d.remainingDays<=0?'due today':'due in '+d.remainingDays+'d';
+      var next=d.nextAction?' — next: '+(d.stageLabel||d.nextAction.kind):'';
+      loops.push({
+        w:(d.overdue?11:9.5)+(d.rush?0.5:0),
+        text:(d.rush?'RUSH ':'')+d.label+' — order '+when+next,
+        src:'workos',workItemId:d.workItemId
+      });
+    });
     loops.sort(function(x,y){return y.w-x.w;});
   }catch(e){}
   return loops.slice(0,9);
@@ -6704,13 +7112,31 @@ renderCalAhead=function(){
     if(!items.length)return;
     var html='<div class="sgl" style="margin-top:var(--s5)">Business work</div>'+items.map(function(c){
       var when=new Date(c.dueAt),d=when.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-      var meta=[c.business,c.type].filter(Boolean).join(' · ');
+      var meta=[c.business,c.stageLabel||c.type].filter(Boolean).join(' · ');
       var clock=c.sentAt?'sent '+wobAgo(c.sentAt):c.startedAt?'open since '+wobAgo(c.startedAt):'';
-      return '<div class="az-row'+(c.overdue?' warn':'')+'">'+
+      /* A production block spans real time, so show the window rather than a
+         single instant — that is what makes it a work block and not a reminder. */
+      if(c.startAt&&c.stage){
+        var s=new Date(c.startAt);
+        clock=s.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' → '+d;
+      }
+      var notes=[];
+      if(c.customerDueAt&&c.stage)
+        notes.push('due '+new Date(c.customerDueAt).toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+      if(c.compressed)notes.push('compressed to fit');
+      if(c.provisional)notes.push('provisional lead time');
+      if(c.needsConfig)notes.push('needs configuration');
+      if(c.syncStatus==='stale')notes.push('cached');
+      /* Rush is marked structurally, not only in the title text, so it reads as
+         urgent even at a glance. */
+      return '<div class="az-row'+(c.overdue?' warn':'')+'"'+
+        (c.rush?' style="border-left:3px solid var(--accent2)"':'')+'>'+
         '<span class="grow"><b>'+azEsc(c.title)+'</b>'+
         '<small style="display:block;color:var(--text-muted)">'+azEsc(meta)+
         (clock?' · '+azEsc(clock):'')+
-        (c.syncStatus==='stale'?' · cached':'')+'</small></span>'+
+        (notes.length?' · '+azEsc(notes.join(' · ')):'')+'</small></span>'+
+        (c.rush?'<span class="tag" style="color:var(--accent2);border-color:var(--accent2)">'+
+          azEsc((c.priority||'rush').toUpperCase())+'</span>':'')+
         '<span class="tag">'+(c.overdue?'overdue':d)+'</span>'+
         '<button class="btn sm" onclick="wobCompleteAction(\''+c.id+'\')">Done</button></div>';
     }).join('');

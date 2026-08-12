@@ -120,6 +120,23 @@ freely without breaking JoshOS.
 | `followUpDays` | | Per-record follow-up cadence; default 3 |
 | `nextAction` / `nextActionDueAt` | | WorkOS's *business* intent — kept as `businessNextAction`, distinct from JoshOS's derived execution action |
 | `amount`, `url` | | Display / deep link |
+| `priority` | | `normal` \| `rush` \| `urgent`. Added 2026-08-12 |
+| `rush` | | The same fact as a boolean, so no consumer has to know which raw values count as rush |
+| `stages` | | Production lead-time **configuration** (§6.1). Not a schedule |
+
+**`dueAt` means the business due date *for that record type*** and the types do
+not agree with each other:
+
+| Type | `dueAt` is | |
+|---|---|---|
+| `quote` | `valid_until` — when the QUOTE expires | ❌ never a production deadline |
+| `invoice` | payment due date | |
+| `job` (an order) | **the CUSTOMER production due date** | ✅ the execution anchor |
+
+Confusing the first and third is the specific bug the order handoff exists to
+prevent: a quote expiring in 30 days says nothing about when the customer needs
+the goods. A `job` with no `dueAt` is not scheduled at all — JoshOS raises a
+task to set one rather than substituting anything.
 
 **`sentAt` is the single most important field.** Without it JoshOS cannot
 distinguish "Josh is slow" from "the customer hasn't replied" — the distinction
@@ -131,18 +148,25 @@ WorkOS tables each use their own vocabulary. JoshOS normalizes on arrival:
 
 | Canonical | Accepted raw values |
 |---|---|
-| `new` | new, request, requested, open, pending |
+| `new` | new, request, requested, open, **pending** |
 | `in_progress` | draft, working, in_progress, preparing |
 | `prepared` | prepared, ready |
 | `sent` | sent, emailed, delivered, awaiting_customer |
 | `won` | accepted, approved, won, converted |
 | `lost` | declined, rejected, lost, cancelled |
-| `scheduled` / `in_production` | scheduled, in_production, production |
+| `scheduled` / `in_production` | scheduled, **payment_received** / in_production, production, **quality_check** |
 | `completed` | complete, completed, shipped, fulfilled |
-| `invoiced` / `paid` / `closed` | invoiced, partial / paid / closed |
+| `invoiced` / `paid` / `closed` | invoiced, partial / paid / closed, **refunded** |
 
 An **unrecognized status is preserved verbatim and matches no rule.** JoshOS
 will never guess that an unknown status means "sent". Tested.
+
+**Per-table overrides.** One raw word can mean two different things depending on
+where it came from, and the shared map cannot resolve that. `delivered` on a
+*quote* means "we sent it to the customer" (→ `sent`); on an *order* it means
+"the goods arrived" (→ `completed`). `STATUS_BY_TABLE` holds these; the bridge
+sends the raw status and JoshOS re-normalises with `externalTable` in hand. The
+SQL projection carries the same override so the two sides agree.
 
 ### 4.4 `Event`
 
@@ -207,9 +231,86 @@ personal execution action**.
 | `quote_won_send_invoice` | quote/opportunity `won` | Send invoice | josh | `wonAt` +1d |
 | `job_won_schedule` | job `won`/`scheduled` | Schedule production | josh | `dueAt` −2d |
 | `invoice_sent_chase` | invoice `sent`/`invoiced` | Chase payment | customer | `dueAt`, else `sentAt` +14d |
+| `order_execution_plan` | `job` with a `dueAt` **and** `stages` | The whole backward schedule (§6.1) | josh | per stage |
+| `job_missing_due_date` | `job` with `stages` but no `dueAt` | Set customer due date | josh | created +1d |
+
+`job_won_schedule` stands down when a real plan exists — otherwise it would ask
+Josh to schedule work that is already scheduled.
 
 Adding a rule is a single entry in `RULES` in the engine block; nothing else
 changes.
+
+### 6.1 Orders: the backward-scheduled execution plan
+
+A converted order is not one task called "finish the order". It is the one rule
+that returns **many** actions, walked right-to-left from the customer due date:
+
+```
+                                                        customer due date
+  artwork/proof → purchasing → production → QC → packaging → delivery ┘
+```
+
+**Who owns what.** WorkOS owns the production LEAD TIMES and sends them as
+`stages`; JoshOS owns the SCHEDULE and places the blocks. Neither holds a copy
+of the other's model.
+
+```jsonc
+"stages": [ { "stage":"production", "sequence":3, "label":"Production",
+              "leadDaysNormal":5, "leadDaysRush":2,
+              "requiresVendor":false, "confirmed":false } ]
+```
+
+- **`leadDays* = null` ⇒ unconfigured.** JoshOS does not invent a duration. It
+  schedules the stages it can and raises `needs_scheduling_<stage>` for the rest.
+- **`confirmed:false` ⇒ provisional.** The plan is still built — an approximate
+  schedule beats no schedule — but every block is marked `provisional` and one
+  `confirm_schedule` task asks Josh to confirm the numbers. It never presents
+  placeholder durations as measured.
+- **Rush uses `leadDaysRush`**, a separately configured number. Not a multiplier.
+- **If the work does not fit** the time remaining, the blocks are compressed
+  proportionally rather than scattered into the past, and the plan reports
+  `feasible:false` / `compressed:true`.
+
+**Anchoring — why stage actions anchor on `createdAt`.** Every other rule
+anchors on the timestamp that *should* produce new work when it moves (a
+re-sent quote deserves a new follow-up). Stage actions anchor on the order's
+`createdAt`, which never moves, so their ids are stable and a due-date or rush
+change **updates the existing blocks** instead of minting a second set.
+Completed stages keep their completion and their original deadline; only open
+stages are rescheduled.
+
+### 6.2 Deadline monitoring
+
+`deadlines(w, now)` answers "what has to happen right now for every open order
+to go out on time?" and buckets them: `overdue`, `dueToday`, `dueTomorrow`,
+`atRisk`, `rush`, `waiting`, `onSchedule`. An order may appear in several — a
+rush order due today that is already behind belongs in all three, and dropping
+it from two to keep the lists tidy is how something gets missed.
+
+`atRisk` is earned, never asserted. The reasons are recorded on
+`riskReasons`: `past_due`, `stage_overdue` (a stage window closed with the work
+unfinished), `does_not_fit`, `low_slack`, `no_due_date`, `no_stage_config`,
+`unscheduled_stages`.
+
+**Rush escalates sooner** in three concrete ways, none of which is a hardcoded
+customer or job:
+
+| | Normal | Rush |
+|---|---|---|
+| Staleness threshold | 3 days | 1 day |
+| At-risk buffer | slack < 25% of its own lead time | slack < **50%** |
+| Ranking in the daily view | — | +8, as a tiebreak only |
+
+The buffer is a *fraction of the work's own lead time*, not a fixed window: a
+day of slack means something very different on a twelve-day build than a
+two-day one. Rush demanding twice the proportional buffer is what "escalate
+sooner" means concretely — and because it is only a tiebreak, a normal order
+that genuinely cannot make its date still outranks a rush order with weeks of
+slack.
+
+`nextAction` is the next incomplete **stage** — the production critical path.
+Configuration tasks ("confirm the lead times") come back separately as
+`blockers`, so they never answer "what do I do next?" for every order at once.
 
 **Anchoring.** Every action derives from a business timestamp (`anchor`) and
 carries a deterministic id `act_<itemId>_<kind>_<anchorMs>`. This gives three
@@ -332,10 +433,15 @@ boundary is drawn this way, and they are worth addressing on their own.
 - Outbox with retry, backoff, attempt/error tracking, no fake success
 - Cache staleness (`syncedAt`/`syncStatus`) and honest sync status in the UI
 - Settings UI for bridge URL + scoped token
-- 30 integration tests, run against the shipped engine
+- **Order execution plan** (§6.1): backward scheduling from the customer due
+  date, rush as a first-class property, unconfigured/provisional lead times
+  handled honestly, reconciliation that preserves completed stages
+- **Deadline monitoring** (§6.2) feeding the calendar and the daily open-loop list
+- 66 integration tests, run against the shipped engine
+  (`workos-bridge.test.js` 30 · `order-execution.test.js` 36)
 
-### ✅ BUILT AND DEPLOYED (business side, 2026-08-11)
-- Schema: three additive migrations, **applied** — see
+### ✅ BUILT AND DEPLOYED (business side, 2026-08-11 · extended 2026-08-12)
+- Schema: five additive migrations, **applied** — see
   [`docs/workos/APPLIED_MIGRATIONS.md`](workos/APPLIED_MIGRATIONS.md)
 - Endpoint: `joshos-bridge` edge function, **deployed** to
   `siwotzlqfwgmhhnnnppc`, source in [`docs/workos/joshos-bridge.ts`](workos/joshos-bridge.ts)
@@ -345,11 +451,23 @@ boundary is drawn this way, and they are worth addressing on their own.
 - JoshOS activity lands in the **existing `activity_log`**, not a competing store
 - Verified live against the real Heather Moore / City of Elgin `quote_requests`
   row: `desktop/test/bridge-live.test.js`, 19 assertions across 3 phases
+- **Orders projected and emitted** (2026-08-12). "Convert to Order" is now a
+  server-side RPC that requires a customer due date and captures priority, and
+  the resulting order lands in the outbox for JoshOS to collect. PVI shows the
+  handoff state on the quote via `pvi_order_execution`.
 
 ### ⚙️ REQUIRES MANUAL CONFIGURATION
 - **Paste the bridge URL + token into JoshOS → Settings → Data & sync.** This is
   the only step between here and a live connection. The token is deliberately
   *not* committed: the `joshos` GitHub repo is **public**.
+- **Confirm the production lead times** in `production_stage_config`. The six
+  stages are seeded with *placeholder* durations and `is_confirmed = false`,
+  because PVI has never recorded real ones — `products.turnaround_days` exists
+  but quote line items carry no `product_id`, so no per-line lead time is
+  reachable. Until Josh sets and confirms them, every order gets a schedule
+  plus a visible "confirm production lead times" task. Setting a lead time to
+  `NULL` instead marks that stage unconfigured, and JoshOS will raise a
+  scheduling task rather than guess.
 - **Resume the paused `joshos-sync` Supabase project** (`lavbxjegicshhfvytapb`)
   — unrelated to this work, but JoshOS's own multi-device sync is dead until
   then (DNS does not resolve; every call fails silently)
@@ -361,6 +479,12 @@ boundary is drawn this way, and they are worth addressing on their own.
   model is genuinely forked and only the business side can reconcile it.
 - Nothing yet writes `quote_requests.pvi_quote_id`; the column exists so the
   request → formal quote chain *can* be linked when a PVI admin creates one.
+- **`orders` has no vendor / outsourced flag.** The legacy `jobs` table has
+  `is_outsourced` and `vendor`; `orders` has neither, so the purchasing stage
+  cannot be conditioned on real data. It is therefore scheduled for every order
+  — the conservative direction, since reserving vendor lead time you did not
+  need is recoverable and omitting it is not. Adding those columns to `orders`
+  would let the stage be skipped when it genuinely does not apply.
 
 ### 🚧 NOT IMPLEMENTED (deliberate)
 - Webhook push WorkOS→JoshOS. The desktop app has no public URL; polling every

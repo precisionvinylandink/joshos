@@ -1,12 +1,17 @@
 # precision-vinyl — applied bridge migrations
 
-**Status: APPLIED** to `siwotzlqfwgmhhnnnppc` on 2026-08-11.
+**Status: APPLIED** to `siwotzlqfwgmhhnnnppc`.
 
-| Version | Name |
-|---|---|
-| `20260811215554` | `joshos_bridge_lifecycle_columns` |
-| `20260811215631` | `joshos_bridge_projection_and_outbox` |
-| `20260811215645` | `joshos_bridge_event_triggers` |
+| Version | Name | Applied |
+|---|---|---|
+| `20260811215554` | `joshos_bridge_lifecycle_columns` | 2026-08-11 |
+| `20260811215631` | `joshos_bridge_projection_and_outbox` | 2026-08-11 |
+| `20260811215645` | `joshos_bridge_event_triggers` | 2026-08-11 |
+| `20260812000003` | `order_execution_handoff` | 2026-08-12 |
+| `20260812000004` | `joshos_bridge_orders` | 2026-08-12 |
+
+The last two are the **order execution handoff** and live in the PVI repo at
+`supabase/migrations/`. See §4 below.
 
 All three are **additive**. No existing column was dropped, retyped or backfilled;
 no RLS policy was changed; no existing table's behaviour was altered except by the
@@ -72,6 +77,67 @@ trigger on the seven business tables above. It reads the changed row back throug
 guaranteed to be the same shape, and derives the event type from the canonical
 status transition.
 
+## 4. Order execution handoff (2026-08-12)
+
+The bridge as shipped projected seven tables. **`orders` was not one of them**,
+so the order that "Convert to Order" creates was invisible to JoshOS — the one
+gap that mattered, because that order is the actual production work.
+
+These two migrations close it without a second integration: same view, same
+outbox, same trigger function, same endpoint, same `(source, external_id)`
+identity.
+
+### `20260812000003_order_execution_handoff` (PVI repo)
+
+**Added to `public.orders`:**
+
+| Column | Type | Why |
+|---|---|---|
+| `due_date` | `timestamptz` | **The CUSTOMER production due date.** Nothing in the workflow held one. It is not `pvi_quotes.valid_until` (quote expiry), not `estimated_completion` (our internal estimate) and not `estimated_delivery` (a shipping estimate). |
+| `quote_id` | `uuid → pvi_quotes(id)` | Forward link; mirrors `pvi_quotes.converted_to_order_id` |
+
+`orders.priority` (`normal` \| `rush` \| `urgent`) **already existed** and is
+used as-is. No rush column was added — the conversion path simply stopped
+hardcoding `'normal'`.
+
+**`public.production_stage_config`** — the backward-scheduling lead times, six
+stages (artwork_proof → purchasing → production → qc → packaging → delivery).
+PVI owns the durations; JoshOS does the scheduling. `lead_days_* = NULL` means
+*unconfigured* and JoshOS refuses to guess; `is_confirmed = false` means
+*provisional* and JoshOS builds the plan but flags it. Admin-only RLS both ways
+(this project enables anonymous sign-ins, so `authenticated` is effectively
+public).
+
+**`public.convert_quote_to_order(quote_id, due_date, priority)`** — conversion
+moved off the client. One transaction, totals recomputed from the quote row,
+server-side admin check, a due date required, and **idempotent**: a quote that
+is already converted returns its existing order rather than creating a second.
+
+### `20260812000004_joshos_bridge_orders` (PVI repo)
+
+- `joshos_canonical_status` gained the orders vocabulary: `payment_received →
+  scheduled`, `quality_check → in_production`, `refunded → closed`.
+- `joshos_stage_plan()` — serialises the lead-time config for the payload.
+- `joshos_work_items` rebuilt with an **eighth branch for `orders`**, typed
+  `job` (the existing canonical vocabulary for production work with a due
+  date — no new enum value for any consumer), plus three new columns on every
+  branch: `priority`, `rush`, `stages`.
+- `joshos_emit` trigger on `orders`, argument `'job'`.
+- `public.pvi_order_execution` — a derived view PVI's own UI reads to show
+  whether the handoff happened (`not_synced` → `queued` → `synced` →
+  `execution_active` / `at_risk` / `complete`). **Derived, never stored**: sync
+  state lives in the outbox and execution activity in `activity_log`, so it can
+  never claim a sync that did not occur.
+
+> **`delivered` means two different things.** On a quote it is "we sent it to
+> the customer" (→ `sent`); on an order it is "the goods arrived" (→
+> `completed`). The shared SQL function keeps the quote reading and the orders
+> branch overrides it; JoshOS carries the same override in `STATUS_BY_TABLE`,
+> because the bridge sends the RAW status and JoshOS re-normalises it.
+
+Tests: `supabase/tests/order_execution_handoff_test.sql` (PVI, transactional
+and rolls back) and `desktop/test/order-execution.test.js` (this repo).
+
 ---
 
 ## Rollback
@@ -81,9 +147,18 @@ Removes only what these migrations added. Touches no business data.
 ```sql
 do $$ declare t text; begin
   foreach t in array array['quote_requests','pvi_quotes','cpg_opportunities',
-                           'cpg_quotes','jobs','invoices','promo_quote_requests']
+                           'cpg_quotes','jobs','invoices','promo_quote_requests',
+                           'orders']
   loop execute format('drop trigger if exists joshos_emit on public.%I', t); end loop;
 end $$;
+drop view  if exists public.pvi_order_execution;
+drop function if exists public.joshos_stage_plan();
+drop function if exists public.convert_quote_to_order(uuid, timestamptz, text);
+drop trigger if exists orders_touch_updated_at on public.orders;
+drop function if exists public.orders_touch_updated_at();
+drop table if exists public.production_stage_config;
+-- orders.due_date / orders.quote_id are harmless if left; to remove them:
+-- alter table public.orders drop column if exists due_date, drop column if exists quote_id;
 drop trigger if exists quote_requests_stamp_lifecycle on public.quote_requests;
 drop function if exists public.joshos_emit_work_event();
 drop function if exists public.quote_requests_stamp_lifecycle();

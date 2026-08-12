@@ -102,6 +102,22 @@ function toWorkItem(r: Record<string, unknown>) {
     completedAt: r.completed_at,
     dueAt: r.due_at,
     lastActivityAt: r.last_activity_at,
+    /*
+     * Execution fields. Added 2026-08-12 for the order handoff; consumers that
+     * predate them ignore unknown fields, so this is forward-compatible.
+     *
+     *   priority — normal | rush | urgent, straight off orders.priority
+     *   rush     — the same fact as a boolean, so a consumer never has to know
+     *              which raw values count as rush
+     *   stages   — PVI's production lead-time CONFIG, not a schedule. JoshOS
+     *              does the backward math and places the blocks; PVI owns the
+     *              durations. A null leadDays means unconfigured, and the
+     *              execution layer must raise a needs-scheduling task rather
+     *              than invent one.
+     */
+    priority: r.priority,
+    rush: r.rush,
+    stages: r.stages,
   };
 }
 
