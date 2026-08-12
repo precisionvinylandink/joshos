@@ -1043,9 +1043,52 @@ kbd{
   #gHud{max-width:60vw}
   .g-tool{width:42px;height:42px}
 }
+
+/* ── Auth gate ─────────────────────────────────────────────────────────────
+   Sits above everything. Until a session exists the app behind it is neither
+   interactive nor readable. */
+body.locked #sb,body.locked #content,body.locked .topbar{filter:blur(7px);pointer-events:none;user-select:none}
+#authGate{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;
+  background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);padding:20px}
+#authGate.show{display:flex}
+.auth-card{width:min(390px,100%);background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:28px;box-shadow:0 24px 70px rgba(0,0,0,.5)}
+.auth-brand{font-family:var(--font-display);font-size:1.5rem;letter-spacing:.04em;color:var(--accent);margin-bottom:2px}
+.auth-card h2{font-size:1rem;font-weight:600;color:var(--text);margin:0 0 4px}
+.auth-sub{font-family:var(--font-mono);font-size:.66rem;color:var(--text-muted);margin-bottom:20px}
+.auth-card label{display:block;font-family:var(--font-mono);font-size:.62rem;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--text-dim);margin:0 0 5px}
+.auth-card input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font-family:var(--font-body);font-size:.9rem;padding:10px 12px;margin-bottom:14px}
+.auth-card input:focus{outline:none;border-color:var(--accent)}
+#authGo{width:100%;background:var(--accent);color:var(--accent-ink,#0b0f04);border:none;border-radius:8px;
+  font-family:var(--font-body);font-weight:650;font-size:.9rem;padding:11px;cursor:pointer}
+#authGo:disabled{opacity:.55;cursor:default}
+.auth-alt{display:block;width:100%;background:none;border:none;color:var(--text-dim);cursor:pointer;
+  font-family:var(--font-mono);font-size:.68rem;margin-top:14px;text-decoration:underline}
+.auth-msg{font-family:var(--font-mono);font-size:.66rem;color:var(--text-dim);min-height:1.1em;margin-bottom:10px}
+.auth-msg.err{color:var(--danger,#ff5c5c)}
+.auth-foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--border);
+  font-family:var(--font-mono);font-size:.6rem;color:var(--text-muted);line-height:1.5}
 </style>
 </head>
 <body>
+
+<div id="authGate" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+  <form class="auth-card" onsubmit="return authSubmit(event)">
+    <div class="auth-brand">joshOS</div>
+    <h2 id="authTitle">Sign in to JoshOS</h2>
+    <div class="auth-sub">Your data lives in the cloud, not on this device.</div>
+    <label for="authEmail">Email</label>
+    <input id="authEmail" type="email" autocomplete="username" spellcheck="false" placeholder="you@example.com">
+    <label for="authPw">Password</label>
+    <input id="authPw" type="password" autocomplete="current-password" placeholder="••••••••">
+    <div class="auth-msg" id="authMsg"></div>
+    <button type="submit" id="authGo">Sign in</button>
+    <button type="button" class="auth-alt" id="authAlt" onclick="authToggle()">Create an account</button>
+    <div class="auth-foot">Signing in syncs this device with your JoshOS account. Sign out clears the local copy.</div>
+  </form>
+</div>
 
 <header id="tb">
   <button class="ibtn" id="tbMenu" data-ico="menu" aria-label="Open navigation" aria-expanded="false" onclick="toggleSidebar()"></button>
@@ -1752,10 +1795,10 @@ kbd{
                 </div>
               </div>
               <div class="sg">
-                <div class="sgl">Live sync</div>
-                <div class="sr"><div class="sl">Project URL</div><div class="sctl"><input type="text" class="hi" id="sbUrl" placeholder="https://xxxx.supabase.co" style="width:220px" oninput="saveSB()"></div></div>
-                <div class="sr"><div class="sl">Anon key</div><div class="sctl"><input type="password" class="hi" id="sbKey" placeholder="eyJ…" style="width:220px" oninput="saveSB()"></div></div>
-                <div class="sr"><div class="sl">Status</div><div class="sctl"><span class="status" id="sbStatusLine">Unknown</span></div></div>
+                <div class="sgl">Account</div>
+                <div class="sr"><div class="sl">Signed in as<span class="ssl">Your JoshOS data is scoped to this account and synced to every device you sign in on.</span></div><div class="sctl"><span class="status live" id="acctLbl">—</span></div></div>
+                <div class="sr"><div class="sl">Sign out<span class="ssl">Clears the local copy on this device. Cloud data is untouched.</span></div><div class="sctl"><button class="btn quiet" onclick="authLogout()">Sign out</button></div></div>
+                <div class="sr"><div class="sl">Cloud status</div><div class="sctl"><span class="status" id="sbStatusLine">—</span></div></div>
               </div>
               <div class="sg">
                 <div class="sgl">Business work (WorkOS)</div>
@@ -1897,7 +1940,88 @@ kbd{
 <script>
 // ── CONSTANTS ──────────────────────────────────────────────
 const SB_URL='https://lavbxjegicshhfvytapb.supabase.co';
-const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhdmJ4amVnaWNzaGhmdnl0YXBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMzY0NzYsImV4cCI6MjA5MjkxMjQ3Nn0.ndvlkJyLxxmKi-0DQZBbcQjab1g__enxaOmI8bZVs84';
+/* Publishable key. Safe to ship: it grants nothing on its own — every table is
+   RLS-scoped to auth.uid(), so data is only reachable with a signed-in session. */
+const SB_KEY='sb_publishable_qVrrcHmlp8g19P08nOWqOQ_bdrDZ9LH';
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   JOSHOS-AUTH:BEGIN — account + session
+   ───────────────────────────────────────────────────────────────────────────
+   Supabase Auth over its REST endpoints, hand-rolled with fetch to keep the
+   single-file, zero-dependency rule. localStorage holds the SESSION only —
+   never the source of truth for data. The cloud row is.
+   ═══════════════════════════════════════════════════════════════════════════ */
+const JAUTH=(function(){
+  const KEY='joshos.session';
+  let session=null;
+
+  function load(){
+    try{session=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){session=null;}
+    return session;
+  }
+  function store(s){
+    session=s;
+    if(s)localStorage.setItem(KEY,JSON.stringify(s));
+    else localStorage.removeItem(KEY);
+  }
+  function stamp(s){
+    if(s&&s.expires_in&&!s.expires_at)s.expires_at=Math.floor(Date.now()/1000)+s.expires_in;
+    return s;
+  }
+
+  async function call(path,body,extraHeaders){
+    const r=await fetch(SB_URL+'/auth/v1/'+path,{
+      method:'POST',
+      headers:Object.assign({'apikey':SB_KEY,'Content-Type':'application/json'},extraHeaders||{}),
+      body:JSON.stringify(body)
+    });
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(j.error_description||j.msg||j.message||('auth '+r.status));
+    return j;
+  }
+
+  async function signIn(email,password){
+    const s=stamp(await call('token?grant_type=password',{email:email,password:password}));
+    store(s);return s;
+  }
+  async function signUp(email,password){
+    const j=await call('signup',{email:email,password:password});
+    /* With email confirmation on, signup returns a user but no session. */
+    if(j.access_token){store(stamp(j));return{session:j,confirmed:true};}
+    return{session:null,confirmed:false,user:j.user||j};
+  }
+  async function signOut(){
+    const s=session;
+    store(null);
+    if(s&&s.access_token){
+      try{await call('logout',{},{'Authorization':'Bearer '+s.access_token});}catch(e){}
+    }
+  }
+  /* Returns a valid access token, refreshing when it is close to expiry.
+     Throws if there is no usable session — callers must not fall back to
+     unauthenticated access. */
+  async function token(){
+    if(!session)load();
+    if(!session)return null;
+    const now=Math.floor(Date.now()/1000);
+    if(session.expires_at&&session.expires_at-now<60&&session.refresh_token){
+      try{
+        store(stamp(await call('token?grant_type=refresh_token',{refresh_token:session.refresh_token})));
+      }catch(e){
+        /* Refresh token rejected (revoked/expired) — the session is genuinely
+           over. Clear it so the UI asks for a sign-in rather than looping. */
+        store(null);return null;
+      }
+    }
+    return session?session.access_token:null;
+  }
+  function user(){return session?session.user:null;}
+  function hasSession(){return !!(session||load());}
+
+  load();
+  return{signIn:signIn,signUp:signUp,signOut:signOut,token:token,user:user,hasSession:hasSession};
+})();
+/* JOSHOS-AUTH:END */
 // Stable per-install ID stored in localStorage so multiple Macs are distinguishable
 const DEVICE_ID=(()=>{let id=localStorage.getItem('_joshDevId');if(!id){id='desk-'+Math.random().toString(36).slice(2);localStorage.setItem('_joshDevId',id);}return id;})();
 const SYS={clarity:['c1','c2','c3','c4'],priority:['p1','p2','p3','p4'],execution:['e1','e2','e3','e4'],consistency:['co1','co2','co3','co4'],bounceback:['b1','b2','b3','b4'],mastery:['m1','m2','m3','m4']};
@@ -2517,7 +2641,7 @@ async function saveScorecard(){
   await saveData();
   const url=appData.settings?.supabaseUrl||SB_URL,key=appData.settings?.supabaseKey||SB_KEY;
   if(url&&key){
-    fetch(url+'/rest/v1/daily_scorecard',{method:'POST',headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+key,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({date:new Date().toISOString().split('T')[0],scores:scScores,updated_at:new Date().toISOString()})}).catch(()=>{});
+    if(false)fetch(url+'/rest/v1/daily_scorecard',{method:'POST',headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+key,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({date:new Date().toISOString().split('T')[0],scores:scScores,updated_at:new Date().toISOString()})}).catch(()=>{});
   }
   const btn=$id('scSaveBtn');
   if(btn){
@@ -2776,6 +2900,10 @@ function sbHeaders(){
 function sbBase(){return appData.settings?.supabaseUrl||SB_URL;}
 
 async function syncTLEntry(dateKey,hour,entry){
+  /* RETIRED: this table was world-writable via the anon key and is now
+     closed. Its contents already ride in the user-scoped joshos_state row. */
+  return;
+
   try{
     const r=await fetch(sbBase()+'/rest/v1/timelog',{method:'POST',headers:{...sbHeaders(),'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({date_key:dateKey,hour,...entry})});
     if(r.ok)setSyncStatus('synced');else setSyncStatus('err');
@@ -2783,6 +2911,11 @@ async function syncTLEntry(dateKey,hour,entry){
 }
 
 async function sbPullTimelog(manual=false){
+  /* RETIRED: this table was world-writable via the anon key and is now
+     closed. Its contents already ride in the user-scoped joshos_state row. */
+  if(manual)showToast('Time log now syncs with your account automatically');
+  return;
+
   if(manual)setSyncStatus('sync…');
   try{
     const dk=getTDK();
@@ -2807,6 +2940,10 @@ async function sbPullTimelog(manual=false){
 }
 
 function pushSnapshot(){
+  /* RETIRED: this table was world-writable via the anon key and is now
+     closed. Its contents already ride in the user-scoped joshos_state row. */
+  return;
+
   clearTimeout(_snapshotTimer);
   _snapshotTimer=setTimeout(async()=>{
     try{
@@ -2824,52 +2961,94 @@ function pushSnapshot(){
 }
 
 // ── FULL STATE SYNC (multi-device) ─────────────────────────
-let _fullStateTimer=null,_lastPullTs=0;
+let _fullStateTimer=null,_lastPullTs=0,_lastPushTs=0;
 
+/* Strip device-local and oversized fields before the state goes to the cloud. */
+function cloudPayload(){
+  const d={...appData,_device:DEVICE_ID,_ts:new Date().toISOString()};
+  delete d.aiHistory; // too large, device-specific
+  if(d.history){
+    const ks=Object.keys(d.history).sort((a,b)=>new Date(b)-new Date(a)).slice(0,60);
+    const h={};ks.forEach(k=>h[k]=d.history[k]);d.history=h;
+  }
+  return d;
+}
+
+/* Write-through to the user's cloud row. Debounced, and a no-op when signed
+   out — we never write personal state anywhere unauthenticated. */
 function pushFullState(){
   clearTimeout(_fullStateTimer);
   _fullStateTimer=setTimeout(async()=>{
+    const tok=await JAUTH.token();const u=JAUTH.user();
+    if(!tok||!u){setSyncStatus('err');return;}
     try{
-      const d={...appData,_device:DEVICE_ID,_ts:new Date().toISOString()};
-      delete d.aiHistory; // skip — too large, device-specific
-      if(d.history){const ks=Object.keys(d.history).sort((a,b)=>new Date(b)-new Date(a)).slice(0,60);const h={};ks.forEach(k=>h[k]=d.history[k]);d.history=h;}
-      await fetch(sbBase()+'/rest/v1/joshos_data',{method:'POST',headers:{...sbHeaders(),'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id:2,data:d,updated_at:d._ts})});
-    }catch(e){}
-  },5000);
+      const d=cloudPayload();
+      const r=await fetch(SB_URL+'/rest/v1/joshos_state',{
+        method:'POST',
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tok,'Content-Type':'application/json',
+                 'Prefer':'resolution=merge-duplicates'},
+        body:JSON.stringify({user_id:u.id,data:d,device:DEVICE_ID})
+      });
+      setSyncStatus(r.ok?'synced':'err');
+      if(r.ok)_lastPushTs=Date.now();
+    }catch(e){setSyncStatus('err');}
+  },2500);
 }
 
+/* The cloud row is the source of truth. On boot we adopt it; the local copy is
+   only a cache. The one exception is a local copy that is genuinely newer
+   (edits made offline) — those are pushed up rather than discarded. */
 async function pullFullState(){
+  const tok=await JAUTH.token();const u=JAUTH.user();
+  if(!tok||!u)return false;
   try{
-    const r=await fetch(sbBase()+'/rest/v1/joshos_data?id=eq.2&limit=1',{headers:sbHeaders()});
-    if(!r.ok)return false;
+    const r=await fetch(SB_URL+'/rest/v1/joshos_state?user_id=eq.'+u.id+'&select=data,updated_at,device&limit=1',
+      {headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tok}});
+    if(!r.ok){setSyncStatus('err');return false;}
     const rows=await r.json();
-    if(!rows.length||!rows[0].data)return false;
+    setSyncStatus('synced');
+
+    if(!rows.length||!rows[0].data||!rows[0].data.lastDate){
+      /* No cloud state yet — seed it from this device. This is what migrates a
+         Mac that has only ever stored locally. */
+      if(appData&&appData.lastDate)pushFullState();
+      return false;
+    }
     const remote=rows[0].data,remoteTs=new Date(rows[0].updated_at||0).getTime();
     if(remoteTs<=_lastPullTs)return false;
     _lastPullTs=remoteTs;
+
+    const localTs=new Date(appData._ts||0).getTime();
     const localEmpty=!appData.lastDate;
-    const diffDevice=remote._device&&remote._device!==DEVICE_ID;
-    const remoteNewer=remoteTs>(new Date(appData._ts||0).getTime())+30000;
-    if(localEmpty||(diffDevice&&remoteNewer)){
-      const localTL={...appData.timeLog};
+    /* Adopt the cloud unless this device holds strictly newer work. */
+    if(localEmpty||remoteTs>localTs){
+      const localTL={...(appData.timeLog||{})};
       appData={...appData,...remote};
       if(!appData.settings)appData.settings={};
+      // Never let a synced blob overwrite this device's endpoint config.
       appData.settings.supabaseUrl=SB_URL;appData.settings.supabaseKey=SB_KEY;
-      // Merge timelog: keep all hours from both devices
+      // Timelog merges rather than replaces — hours logged on either device count.
       appData.timeLog={...(remote.timeLog||{})};
       Object.keys(localTL).forEach(dk=>{
         if(!appData.timeLog[dk])appData.timeLog[dk]={};
-        Object.assign(appData.timeLog[dk],localTL[dk]);
+        Object.keys(localTL[dk]).forEach(h=>{
+          if(!appData.timeLog[dk][h])appData.timeLog[dk][h]=localTL[dk][h];
+        });
       });
       return true;
     }
-  }catch(e){}
+    if(localTs>remoteTs)pushFullState();
+  }catch(e){setSyncStatus('err');}
   return false;
 }
 
 // Supabase Realtime via WebSocket (Phoenix protocol)
 let _sbWS=null,_sbWsHB=null,_sbWsRef=0;
 function sbConnect(){
+  /* RETIRED: this table was world-writable via the anon key and is now
+     closed. Its contents already ride in the user-scoped joshos_state row. */
+  return;
+
   if(_sbWS&&(_sbWS.readyState===0||_sbWS.readyState===1))return;
   const wsUrl=(sbBase()).replace('https://','wss://').replace('http://','ws://')+'/realtime/v1/websocket?apikey='+(appData.settings?.supabaseKey||SB_KEY)+'&vsn=1.0.0';
   try{
@@ -3361,6 +3540,10 @@ function setCV(name,value){
   window._themeDebounce=setTimeout(pushTheme,2000);
 }
 async function pushTheme(){
+  /* RETIRED: this table was world-writable via the anon key and is now
+     closed. Its contents already ride in the user-scoped joshos_state row. */
+  return;
+
   const url=appData.settings?.supabaseUrl||SB_URL,key=appData.settings?.supabaseKey||SB_KEY;
   if(!url||!key)return;
   const theme={};CSS_VARS.forEach(v=>{const val=appData.settings?.[v];if(val)theme[v]=val;});
@@ -3483,11 +3666,10 @@ async function init(){
   updateClock();
   setInterval(checkTLAlert,60000);checkTLAlert();
   setInterval(archiveToday,5*60*1000);
-  // Start Supabase real-time sync
-  sbConnect();
-  sbPullTimelog();
-  setInterval(sbPullTimelog,30000);
-  pushSnapshot();
+  /* Legacy per-table sync (timelog / joshos_data / joshos_theme /
+     daily_scorecard) is retired: those tables were world-writable via the anon
+     key and are now closed. Everything they carried already rides in the
+     user-scoped joshos_state row below. */
   // Full state sync for multi-device
   const cloudUpdated=await pullFullState();
   if(cloudUpdated){
@@ -3503,13 +3685,86 @@ async function init(){
     if(updated){
       initCheckboxes();renderWins();renderSDots();restoreMorning();restoreJournal();
       renderScorecard();renderTLTimeline();updateTLBadge();renderHome();
-      showToast('Synced from '+((appData._device||'').includes('desk')?'Mac':'iPhone'));
+      showToast('Synced from another device');
       saveData();
     }
   },60000);
+  /* A tab that has been in the background can be arbitrarily stale — pull the
+     moment it is looked at again. This is what makes "refresh device B" feel
+     immediate without a realtime subscription. */
+  document.addEventListener('visibilitychange',async()=>{
+    if(document.visibilityState!=='visible')return;
+    if(await pullFullState()){
+      initCheckboxes();renderWins();renderSDots();restoreMorning();restoreJournal();
+      renderScorecard();renderTLTimeline();updateTLBadge();renderHome();
+      showToast('Synced from another device');
+      saveData();
+    }
+  });
 }
 
-init();
+/* ═══════════════════════════════════════════════════════════════════════════
+   AUTH GATE — nothing personal renders or persists until there is a session.
+   ═══════════════════════════════════════════════════════════════════════════ */
+function authShow(msg,isErr){
+  const el=document.getElementById('authMsg');
+  if(el){el.textContent=msg||'';el.className='auth-msg'+(isErr?' err':'');}
+}
+function authBusy(on){
+  const b=document.getElementById('authGo');
+  if(b){b.disabled=!!on;b.textContent=on?'…':(_authMode==='in'?'Sign in':'Create account');}
+}
+let _authMode='in';
+function authToggle(){
+  _authMode=_authMode==='in'?'up':'in';
+  document.getElementById('authTitle').textContent=_authMode==='in'?'Sign in to JoshOS':'Create your JoshOS account';
+  document.getElementById('authAlt').textContent=_authMode==='in'?'Create an account':'I already have an account';
+  authBusy(false);authShow('');
+}
+async function authSubmit(e){
+  if(e)e.preventDefault();
+  const email=(document.getElementById('authEmail').value||'').trim();
+  const pw=document.getElementById('authPw').value||'';
+  if(!email||!pw){authShow('Email and password are required.',true);return;}
+  if(_authMode==='up'&&pw.length<8){authShow('Use at least 8 characters.',true);return;}
+  authBusy(true);
+  try{
+    if(_authMode==='in'){
+      await JAUTH.signIn(email,pw);
+      await authEnter();
+    }else{
+      const r=await JAUTH.signUp(email,pw);
+      if(r.confirmed){await authEnter();}
+      else{authShow('Account created. Check '+email+' for the confirmation link, then sign in.',false);_authMode='in';authToggle();authToggle();}
+    }
+  }catch(err){
+    authShow(err.message||'Could not sign in.',true);
+  }
+  authBusy(false);
+}
+async function authEnter(){
+  document.getElementById('authGate').classList.remove('show');
+  document.body.classList.remove('locked');
+  await init();
+  const u=JAUTH.user();
+  const lbl=document.getElementById('acctLbl');
+  if(lbl&&u)lbl.textContent=u.email||'Signed in';
+}
+async function authLogout(){
+  await JAUTH.signOut();
+  /* Clear the local cache too — a signed-out machine must not keep a readable
+     copy of personal state lying around. */
+  try{localStorage.removeItem('joshos');}catch(e){}
+  location.reload();
+}
+function authBoot(){
+  if(JAUTH.hasSession()){authEnter();return;}
+  document.body.classList.add('locked');
+  const g=document.getElementById('authGate');
+  if(g)g.classList.add('show');
+  setTimeout(()=>{const f=document.getElementById('authEmail');if(f)f.focus();},80);
+}
+authBoot();
 </script>
 <script>
 /* ═══════════════════════════════════════════════════════════════════════

@@ -57,21 +57,33 @@ Never hardcode colors. Always use CSS vars:
 - `var(--font-mono)` — IBM Plex Mono
 - `var(--font-body)` — IBM Plex Sans
 
-### Supabase (personal sync)
-Credentials are baked in as constants at the top of the JS:
+### Auth + cloud state (personal)
+JoshOS is an **authenticated, cloud-first** app. The Supabase project is
+`joshos-sync` (`lavbxjegicshhfvytapb`).
+
 ```javascript
-const SB_URL = 'https://lavbxjegicshhfvytapb.supabase.co'; // project "joshos-sync"
-const SB_KEY = 'eyJ...'; // anon key
+const SB_URL = 'https://lavbxjegicshhfvytapb.supabase.co';
+const SB_KEY = 'sb_publishable_…'; // publishable key — safe to ship, grants nothing alone
 ```
 
-Tables: `timelog`, `daily_scorecard`, `joshos_theme`, `joshos_data`
+- **Auth** lives in the `JOSHOS-AUTH:BEGIN … END` block: Supabase Auth over its REST
+  endpoints, hand-rolled with `fetch` to keep the zero-dependency rule. The session
+  (not the data) is cached in `localStorage['joshos.session']` and auto-refreshed.
+- **State** lives in one row per user: `joshos_state(user_id, data, device, version,
+  updated_at)`, RLS-scoped to `auth.uid()`. **The cloud row is the source of truth.**
+  `localStorage['joshos']` is only an offline cache and is cleared on sign out.
+- `pullFullState()` on boot, on a 60s interval, and on tab focus; `pushFullState()`
+  is debounced write-through. Both no-op when signed out — personal state is never
+  written unauthenticated.
 
-All *personal* Supabase calls are fire-and-forget with `.catch(()=>{})` — offline resilience is built in.
+> ⚠️ Free-tier Supabase allows **2 active projects**. `joshos-sync` and
+> `precision-vinyl` occupy both. `murphy-crew-store` was paused to make room
+> (2026-08-11); restoring it would pause one of these.
 
-> ⚠️ **The `joshos-sync` project is currently PAUSED** (verified 2026-08-11), so its
-> hostname does not resolve and every sync call fails silently. Multi-device sync is
-> dead until it is resumed. An earlier project, `fxhwqnojrcjetpcyhdwa`, is also paused
-> and is no longer referenced by the code.
+**Retired:** `timelog`, `daily_scorecard`, `joshos_theme`, `joshos_data` all carried an
+`allow_anon` policy (ALL / public / `true`) and were world-readable and writable with a
+key committed to this public repo. Those policies are dropped and the code paths
+early-return. Everything they held rides in `joshos_state`. Do not revive them.
 
 ### WorkOS bridge (business work)
 JoshOS is the personal execution layer; the **business** system of record is a
