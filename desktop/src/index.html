@@ -2070,6 +2070,9 @@ async function loadData(){
 
 async function saveData(){
   appData._ts=new Date().toISOString();appData._device=DEVICE_ID;
+  /* Only user edits mark the cache dirty. Writes during startup must not, or a
+     cold start would look like unsynced work and overwrite the cloud. */
+  if(_bootComplete)appData._dirty=true;
   try{if(window.electronAPI)await window.electronAPI.saveData(appData);else localStorage.setItem('joshos',JSON.stringify(appData));}
   catch(e){try{localStorage.setItem('joshos',JSON.stringify(appData));}catch(e2){}}
   pushSnapshot();pushFullState();
@@ -2963,10 +2966,29 @@ function pushSnapshot(){
 // ── FULL STATE SYNC (multi-device) ─────────────────────────
 let _fullStateTimer=null,_lastPullTs=0,_lastPushTs=0;
 
+/* True once boot has finished, so the writes loadData() performs during startup
+   are not mistaken for user edits. */
+let _bootComplete=false;
+
+/* Does this device hold anything worth keeping? `lastDate` alone is not a
+   signal — loadData() stamps it on every cold start, which is exactly how an
+   empty cache can masquerade as real state and overwrite the cloud. */
+function localHasContent(){
+  if(!appData)return false;
+  return !!((appData.wins||[]).length
+    || (appData.visionBoard||[]).length
+    || Object.keys(appData.checks||{}).length
+    || Object.keys(appData.timeLog||{}).length
+    || Object.keys(appData.journal||{}).length
+    || Object.keys(appData.scorecard||{}).length
+    || ((appData.assist||{}).dump||[]).length);
+}
+
 /* Strip device-local and oversized fields before the state goes to the cloud. */
 function cloudPayload(){
   const d={...appData,_device:DEVICE_ID,_ts:new Date().toISOString()};
   delete d.aiHistory; // too large, device-specific
+  delete d._dirty;    // a device-local flag, never shared
   if(d.history){
     const ks=Object.keys(d.history).sort((a,b)=>new Date(b)-new Date(a)).slice(0,60);
     const h={};ks.forEach(k=>h[k]=d.history[k]);d.history=h;
@@ -2990,7 +3012,7 @@ function pushFullState(){
         body:JSON.stringify({user_id:u.id,data:d,device:DEVICE_ID})
       });
       setSyncStatus(r.ok?'synced':'err');
-      if(r.ok)_lastPushTs=Date.now();
+      if(r.ok){_lastPushTs=Date.now();appData._dirty=false;}
     }catch(e){setSyncStatus('err');}
   },2500);
 }
@@ -3009,9 +3031,10 @@ async function pullFullState(){
     setSyncStatus('synced');
 
     if(!rows.length||!rows[0].data||!rows[0].data.lastDate){
-      /* No cloud state yet — seed it from this device. This is what migrates a
-         Mac that has only ever stored locally. */
-      if(appData&&appData.lastDate)pushFullState();
+      /* No cloud state yet — seed it from this device, but only if this device
+         actually has something. Seeding from an empty cache is how you lose an
+         account's data. */
+      if(localHasContent())pushFullState();
       return false;
     }
     const remote=rows[0].data,remoteTs=new Date(rows[0].updated_at||0).getTime();
@@ -3019,9 +3042,12 @@ async function pullFullState(){
     _lastPullTs=remoteTs;
 
     const localTs=new Date(appData._ts||0).getTime();
-    const localEmpty=!appData.lastDate;
-    /* Adopt the cloud unless this device holds strictly newer work. */
-    if(localEmpty||remoteTs>localTs){
+    /* The cloud is the source of truth. This device only wins when it is
+       genuinely holding unsynced edits (`_dirty`, set by saveData after boot and
+       cleared on a confirmed push) AND those edits are newer. A cold start has
+       no dirty flag, so the cloud is adopted — which is the whole point. */
+    const localDirty=appData._dirty===true&&localHasContent();
+    if(!localDirty||remoteTs>localTs){
       const localTL={...(appData.timeLog||{})};
       appData={...appData,...remote};
       if(!appData.settings)appData.settings={};
@@ -3037,7 +3063,8 @@ async function pullFullState(){
       });
       return true;
     }
-    if(localTs>remoteTs)pushFullState();
+    /* Local is dirty and newer — push rather than discard the offline edits. */
+    pushFullState();
   }catch(e){setSyncStatus('err');}
   return false;
 }
@@ -3689,6 +3716,8 @@ async function init(){
       saveData();
     }
   },60000);
+  /* Boot is over: from here on, saves are user edits and mark the cache dirty. */
+  _bootComplete=true;
   /* A tab that has been in the background can be arbitrarily stale — pull the
      moment it is looked at again. This is what makes "refresh device B" feel
      immediate without a realtime subscription. */
