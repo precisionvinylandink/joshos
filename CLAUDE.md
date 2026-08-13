@@ -105,10 +105,33 @@ lead times and sends them as `stages`; JoshOS owns the schedule. Never
 substitute a quote's `valid_until` for a production due date — they are
 different facts, and §6.1 of the contract explains why.
 
+### Growth Point 1 (revenue goal)
+The revenue operating goal: **$53,990/month**, August 2026 → February 2027, the
+same target every month. Lives in the marked block `GROWTH-POINT-1:BEGIN … END`
+inside `index.html` — DOM-free and clock-injectable like the WorkOS engine, and
+extracted by `desktop/test/growth-point-1.test.js`.
+
+- **One canonical config.** `GP1.GOAL` is the only place any of these numbers
+  appear. Never hardcode `53990`, `3000`, `15000`, `990` or `99` anywhere else.
+  `GP1.goalIntegrity()` asserts the generators sum to the target.
+- **JoshOS owns the goal; the business DB owns the actuals.** Actuals come from
+  `GET {BRIDGE_URL}/metrics?month=YYYY-MM` (scope `metrics:read`), which calls
+  `joshos_gp1_metrics()` in `precision-vinyl`. The flow is one-directional:
+  *source-of-truth data → GP1 calculations → dashboard*. Never the reverse.
+- **Live always beats manual.** Manual entry is a labelled fallback for a
+  generator with no system of record (today: Scratch Off Studio only). A typed
+  number must never be able to prop the goal up after a cancellation.
+- **Active, never historical.** Subscriber counts use current active state, so
+  a cancellation lowers the goal and a resubscription raises it again.
+- **MRR is not cash.** Recurring generators are measured at run rate
+  (`basis:'mrr'`); collected cash is carried separately and never substituted.
+
+Sources per generator are tabulated in §4.5 of the contract.
+
 Full contract: [`docs/WORKOS_BRIDGE_CONTRACT.md`](docs/WORKOS_BRIDGE_CONTRACT.md).
 
 ```bash
-node desktop/test/workos-bridge.test.js && node desktop/test/order-execution.test.js
+node desktop/test/workos-bridge.test.js && node desktop/test/order-execution.test.js && node desktop/test/growth-point-1.test.js
 ```
 
 ## Do Not
@@ -121,6 +144,10 @@ node desktop/test/workos-bridge.test.js && node desktop/test/order-execution.tes
 - Do not let JoshOS write business state (quotes, invoices, customers) — it may only
   reference and react to it
 - Do not identify a business record by name, email or title — only by `externalId`
+- Do not scatter Growth Point 1 numbers through the code — they live only in `GP1.GOAL`
+- Do not count historical subscribers toward Growth Point 1 — only currently active ones
+- Do not add Printware Supply Co., Stefania Vending, Elgin Sign & Banner, JoshOS
+  or JobOS as Growth Point 1 generators; they are dissolved or not for sale this year
 
 ## Build Commands
 ```bash

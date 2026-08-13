@@ -9,6 +9,7 @@
 | `20260811215645` | `joshos_bridge_event_triggers` | 2026-08-11 |
 | `20260812000003` | `order_execution_handoff` | 2026-08-12 |
 | `20260812000004` | `joshos_bridge_orders` | 2026-08-12 |
+| `20260813000001` | `joshos_gp1_metrics` | 2026-08-13 |
 
 The last two are the **order execution handoff** and live in the PVI repo at
 `supabase/migrations/`. See §4 below.
@@ -166,6 +167,7 @@ drop view  if exists public.joshos_work_items;
 drop table if exists public.joshos_work_events;
 drop table if exists public.joshos_inbound_events;
 drop table if exists public.joshos_bridge_tokens;
+drop function if exists public.joshos_gp1_metrics(text);
 drop function if exists public.joshos_canonical_status(text);
 
 -- The added columns are harmless if left, but to remove them:

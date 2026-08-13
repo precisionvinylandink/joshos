@@ -7,8 +7,9 @@ import { createClient } from "npm:@supabase/supabase-js@2";
  *   DEPLOYED to precision-vinyl (siwotzlqfwgmhhnnnppc) as function `joshos-bridge`.
  *   This file is the source of truth; keep it identical to what is deployed.
  *
- *   GET  /work?since=<ISO>   -> { items, events, serverTime }
- *   POST /events             -> { ok, duplicate? }
+ *   GET  /work?since=<ISO>      -> { items, events, serverTime }
+ *   GET  /metrics?month=YYYY-MM -> { month, generators, serverTime }
+ *   POST /events                -> { ok, duplicate? }
  *
  * verify_jwt is DISABLED deliberately: JoshOS is not a Supabase auth user. It
  * authenticates with a scoped bearer token that this function validates itself
@@ -163,6 +164,28 @@ async function handleWork(url: URL) {
 }
 
 /**
+ * Growth Point 1 monthly actuals.
+ *
+ * The aggregation itself lives in the database (`joshos_gp1_metrics`), not
+ * here, because each number is a definition of a business metric and belongs
+ * next to the tables it reads. This handler is a thin, authorized caller.
+ *
+ * JoshOS owns the TARGET and every pace/projection derived from it. This
+ * endpoint returns only what actually happened.
+ */
+async function handleMetrics(url: URL) {
+  const month = url.searchParams.get("month") ?? new Date().toISOString().slice(0, 7);
+  if (!/^\d{4}-\d{2}$/.test(month)) {
+    return { status: 400, body: { error: "month must be YYYY-MM" } };
+  }
+
+  const { data, error } = await db.rpc("joshos_gp1_metrics", { p_month: month });
+  if (error) throw new Error(`gp1_metrics: ${error.message}`);
+
+  return { status: 200, body: { ...data, serverTime: new Date().toISOString() } };
+}
+
+/**
  * Record a JoshOS activity against the business record.
  *
  * Two writes, in this order:
@@ -253,6 +276,13 @@ Deno.serve(async (req: Request) => {
       const auth = await authorize(req, "work:read");
       if (!auth.ok) return new Response(JSON.stringify({ error: auth.error }), { status: auth.status, headers });
       return new Response(JSON.stringify(await handleWork(url)), { status: 200, headers });
+    }
+
+    if (req.method === "GET" && path === "/metrics") {
+      const auth = await authorize(req, "metrics:read");
+      if (!auth.ok) return new Response(JSON.stringify({ error: auth.error }), { status: auth.status, headers });
+      const r = await handleMetrics(url);
+      return new Response(JSON.stringify(r.body), { status: r.status, headers });
     }
 
     if (req.method === "POST" && path === "/events") {

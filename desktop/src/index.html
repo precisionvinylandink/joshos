@@ -272,6 +272,116 @@ h1,h2,h3,h4{font-weight:600;letter-spacing:var(--tr-tight);line-height:var(--lh-
 .row-idx{font-family:var(--font-mono);font-size:var(--fs-sm);color:var(--text-muted);width:16px;flex-shrink:0;text-align:right}
 .row.done .row-t{color:var(--text-muted);text-decoration:line-through}
 
+/* ═══════════════ GROWTH POINT 1 ═══════════════ */
+.gp1-months{display:flex;flex-wrap:wrap;gap:var(--s2);margin-bottom:var(--s5)}
+
+/* the headline: one number, one status, one bar */
+.gp1-head{display:flex;align-items:flex-start;gap:var(--s4);margin-bottom:var(--s3)}
+.gp1-head-l{flex:1;min-width:0}
+.gp1-head-v{font-family:var(--font-display);font-size:clamp(2.6rem,7vw,4.2rem);line-height:.92;
+  letter-spacing:.01em;color:var(--text);font-variant-numeric:tabular-nums;margin-top:var(--s2)}
+.gp1-head-t{color:var(--text-muted);font-size:.5em}
+.gp1-head-s{font-size:var(--fs-sm);color:var(--text-muted);margin-top:var(--s2)}
+.gp1-head-s b.ok{color:var(--success)}.gp1-head-s b.bad{color:var(--danger)}
+
+.gp1-bar{position:relative;height:6px;background:var(--surface3);border-radius:99px;overflow:visible;margin-bottom:var(--s5)}
+.gp1-bar.lg{height:10px}
+.gp1-bar.sm{height:4px;margin-bottom:var(--s2)}
+.gp1-bar-f{height:100%;background:var(--accent);border-radius:99px;
+  transition:width var(--d-slow) var(--ease)}
+.gp1-bar-f.ok{background:var(--success)}
+.gp1-bar-f.warn{background:var(--warn)}
+.gp1-bar-f.bad{background:var(--danger)}
+/* where the pace SHOULD be today — the bar alone cannot say that */
+.gp1-bar-pace{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--text-dim);opacity:.75;border-radius:2px}
+
+.gp1-status{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;
+  font-size:var(--fs-xs);font-weight:600;text-transform:uppercase;letter-spacing:var(--tr-wide);
+  padding:5px 10px;border-radius:99px;border:1px solid var(--border-strong);color:var(--text-dim)}
+.gp1-status.big{font-size:var(--fs-sm);padding:7px 14px}
+.gp1-status::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.gp1-status.ok{color:var(--success);border-color:rgba(111,201,138,.4);background:var(--success-a12)}
+.gp1-status.warn{color:var(--warn);border-color:rgba(232,163,61,.4);background:rgba(232,163,61,.10)}
+.gp1-status.bad{color:var(--danger);border-color:rgba(224,102,109,.4);background:var(--danger-a12)}
+
+/* provenance — a number you cannot trace is a number you cannot trust */
+.gp1-src{display:inline-block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;
+  font-weight:600;padding:2px 6px;border-radius:4px;vertical-align:middle;
+  background:var(--surface3);color:var(--text-muted);cursor:help}
+.gp1-src.live{background:var(--accent-a14);color:var(--accent)}
+.gp1-src.manual{background:rgba(232,163,61,.14);color:var(--warn)}
+
+/* home hero — the glanceable version */
+.gp1-hero{border:1px solid var(--border);border-radius:var(--r-lg);background:var(--surface);
+  padding:var(--s4) var(--s5);margin-bottom:var(--s5);cursor:pointer;
+  transition:border-color var(--d-fast) var(--ease),background var(--d-fast) var(--ease)}
+.gp1-hero:hover{border-color:var(--border-strong);background:var(--surface2)}
+.gp1-hero-top{display:flex;align-items:flex-start;gap:var(--s4);margin-bottom:var(--s3)}
+.gp1-hero-top>div{flex:1;min-width:0}
+.gp1-hero-v{font-family:var(--font-display);font-size:2.4rem;line-height:1;margin-top:6px;
+  color:var(--text);font-variant-numeric:tabular-nums}
+.gp1-hero-t{color:var(--text-muted);font-size:.5em}
+.gp1-hero-m{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s5);font-size:var(--fs-sm);color:var(--text-muted)}
+.gp1-hero-m b{color:var(--text);font-variant-numeric:tabular-nums}
+
+/* today / this week */
+.gp1-today-v{font-family:var(--font-display);font-size:2.6rem;line-height:1;color:var(--accent);
+  font-variant-numeric:tabular-nums}
+.gp1-today-l{font-size:var(--fs-sm);color:var(--text-muted);margin-top:var(--s1);max-width:40ch}
+.gp1-today-u{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s4);margin-top:var(--s3);
+  font-size:var(--fs-sm);color:var(--text-dim)}
+.gp1-today-u b{color:var(--accent2);font-variant-numeric:tabular-nums}
+.gp1-sub{margin-top:var(--s3);border-top:1px solid var(--border);padding-top:var(--s1)}
+.gp1-weekhead{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s3)}
+
+/* what I need to do */
+.gp1-lead{font-size:var(--fs-md);color:var(--text-dim);margin-bottom:var(--s3)}
+.gp1-lead.ok b{color:var(--success)}.gp1-lead.bad b{color:var(--danger)}
+.gp1-act{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) 0;border-bottom:1px solid var(--border)}
+.gp1-act:last-child{border-bottom:none}
+.gp1-act-r{font-family:var(--font-mono);font-size:var(--fs-sm);color:var(--text-muted);width:16px;text-align:right;flex-shrink:0}
+.gp1-act-p{font-size:var(--fs-sm);color:var(--accent);white-space:nowrap;flex-shrink:0}
+.gp1-clear{display:flex;align-items:center;gap:var(--s2);color:var(--success);font-size:var(--fs-md)}
+
+/* generator cards */
+.gp1-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:var(--s4)}
+.gp1-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s4)}
+.gp1-card-h{display:flex;align-items:flex-start;gap:var(--s3);margin-bottom:var(--s3)}
+.gp1-card-t{font-size:var(--fs-sm);color:var(--text-dim);font-weight:500;display:flex;align-items:center;gap:var(--s2)}
+.gp1-card-v{font-family:var(--font-display);font-size:1.9rem;line-height:1;margin-top:6px;
+  color:var(--text);font-variant-numeric:tabular-nums}
+.gp1-card-tt{color:var(--text-muted);font-size:.55em}
+.gp1-basis{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);vertical-align:super}
+.gp1-card-pct{font-size:var(--fs-xs);color:var(--text-muted);margin-bottom:var(--s3)}
+.gp1-units{margin-bottom:var(--s3)}
+.gp1-units-v{font-size:1.1rem;color:var(--accent2);font-variant-numeric:tabular-nums;margin-bottom:6px}
+.gp1-units-t{color:var(--text-muted);font-size:.75em}
+.gp1-facts{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2) var(--s3);margin-bottom:var(--s3)}
+.gp1-facts>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.gp1-facts span{font-size:var(--fs-xs);color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em}
+.gp1-facts b{font-size:var(--fs-md);color:var(--text);font-weight:500;font-variant-numeric:tabular-nums}
+.gp1-note{font-size:var(--fs-sm);color:var(--text-muted);line-height:var(--lh-snug);margin-top:var(--s2)}
+.gp1-note.warn{color:var(--warn)}
+.gp1-input{display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--s2);margin-top:var(--s3);
+  padding-top:var(--s3);border-top:1px solid var(--border)}
+.gp1-input label{display:flex;flex-direction:column;gap:4px;font-size:var(--fs-xs);
+  color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em}
+.gp1-input.locked{display:flex;align-items:center;gap:var(--s2);font-size:var(--fs-sm);color:var(--text-muted);text-transform:none;letter-spacing:0}
+
+/* history */
+.gp1-scroll{overflow-x:auto}
+.gp1-tbl{width:100%;min-width:460px;border-collapse:collapse;font-size:var(--fs-sm)}
+.gp1-tbl th{text-align:left;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:var(--tr-wide);
+  color:var(--text-muted);font-weight:600;padding:var(--s2);border-bottom:1px solid var(--border)}
+.gp1-tbl td{padding:var(--s3) var(--s2);border-bottom:1px solid var(--border);color:var(--text-dim)}
+.gp1-tbl tr.on td{background:var(--surface2);color:var(--text)}
+.gp1-tbl .r{text-align:right}
+
+@media(max-width:820px){
+  .gp1-cards{grid-template-columns:1fr}
+  .gp1-facts{grid-template-columns:1fr 1fr}
+}
+
 /* card — reserved for a genuine boundary */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s5)}
 .card-flat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:var(--s4)}
@@ -1119,6 +1229,7 @@ body.locked #sb,body.locked #content,body.locked .topbar{filter:blur(7px);pointe
       <div class="sb-lbl">Work</div>
       <div class="ni" role="link" tabindex="0" onclick="goTo('now',this)"><span class="ni-ico" data-ico="play"></span>Now<span class="badge live" id="bdNow" style="display:none">1</span></div>
       <div class="ni" role="link" tabindex="0" onclick="goTo('capture',this)"><span class="ni-ico" data-ico="inbox"></span>Capture<span class="badge" id="bdLoops" style="display:none">0</span></div>
+      <div class="ni" role="link" tabindex="0" onclick="goTo('growthpoint',this)"><span class="ni-ico" data-ico="trend"></span>Growth Point 1</div>
       <div class="ni" role="link" tabindex="0" onclick="goTo('scorecard',this)"><span class="ni-ico" data-ico="target"></span>Scorecard</div>
       <div class="ni" role="link" tabindex="0" onclick="goTo('timelog',this)"><span class="ni-ico" data-ico="clock"></span>Time Log</div>
     </div>
@@ -1164,6 +1275,9 @@ body.locked #sb,body.locked #content,body.locked .topbar{filter:blur(7px);pointe
           </header>
 
           <div id="brief"></div>
+
+          <!-- GROWTH POINT 1 — the revenue answer, before anything else -->
+          <div id="homeGP1"></div>
 
           <div class="mstrip" id="homeMetrics"></div>
 
@@ -1247,6 +1361,57 @@ body.locked #sb,body.locked #content,body.locked .topbar{filter:blur(7px);pointe
           <section class="sec" aria-labelledby="h-later">
             <div class="sec-h"><h2 class="sec-t" id="h-later">Later</h2><span class="sec-sub">Deliberately not now</span></div>
             <div id="homeLater"></div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- GROWTH POINT 1 — the revenue operating cockpit -->
+    <div class="page" id="page-growthpoint">
+      <div class="ph">
+        <div class="ph-main">
+          <h2>Growth Point 1</h2>
+          <p>$53,990 every month through February 2027. Where you are, whether you are on pace, and exactly what has to happen.</p>
+        </div>
+        <div class="ph-actions">
+          <span class="status" id="gp1SyncLine">—</span>
+          <button class="btn quiet" onclick="gp1RefreshNow()"><span data-ico="refresh"></span>Refresh</button>
+        </div>
+      </div>
+      <div class="pb">
+        <div class="wrap">
+
+          <div class="gp1-months" id="gp1Months"></div>
+
+          <div id="gp1Head"></div>
+
+          <div class="mstrip" id="gp1Metrics"></div>
+
+          <div class="grid2">
+            <section class="sec" aria-labelledby="h-gp1-today">
+              <div class="sec-h"><h3 class="sec-t" id="h-gp1-today">Today&rsquo;s target</h3></div>
+              <div id="gp1Today"></div>
+            </section>
+            <section class="sec" aria-labelledby="h-gp1-week">
+              <div class="sec-h"><h3 class="sec-t" id="h-gp1-week">This week</h3></div>
+              <div id="gp1Week"></div>
+            </section>
+          </div>
+
+          <section class="sec" aria-labelledby="h-gp1-act">
+            <div class="sec-h"><h3 class="sec-t" id="h-gp1-act">What I need to do</h3><span class="sec-sub">Highest impact first</span></div>
+            <div id="gp1Actions"></div>
+          </section>
+
+          <section class="sec" aria-labelledby="h-gp1-gen">
+            <div class="sec-h"><h3 class="sec-t" id="h-gp1-gen">Revenue generators</h3><span class="sec-sub">Goal &rarr; actual &rarr; gap &rarr; required pace</span></div>
+            <div class="gp1-cards" id="gp1Cards"></div>
+          </section>
+
+          <section class="sec" aria-labelledby="h-gp1-hist">
+            <div class="sec-h"><h3 class="sec-t" id="h-gp1-hist">Month by month</h3><span class="sec-sub">Same target every month</span></div>
+            <div id="gp1History"></div>
           </section>
 
         </div>
@@ -2150,6 +2315,7 @@ const ROUTES=[
   {id:'checkin',    label:'Check-In',        ico:'pen',      group:'Today'},
   {id:'now',        label:'Now',             ico:'play',     group:'Work'},
   {id:'capture',    label:'Capture',         ico:'inbox',    group:'Work'},
+  {id:'growthpoint',label:'Growth Point 1',  ico:'trend',    group:'Work'},
   {id:'scorecard',  label:'Scorecard',       ico:'target',   group:'Work'},
   {id:'timelog',    label:'Time Log',        ico:'clock',    group:'Work'},
   {id:'growth',     label:'Growth & Habits', ico:'trend',    group:'Life'},
@@ -2176,6 +2342,10 @@ function goTo(id,el){
   if(window.innerWidth<=820)toggleSidebar(false);
   const body=page.querySelector('.pb,.tl-content,.ai-msgs');if(body)body.scrollTop=0;
   if(id==='dashboard')renderHome();
+  /* Growth Point 1 polls only while it is the page being looked at; the
+     5-minute background read keeps Home fresh the rest of the time. */
+  if(id==='growthpoint'){gp1RenderPage();gp1Fetch(gp1Month(),true);gp1StartPolling();}
+  else gp1StopPolling();
   if(id==='timelog'){renderTLTimeline();updateTLBadge();}
   if(id==='scorecard')renderScorecard();
   if(id==='growth'){renderGrowthStats();renderGrowthTrend();renderGrowthSystems();renderGrowthEntries();}
@@ -2400,6 +2570,7 @@ function renderHome(){
   setText('homeGreet',greeting());
   const s=homeSignals();
   renderBrief();
+  gp1RenderHome();
   renderHomeMetrics(s);
   renderHomeNow(s);
   renderHomeNext(s);
@@ -7160,6 +7331,920 @@ function wobCompleteAction(actionId){
   });
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   GROWTH-POINT-1:BEGIN
+   ───────────────────────────────────────────────────────────────────────────
+   Growth Point 1 — the revenue operating goal. $53,990 every month, from
+   August 2026 through February 2027, unchanged month to month.
+
+   WHAT THIS OWNS. The goal, and every number derived from it: gaps, pace,
+   required daily/weekly rates, projections, status, and the ranked action
+   list. All of it is a pure function of (goal, actuals, clock).
+
+   WHAT THIS DOES NOT OWN. The actuals. Those are business facts and they are
+   computed at the source of truth — `joshos_gp1_metrics()` in the business
+   database, reached over the existing scoped bridge (GET /metrics). JoshOS
+   never holds business credentials and never invents a business number.
+
+   The flow is one-directional, exactly as specified:
+       source-of-truth business data → GP1 calculations → dashboard
+   Manual entry is a labelled FALLBACK for a generator with no system of
+   record, never an override of live data. When live data says a subscriber
+   cancelled, the goal moves down; a stale typed-in number cannot hold it up.
+
+   PURITY. DOM-free and clock-injectable (`now` is always passed in) so
+   desktop/test/growth-point-1.test.js can extract this exact block and execute
+   it. Do not reach for document/window inside the engine.
+   ═══════════════════════════════════════════════════════════════════════════ */
+var GP1=(function(){
+  'use strict';
+
+  /* ── The canonical goal. One definition, nowhere else. ──────────────────
+     Every number in the Growth Point 1 system reads from here. Nothing else
+     in JoshOS may hardcode 53990, 3000, 15000, 99 or any of their friends. */
+  var GOAL={
+    id:'growth_point_1',
+    label:'Growth Point 1',
+    monthlyTarget:53990,
+    /* The same target every month. Deliberately NOT a per-month schedule —
+       Growth Point 1 is $53,990/month consistently. */
+    months:['2026-08','2026-09','2026-10','2026-11','2026-12','2027-01','2027-02'],
+    generators:[
+      /* Recurring businesses are measured in UNITS first: the revenue target is
+         a consequence of retained subscribers, so `subscribers` is the number
+         that drives the action list and MRR is derived from it. */
+      {key:'dynamicQR',label:'Dynamic QR',short:'QR',
+       revenueTarget:15000,unitTarget:3000,unitPrice:5,unitLabel:'subscribers',unitNoun:'subscriber',
+       recurring:true,basis:'mrr',
+       source:'cpg_subscriptions · plan=qr_monthly · status=active'},
+      {key:'precisionVinylInk',label:'Precision Vinyl & Ink',short:'PVI',
+       revenueTarget:20000,recurring:false,basis:'cash',
+       source:'pvi_invoices (paid/partial) + storefront orders'},
+      {key:'chicagoPromotionalGroup',label:'Chicago Promotional Group',short:'CPG',
+       revenueTarget:12000,recurring:false,basis:'cash',
+       source:'cpg_revenue_events · transactional only'},
+      {key:'scratchOffStudio',label:'Scratch Off Studio',short:'Scratch Off',
+       revenueTarget:6000,recurring:false,basis:'cash',
+       /* No system of record exists for this one anywhere in the business
+          database. Manual entry is the honest answer, and the UI says so. */
+       source:null},
+      {key:'printClub',label:'Print Club',short:'Print Club',
+       revenueTarget:990,unitTarget:10,unitPrice:99,unitLabel:'subscribers',unitNoun:'subscriber',
+       recurring:true,basis:'mrr',
+       source:'print_club_subscriptions · status=active'}
+    ]
+  };
+
+  /* The target must equal the sum of its parts, or the dashboard is lying.
+     Checked at load rather than trusted — a typo in one generator would
+     otherwise show up as a permanently unreachable goal. */
+  function goalIntegrity(){
+    var sum=GOAL.generators.reduce(function(t,g){return t+g.revenueTarget;},0);
+    return{ok:sum===GOAL.monthlyTarget,sum:sum,target:GOAL.monthlyTarget};
+  }
+
+  function generator(key){
+    for(var i=0;i<GOAL.generators.length;i++)if(GOAL.generators[i].key===key)return GOAL.generators[i];
+    return null;
+  }
+
+  var num=function(v){var n=Number(v);return isFinite(n)?n:0;};
+  var pad2=function(n){return(n<10?'0':'')+n;};
+  var MONTH_NAMES=['January','February','March','April','May','June','July',
+                   'August','September','October','November','December'];
+
+  /* `now` arrives as a Date from the render path and as an ISO string from the
+     sync path. Both are legitimate; coercing here means no caller has to know
+     which one a given function wanted, and a wrong guess cannot silently
+     produce a NaN date deep inside the pace maths. */
+  function clock(now){return now instanceof Date?now:new Date(now);}
+  function stamp(now){return now instanceof Date?now.toISOString():String(now);}
+
+  /* Month keys are 'YYYY-MM' and compare correctly as strings. All calendar
+     math is LOCAL — Growth Point 1 is measured in Josh's days, not UTC's. */
+  function monthKeyOf(d){d=clock(d);return d.getFullYear()+'-'+pad2(d.getMonth()+1);}
+  function daysInMonth(y,m){return new Date(y,m,0).getDate();}
+  function monthLabel(mk){
+    return MONTH_NAMES[+mk.slice(5,7)-1]+' '+mk.slice(0,4);
+  }
+
+  /**
+   * Where the month stands relative to the clock.
+   *
+   * `daysElapsed` counts COMPLETED days; `daysRemaining` includes today, which
+   * is still earnable. They sum to daysInMonth, and daysRemaining is never
+   * zero inside the current month — so no pace calculation can divide by zero
+   * on the 31st.
+   */
+  function monthMeta(monthKey,now){
+    now=clock(now);
+    var y=+monthKey.slice(0,4),m=+monthKey.slice(5,7);
+    var dim=daysInMonth(y,m),cur=monthKeyOf(now);
+    var phase=monthKey<cur?'past':(monthKey>cur?'future':'current');
+    var dayOfMonth=phase==='current'?now.getDate():(phase==='past'?dim:0);
+    return{
+      monthKey:monthKey,label:monthLabel(monthKey),year:y,month:m,
+      phase:phase,daysInMonth:dim,dayOfMonth:dayOfMonth,
+      daysElapsed:phase==='past'?dim:(phase==='current'?dayOfMonth-1:0),
+      daysRemaining:phase==='past'?0:(phase==='current'?dim-dayOfMonth+1:dim)
+    };
+  }
+
+  /**
+   * The remainder of the current calendar week, clipped to the month.
+   * Sunday-start, matching Date#getDay, and it never runs past month end —
+   * "this week" cannot demand revenue from days the month does not have.
+   */
+  function weekMeta(meta,now){
+    now=clock(now);
+    if(meta.phase!=='current')return{days:meta.phase==='future'?7:0,startKey:null,label:null};
+    var left=7-now.getDay();
+    var start=new Date(now.getFullYear(),now.getMonth(),now.getDate()-now.getDay());
+    return{
+      days:Math.min(left,meta.daysRemaining),
+      startKey:start.getFullYear()+'-'+pad2(start.getMonth()+1)+'-'+pad2(start.getDate()),
+      label:'week of '+MONTH_NAMES[start.getMonth()].slice(0,3)+' '+start.getDate()
+    };
+  }
+
+  /* ── State ──────────────────────────────────────────────────────────────
+     Lives on appData.gp1 so it rides the existing save/sync path. */
+  function ensure(app){
+    if(!app.gp1)app.gp1={};
+    var s=app.gp1;
+    if(!s.months||typeof s.months!=='object'||Array.isArray(s.months))s.months={};
+    if(GOAL.months.indexOf(s.selectedMonth)<0)s.selectedMonth=null;
+    if(!s.sync||typeof s.sync!=='object')s.sync={status:'never',lastOkAt:null,error:null};
+    return s;
+  }
+
+  function monthState(s,monthKey){
+    if(!s.months[monthKey])s.months[monthKey]={manual:{},live:null,liveAt:null,weeks:{},locked:false,snapshot:null};
+    var m=s.months[monthKey];
+    if(!m.manual||typeof m.manual!=='object')m.manual={};
+    if(!m.weeks||typeof m.weeks!=='object')m.weeks={};
+    return m;
+  }
+
+  /* The month the dashboard should open on: whatever Josh last chose, else
+     the real current month, else the nearest month in range. */
+  function activeMonth(s,now){
+    if(s.selectedMonth)return s.selectedMonth;
+    var cur=monthKeyOf(now);
+    if(GOAL.months.indexOf(cur)>=0)return cur;
+    return cur<GOAL.months[0]?GOAL.months[0]:GOAL.months[GOAL.months.length-1];
+  }
+
+  function selectMonth(s,monthKey){
+    if(GOAL.months.indexOf(monthKey)<0)return false;
+    s.selectedMonth=monthKey;return true;
+  }
+
+  /* ── Actuals in ─────────────────────────────────────────────────────────
+     A /metrics payload from the bridge. Stored verbatim per month; the shape
+     is the server's, and unknown fields are preserved rather than flattened. */
+  function applyLive(s,payload,now){
+    if(!payload||!payload.month||!payload.generators)return{applied:false,reason:'malformed_payload'};
+    if(GOAL.months.indexOf(payload.month)<0)return{applied:false,reason:'month_out_of_range'};
+    var m=monthState(s,payload.month);
+    /* A locked month keeps its snapshot as the historical record, but the live
+       figures still refresh underneath — a late-settling payment must be able
+       to correct the books without unlocking anything by hand. */
+    m.live=payload;m.liveAt=stamp(now);
+    s.sync={status:'ok',lastOkAt:stamp(now),error:null};
+    return{applied:true,month:payload.month};
+  }
+
+  function markLiveError(s,err,now){
+    s.sync={status:'error',lastOkAt:s.sync&&s.sync.lastOkAt||null,
+            error:String(err&&err.message||err||'unavailable'),at:stamp(now)};
+  }
+
+  /**
+   * Manual actuals. Only ever consulted for a generator whose live source is
+   * unavailable — see resolveGenerator. Storing one does not make it win.
+   */
+  function setManual(s,monthKey,genKey,patch){
+    var g=generator(genKey);if(!g)return{ok:false,reason:'unknown_generator'};
+    if(GOAL.months.indexOf(monthKey)<0)return{ok:false,reason:'month_out_of_range'};
+    var m=monthState(s,monthKey),cur=m.manual[genKey]||{};
+    if(patch.revenue!==undefined)cur.revenue=patch.revenue===null||patch.revenue===''?null:num(patch.revenue);
+    if(patch.units!==undefined)cur.units=patch.units===null||patch.units===''?null:Math.max(0,Math.round(num(patch.units)));
+    if(patch.note!==undefined)cur.note=String(patch.note||'');
+    m.manual[genKey]=cur;
+    return{ok:true,manual:cur};
+  }
+
+  /**
+   * One generator's actuals, and — just as importantly — where they came from.
+   *
+   * Precedence is absolute: a live source that answers wins, every time. This
+   * is what makes a cancellation lower the goal instead of leaving a stale
+   * typed-in number propping it up. Manual is reached only when the source of
+   * truth cannot answer, and the result says `manual` so the UI can label it.
+   */
+  function resolveGenerator(g,mst){
+    var live=mst&&mst.live&&mst.live.generators&&mst.live.generators[g.key];
+    var man=(mst&&mst.manual&&mst.manual[g.key])||{};
+    var out={
+      sourceKind:'none',sourceLabel:g.source||null,unavailableReason:null,
+      units:0,mrr:0,cash:0,unitsAdded:0,unitsChurned:0,historicalUnits:0,
+      note:man.note||''
+    };
+    if(live&&live.available){
+      out.sourceKind='live';
+      out.sourceLabel=live.source||g.source;
+      out.cash=num(live.cash);
+      if(g.unitTarget!=null){
+        /* ACTIVE retained subscribers — never the historical total. The server
+           applies the active predicate; historicalUnits rides along only so
+           the UI can show the difference honestly. */
+        out.units=num(live.activeUnits);
+        out.mrr=num(live.mrr);
+        out.unitsAdded=num(live.unitsAdded);
+        out.unitsChurned=num(live.unitsChurned);
+        out.historicalUnits=num(live.historicalUnits);
+      }
+      return out;
+    }
+    if(live&&live.available===false)out.unavailableReason=live.reason||null;
+    if(man.revenue!=null||man.units!=null){
+      out.sourceKind='manual';
+      out.cash=num(man.revenue);
+      if(g.unitTarget!=null){
+        out.units=Math.max(0,num(man.units));
+        /* MRR is always derived from retained units × price. It is never a
+           number anyone types, so it cannot disagree with the headcount. */
+        out.mrr=out.units*g.unitPrice;
+      }
+    }
+    return out;
+  }
+
+  /* The verdict on a finished month: what was earned against what was owed.
+     No projection, no pace — those are questions about a month still running. */
+  function finalStatus(actual,target){
+    return actual>=target?{key:'achieved',label:'ACHIEVED'}
+                         :{key:'missed',label:'MISSED'};
+  }
+
+  function statusFor(projected,target,meta,actual){
+    if(meta.phase==='future')return{key:'not_started',label:'NOT STARTED'};
+    if(meta.phase==='past')return finalStatus(actual,target);
+    if(projected>=target)return{key:'on_track',label:'ON TRACK'};
+    /* At risk means "recoverable": still projected to land within reach of the
+       target. Below that it is behind, and saying so plainly is the point. */
+    if(projected>=target*0.8)return{key:'at_risk',label:'AT RISK'};
+    return{key:'behind',label:'BEHIND'};
+  }
+
+  function computeGenerator(g,resolved,meta,week){
+    var target=g.revenueTarget;
+    /* A recurring business is measured at its RUN RATE: 3,000 retained
+       subscribers × $5 is $15,000/month of recurring revenue, and that is what
+       the target means. Cash collected in the month is a different fact and is
+       carried separately — never silently swapped in for the other. */
+    var actual=g.basis==='mrr'?resolved.mrr:resolved.cash;
+    var gap=Math.max(0,target-actual);
+    var perDay=meta.daysRemaining>0?gap/meta.daysRemaining:0;
+
+    var projected;
+    if(meta.phase==='past'){projected=actual;}
+    else if(meta.phase==='future'){projected=0;}
+    else if(g.basis==='cash'){
+      /* Straight run rate: what this month produces if the days keep behaving
+         like the days so far. */
+      projected=meta.dayOfMonth>0?actual/meta.dayOfMonth*meta.daysInMonth:0;
+    }else{
+      /* MRR is a LEVEL, not a flow — projecting it linearly from zero would
+         claim the first of the month had no subscribers. Carry the current
+         level forward at the net growth actually observed this month. */
+      var net=resolved.unitsAdded-resolved.unitsChurned;
+      var netPerDay=meta.dayOfMonth>0?net/meta.dayOfMonth:0;
+      projected=actual+netPerDay*Math.max(0,meta.daysRemaining-1)*g.unitPrice;
+    }
+    projected=Math.max(0,projected);
+
+    var out={
+      key:g.key,label:g.label,short:g.short,recurring:!!g.recurring,basis:g.basis,
+      target:target,actual:actual,gap:gap,
+      pct:target>0?actual/target*100:0,
+      cash:resolved.cash,mrr:resolved.mrr,
+      requiredPerDay:perDay,
+      requiredPerWeek:perDay*Math.min(7,Math.max(0,meta.daysRemaining)),
+      requiredThisWeek:perDay*week.days,
+      projected:projected,
+      variance:projected-target,
+      sourceKind:resolved.sourceKind,sourceLabel:resolved.sourceLabel,
+      unavailableReason:resolved.unavailableReason,
+      note:resolved.note,
+      units:null
+    };
+    out.status=statusFor(projected,target,meta,actual);
+
+    if(g.unitTarget!=null){
+      var uGap=Math.max(0,g.unitTarget-resolved.units);
+      out.units={
+        label:g.unitLabel,noun:g.unitNoun,price:g.unitPrice,
+        target:g.unitTarget,active:resolved.units,gap:uGap,
+        historical:resolved.historicalUnits,
+        added:resolved.unitsAdded,churned:resolved.unitsChurned,
+        net:resolved.unitsAdded-resolved.unitsChurned,
+        pct:g.unitTarget>0?resolved.units/g.unitTarget*100:0,
+        /* You cannot sign up a fraction of a subscriber; round up so the pace
+           is one you can actually hit. */
+        requiredPerDay:meta.daysRemaining>0?Math.ceil(uGap/meta.daysRemaining):uGap,
+        requiredPerWeek:meta.daysRemaining>0
+          ?Math.ceil(uGap/Math.max(1,Math.ceil(meta.daysRemaining/7))):uGap,
+        requiredThisWeek:meta.daysRemaining>0&&week.days>0
+          ?Math.ceil(uGap/meta.daysRemaining*week.days):uGap
+      };
+    }
+    return out;
+  }
+
+  /**
+   * The whole dashboard, as one value. Everything downstream renders from
+   * this — there is no second place where a percentage or a gap is worked out.
+   */
+  function compute(s,monthKey,now){
+    var meta=monthMeta(monthKey,now),week=weekMeta(meta,now);
+    var mst=s.months[monthKey]||{manual:{},live:null,weeks:{}};
+    var gens=GOAL.generators.map(function(g){
+      return computeGenerator(g,resolveGenerator(g,mst),meta,week);
+    });
+
+    var target=GOAL.monthlyTarget;
+    var actual=gens.reduce(function(t,g){return t+g.actual;},0);
+    var projected=gens.reduce(function(t,g){return t+g.projected;},0);
+    var remaining=Math.max(0,target-actual);
+    var requiredPerDay=meta.daysRemaining>0?remaining/meta.daysRemaining:0;
+    /* Pace is measured against the whole month, including today — the day is
+       in progress, so it is fair to expect part of it. */
+    var expectedByNow=meta.phase==='future'?0:target*(meta.dayOfMonth/meta.daysInMonth);
+
+    /* Highest-impact first. The dollar gap is the ranking, because closing the
+       biggest gap is what moves Growth Point 1 most — but a recurring business
+       is DESCRIBED in units, because that is the thing you actually go do. */
+    var actions=gens.filter(function(g){return g.gap>0.005;})
+      .sort(function(a,b){return b.gap-a.gap;})
+      .map(function(g,i){
+        return{
+          rank:i+1,key:g.key,label:g.label,
+          gapRevenue:g.gap,
+          gapUnits:g.units?g.units.gap:null,
+          unitNoun:g.units?g.units.noun:null,
+          measure:g.units?'units':'revenue',
+          perDay:g.requiredPerDay,
+          perDayUnits:g.units?g.units.requiredPerDay:null,
+          status:g.status
+        };
+      });
+
+    return{
+      goalId:GOAL.id,goalLabel:GOAL.label,
+      month:monthKey,monthLabel:meta.label,meta:meta,week:week,
+      target:target,actual:actual,remaining:remaining,
+      pct:target>0?actual/target*100:0,
+      /* Cash actually collected this month, across every generator. Kept
+         distinct from `actual` so recurring run-rate is never mistaken for
+         money in the bank. */
+      cash:gens.reduce(function(t,g){return t+g.cash;},0),
+      mrr:gens.reduce(function(t,g){return t+(g.basis==='mrr'?g.mrr:0);},0),
+      daysElapsed:meta.daysElapsed,daysRemaining:meta.daysRemaining,
+      requiredPerDay:requiredPerDay,
+      requiredPerWeek:requiredPerDay*Math.min(7,Math.max(0,meta.daysRemaining)),
+      avgPerDay:meta.dayOfMonth>0?actual/meta.dayOfMonth:0,
+      projected:projected,
+      variance:projected-target,
+      expectedByNow:expectedByNow,
+      paceVariance:actual-expectedByNow,
+      status:statusFor(projected,target,meta,actual),
+      generators:gens,actions:actions,
+      today:{
+        revenue:requiredPerDay,
+        generators:gens.filter(function(g){return g.gap>0.005;}).map(function(g){
+          return{key:g.key,label:g.label,revenue:g.requiredPerDay,
+                 units:g.units?g.units.requiredPerDay:null,unitNoun:g.units?g.units.noun:null};
+        })
+      },
+      thisWeek:{
+        days:week.days,startKey:week.startKey,label:week.label,
+        revenue:requiredPerDay*week.days,
+        done:!!(week.startKey&&mst.weeks&&mst.weeks[week.startKey]&&mst.weeks[week.startKey].done),
+        generators:gens.filter(function(g){return g.gap>0.005;}).map(function(g){
+          return{key:g.key,label:g.label,revenue:g.requiredThisWeek,
+                 units:g.units?g.units.requiredThisWeek:null,unitNoun:g.units?g.units.noun:null};
+        })
+      },
+      locked:!!mst.locked,
+      liveAt:mst.liveAt||null,
+      /* True only when every generator that HAS a system of record is reading
+         from it. One manual fallback is enough to stop calling this live. */
+      liveComplete:gens.every(function(g){
+        return g.sourceKind==='live'||generator(g.key).source==null;
+      })
+    };
+  }
+
+  /* ── End of month ───────────────────────────────────────────────────────
+     A finished month is frozen into a snapshot so the historical record
+     survives whatever happens to the live sources later. The snapshot is the
+     history; the live figures underneath may still be refreshed to absorb a
+     late-settling payment, which is why relock() exists and unlocking does
+     not. Nothing is ever erased. */
+  function lockMonth(s,monthKey,now){
+    var m=monthState(s,monthKey),r=compute(s,monthKey,clock(now));
+    m.locked=true;m.lockedAt=stamp(now);
+    m.snapshot={
+      month:monthKey,target:r.target,actual:r.actual,cash:r.cash,mrr:r.mrr,
+      pct:r.pct,
+      /* Always the terminal verdict, never whatever the live status happened
+         to be at the instant of locking. A month frozen at 23:59 on its last
+         day is finished, and "on track" is not a thing history can say. */
+      status:finalStatus(r.actual,r.target),
+      generators:r.generators.map(function(g){
+        return{key:g.key,label:g.label,target:g.target,actual:g.actual,
+               cash:g.cash,mrr:g.mrr,pct:g.pct,
+               units:g.units?{active:g.units.active,target:g.units.target,
+                              historical:g.units.historical,added:g.units.added,
+                              churned:g.units.churned}:null,
+               sourceKind:g.sourceKind};
+      })
+    };
+    return m.snapshot;
+  }
+
+  /**
+   * Freeze any month that is over and has actuals we trust. Deliberately does
+   * NOT lock a past month we never received data for — locking zeroes we never
+   * measured would fabricate a failed month.
+   */
+  function autoLock(s,now){
+    var locked=[];
+    GOAL.months.forEach(function(mk){
+      if(mk>=monthKeyOf(now))return;
+      var m=s.months[mk];
+      if(!m||m.locked)return;
+      var hasData=!!m.live||Object.keys(m.manual||{}).length>0;
+      if(!hasData)return;
+      lockMonth(s,mk,now);locked.push(mk);
+    });
+    return locked;
+  }
+
+  /** Re-freeze an already-locked month against its current live figures. */
+  function relock(s,monthKey,now){
+    var m=s.months[monthKey];
+    if(!m||!m.locked)return null;
+    return lockMonth(s,monthKey,now);
+  }
+
+  /** Every month in range, for the comparison table. Locked months read from
+      their snapshot; the rest are computed live. A month with no data reports
+      null actuals rather than a misleading zero. */
+  function history(s,now){
+    return GOAL.months.map(function(mk){
+      var m=s.months[mk],meta=monthMeta(mk,now);
+      var hasData=!!(m&&(m.live||Object.keys(m.manual||{}).length));
+      if(m&&m.locked&&m.snapshot){
+        return{month:mk,label:meta.label,phase:meta.phase,target:m.snapshot.target,
+               actual:m.snapshot.actual,pct:m.snapshot.pct,status:m.snapshot.status,
+               locked:true,hasData:true};
+      }
+      if(!hasData){
+        return{month:mk,label:meta.label,phase:meta.phase,target:GOAL.monthlyTarget,
+               actual:null,pct:null,status:null,locked:false,hasData:false};
+      }
+      var r=compute(s,mk,now);
+      return{month:mk,label:meta.label,phase:meta.phase,target:r.target,actual:r.actual,
+             pct:r.pct,status:r.status,locked:false,hasData:true};
+    });
+  }
+
+  function markWeek(s,monthKey,weekKey,done,note){
+    var m=monthState(s,monthKey);
+    if(!weekKey)return null;
+    var w=m.weeks[weekKey]||{};
+    if(done!==undefined)w.done=!!done;
+    if(note!==undefined)w.note=String(note||'');
+    m.weeks[weekKey]=w;return w;
+  }
+
+  return{
+    GOAL:GOAL,goalIntegrity:goalIntegrity,generator:generator,
+    ensure:ensure,monthState:monthState,activeMonth:activeMonth,selectMonth:selectMonth,
+    monthMeta:monthMeta,weekMeta:weekMeta,monthKeyOf:monthKeyOf,monthLabel:monthLabel,
+    applyLive:applyLive,markLiveError:markLiveError,setManual:setManual,
+    resolveGenerator:resolveGenerator,compute:compute,
+    lockMonth:lockMonth,autoLock:autoLock,relock:relock,history:history,markWeek:markWeek
+  };
+})();
+if(typeof window!=='undefined')window.GP1=GP1;
+/* GROWTH-POINT-1:END */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GROWTH POINT 1 — JoshOS glue (DOM-aware; outside the tested engine above).
+   Transport rides the SAME scoped bridge as business work: JoshOS asks for
+   actuals, it never reaches into the business database.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function gp1State(){return GP1.ensure(appData);}
+function gp1Month(){return GP1.activeMonth(gp1State(),new Date());}
+function gp1Model(){return GP1.compute(gp1State(),gp1Month(),new Date());}
+
+var _gp1Timer=null,_gp1Fetching={};
+
+/* Money and counts, formatted once, here. The engine deals in numbers. */
+function gp1Money(n,opts){
+  opts=opts||{};
+  var v=Number(n)||0;
+  if(opts.cents)return v.toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2});
+  return '$'+Math.round(v).toLocaleString('en-US');
+}
+function gp1Int(n){return Math.round(Number(n)||0).toLocaleString('en-US');}
+function gp1Pct(n){var v=Number(n)||0;return(v>=99.5&&v<100?99.9:Math.round(v*10)/10)+'%';}
+
+/**
+ * Pull this month's actuals from the source of truth.
+ *
+ * Uses the SAME bridge URL and scoped token as business work. A failure is
+ * surfaced, never swallowed and never faked into a zero — an unreachable
+ * source leaves the last known figures in place and says the reading is stale.
+ */
+function gp1Fetch(monthKey,silent){
+  var s=gp1State(),t=appData.settings||{};
+  var url=(t.workosBridgeUrl||'').trim(),tok=(t.workosBridgeToken||'').trim();
+  monthKey=monthKey||gp1Month();
+  if(!url){
+    s.sync={status:'not_configured',lastOkAt:s.sync&&s.sync.lastOkAt||null,
+            error:'Bridge not configured'};
+    gp1Render();return Promise.resolve({ok:false,reason:'not_configured'});
+  }
+  if(_gp1Fetching[monthKey])return _gp1Fetching[monthKey];
+
+  var headers={'Content-Type':'application/json'};
+  if(tok)headers['Authorization']='Bearer '+tok;
+
+  var p=fetch(url.replace(/\/$/,'')+'/metrics?month='+encodeURIComponent(monthKey),{headers:headers})
+    .then(function(r){
+      if(!r.ok)throw new Error('bridge '+r.status+' '+r.statusText);
+      return r.json();
+    })
+    .then(function(payload){
+      var res=GP1.applyLive(gp1State(),payload,new Date().toISOString());
+      if(!res.applied)throw new Error('bridge returned '+res.reason);
+      GP1.autoLock(gp1State(),new Date().toISOString());
+      saveData();gp1Render();
+      if(!silent)showToast('Growth Point 1 — actuals refreshed');
+      return{ok:true};
+    })
+    .catch(function(err){
+      GP1.markLiveError(gp1State(),err,new Date().toISOString());
+      saveData();gp1Render();
+      if(!silent)showToast('Growth Point 1 — could not reach the business data ('+(err&&err.message||err)+')');
+      return{ok:false,error:String(err&&err.message||err)};
+    })
+    .then(function(r){delete _gp1Fetching[monthKey];return r;});
+
+  _gp1Fetching[monthKey]=p;
+  return p;
+}
+function gp1RefreshNow(){showToast('Reading the business data…');gp1Fetch(gp1Month(),false);}
+
+/* Poll while the dashboard is the thing being looked at.
+   The bridge is polled rather than pushed because the desktop app has no
+   public URL to receive a webhook — the same constraint documented in §9 of
+   the bridge contract. The isolation is deliberate: every other layer is
+   event-shaped, and swapping this one function for a push subscription would
+   not change anything above it. */
+function gp1StartPolling(){
+  gp1StopPolling();
+  _gp1Timer=setInterval(function(){
+    if(document.hidden)return;
+    gp1Fetch(gp1Month(),true);
+  },60000);
+}
+function gp1StopPolling(){if(_gp1Timer){clearInterval(_gp1Timer);_gp1Timer=null;}}
+
+function gp1SelectMonth(mk){
+  var s=gp1State();
+  if(!GP1.selectMonth(s,mk))return;
+  saveData();gp1Render();
+  gp1Fetch(mk,true);
+}
+
+function gp1SetManual(genKey,field,value){
+  var s=gp1State(),mk=gp1Month(),patch={};
+  patch[field]=value;
+  GP1.setManual(s,mk,genKey,patch);
+  saveData();gp1Render();
+}
+
+function gp1ToggleWeek(){
+  var s=gp1State(),m=gp1Model();
+  if(!m.thisWeek.startKey)return;
+  GP1.markWeek(s,m.month,m.thisWeek.startKey,!m.thisWeek.done);
+  saveData();gp1Render();
+}
+
+/* ── Rendering ──────────────────────────────────────────────────────────── */
+
+var GP1_STATUS_CLASS={on_track:'ok',at_risk:'warn',behind:'bad',
+                      achieved:'ok',missed:'bad',not_started:''};
+
+function gp1StatusChip(st,big){
+  var cls=GP1_STATUS_CLASS[st.key]||'';
+  return '<span class="gp1-status '+cls+(big?' big':'')+'">'+esc(st.label)+'</span>';
+}
+
+function gp1SourceChip(g){
+  if(g.sourceKind==='live')
+    return '<span class="gp1-src live" title="'+esc(g.sourceLabel||'')+'">live</span>';
+  if(g.sourceKind==='manual')
+    return '<span class="gp1-src manual" title="'+esc(g.unavailableReason||'No live source for this generator')+'">manual</span>';
+  return '<span class="gp1-src none" title="'+esc(g.unavailableReason||'No actuals yet')+'">no data</span>';
+}
+
+function gp1Render(){
+  gp1RenderHome();
+  if(document.getElementById('page-growthpoint')?.classList.contains('active'))gp1RenderPage();
+}
+
+/* The Home summary — the "where am I" answer, above everything else.
+   Guarded: Home is the page Josh lands on every morning, and a bad figure in
+   one revenue generator must never be able to take the whole day's dashboard
+   down with it. */
+function gp1RenderHome(){
+  var el=document.getElementById('homeGP1');if(!el)return;
+  try{gp1RenderHomeInner(el);}
+  catch(e){
+    el.innerHTML='<div class="gp1-hero"><div class="eyebrow">Growth Point 1</div>'+
+      '<div class="gp1-note warn">Could not render — '+esc(String(e&&e.message||e))+'</div></div>';
+  }
+}
+function gp1RenderHomeInner(el){
+  var m=gp1Model();
+  var pct=Math.max(0,Math.min(100,m.pct));
+  el.innerHTML=
+    '<div class="gp1-hero" onclick="goTo(\'growthpoint\',navEl(\'growthpoint\'))" role="link" tabindex="0">'+
+      '<div class="gp1-hero-top">'+
+        '<div><div class="eyebrow">'+esc(m.goalLabel)+' · '+esc(m.monthLabel)+'</div>'+
+        '<div class="gp1-hero-v">'+gp1Money(m.actual)+' <span class="gp1-hero-t">/ '+gp1Money(m.target)+'</span></div></div>'+
+        gp1StatusChip(m.status,true)+
+      '</div>'+
+      '<div class="gp1-bar"><div class="gp1-bar-f '+(GP1_STATUS_CLASS[m.status.key]||'')+'" style="width:'+pct+'%"></div>'+
+        (m.meta.phase==='current'?'<div class="gp1-bar-pace" style="left:'+Math.min(100,m.meta.dayOfMonth/m.meta.daysInMonth*100)+'%" title="where the pace should be today"></div>':'')+
+      '</div>'+
+      '<div class="gp1-hero-m">'+
+        '<span><b>'+gp1Pct(m.pct)+'</b> complete</span>'+
+        '<span><b>'+gp1Money(m.requiredPerDay)+'</b> required/day</span>'+
+        '<span><b>'+gp1Money(m.projected)+'</b> projected</span>'+
+        '<span><b>'+m.daysRemaining+'</b> day'+(m.daysRemaining===1?'':'s')+' left</span>'+
+      '</div>'+
+    '</div>';
+}
+
+function gp1GenCard(g,meta){
+  var pct=Math.max(0,Math.min(100,g.pct));
+  var body='';
+
+  if(g.units){
+    var upct=Math.max(0,Math.min(100,g.units.pct));
+    body+=
+      '<div class="gp1-units">'+
+        '<div class="gp1-units-v">'+gp1Int(g.units.active)+' <span class="gp1-units-t">/ '+gp1Int(g.units.target)+' '+esc(g.units.label)+'</span></div>'+
+        '<div class="prog"><div class="prog-f" style="width:'+upct+'%"></div></div>'+
+      '</div>'+
+      '<div class="gp1-facts">'+
+        '<div><span>Subscriber gap</span><b>'+gp1Int(g.units.gap)+'</b></div>'+
+        '<div><span>MRR</span><b>'+gp1Money(g.mrr)+'</b></div>'+
+        '<div><span>Revenue gap</span><b>'+gp1Money(g.gap)+'</b></div>'+
+        '<div><span>Needed / day</span><b>'+gp1Int(g.units.requiredPerDay)+' '+esc(g.units.noun)+(g.units.requiredPerDay===1?'':'s')+'</b></div>'+
+        '<div><span>Needed / week</span><b>'+gp1Int(g.units.requiredPerWeek)+' '+esc(g.units.noun)+(g.units.requiredPerWeek===1?'':'s')+'</b></div>'+
+        '<div><span>Net this month</span><b>'+(g.units.net>0?'+':'')+gp1Int(g.units.net)+'</b></div>'+
+      '</div>'+
+      (g.units.historical>g.units.active
+        ? '<div class="gp1-note">'+gp1Int(g.units.historical)+' have ever subscribed; '+gp1Int(g.units.active)+' are active. Only active retained '+esc(g.units.label)+' count toward Growth Point 1.</div>'
+        : '')+
+      (g.cash>0?'<div class="gp1-note">'+gp1Money(g.cash)+' collected in cash this month — tracked separately from the '+gp1Money(g.mrr)+' run rate.</div>':'');
+  }else{
+    body+=
+      '<div class="gp1-facts">'+
+        '<div><span>Revenue remaining</span><b>'+gp1Money(g.gap)+'</b></div>'+
+        '<div><span>Required / day</span><b>'+gp1Money(g.requiredPerDay)+'</b></div>'+
+        '<div><span>Required / week</span><b>'+gp1Money(g.requiredPerWeek)+'</b></div>'+
+        '<div><span>Projected month end</span><b>'+gp1Money(g.projected)+'</b></div>'+
+      '</div>';
+  }
+
+  /* Actuals input. Live-sourced generators are read-only on purpose: a number
+     you can type but that would be ignored is worse than no field at all. */
+  var input;
+  if(g.sourceKind==='live'){
+    input='<div class="gp1-input locked">'+ico('db')+'Reading from '+esc(g.sourceLabel||'the business database')+'</div>';
+  }else{
+    var man=(gp1State().months[meta.monthKey]||{manual:{}}).manual[g.key]||{};
+    input='<div class="gp1-input">'+
+      (g.units
+        ?'<label>Active '+esc(g.units.label)+'<input type="number" min="0" step="1" class="hi" value="'+(man.units!=null?man.units:'')+'" oninput="gp1SetManual(\''+g.key+'\',\'units\',this.value)"></label>'
+        :'<label>Revenue this month<input type="number" min="0" step="1" class="hi" value="'+(man.revenue!=null?man.revenue:'')+'" oninput="gp1SetManual(\''+g.key+'\',\'revenue\',this.value)"></label>')+
+      '<label class="grow">Note<input type="text" class="hi grow" value="'+esc(man.note||'')+'" oninput="gp1SetManual(\''+g.key+'\',\'note\',this.value)"></label>'+
+      '</div>'+
+      (g.unavailableReason?'<div class="gp1-note warn">'+esc(g.unavailableReason)+'</div>':'');
+  }
+
+  return '<div class="gp1-card">'+
+    '<div class="gp1-card-h">'+
+      '<div class="grow"><div class="gp1-card-t">'+esc(g.label)+' '+gp1SourceChip(g)+'</div>'+
+      '<div class="gp1-card-v">'+gp1Money(g.actual)+' <span class="gp1-card-tt">/ '+gp1Money(g.target)+'</span>'+
+        (g.basis==='mrr'?' <span class="gp1-basis">MRR</span>':'')+'</div></div>'+
+      gp1StatusChip(g.status)+
+    '</div>'+
+    '<div class="gp1-bar sm"><div class="gp1-bar-f '+(GP1_STATUS_CLASS[g.status.key]||'')+'" style="width:'+pct+'%"></div></div>'+
+    '<div class="gp1-card-pct">'+gp1Pct(g.pct)+' complete</div>'+
+    body+input+
+  '</div>';
+}
+
+function gp1RenderPage(){
+  var s=gp1State(),m=gp1Model();
+
+  /* Month selector — same target on every one of them. */
+  var sel=document.getElementById('gp1Months');
+  if(sel){
+    sel.innerHTML=GP1.GOAL.months.map(function(mk){
+      return '<button class="chip'+(mk===m.month?' on':'')+'" onclick="gp1SelectMonth(\''+mk+'\')">'+
+        esc(GP1.monthLabel(mk).replace(' 20',' ’'))+'</button>';
+    }).join('');
+  }
+
+  /* Headline */
+  var head=document.getElementById('gp1Head');
+  if(head){
+    var pct=Math.max(0,Math.min(100,m.pct));
+    var pv=m.paceVariance;
+    head.innerHTML=
+      '<div class="gp1-head">'+
+        '<div class="gp1-head-l">'+
+          '<div class="eyebrow">'+esc(m.goalLabel)+' · '+esc(m.monthLabel)+(m.locked?' · locked':'')+'</div>'+
+          '<div class="gp1-head-v">'+gp1Money(m.actual)+'<span class="gp1-head-t"> / '+gp1Money(m.target)+'</span></div>'+
+          '<div class="gp1-head-s">'+gp1Pct(m.pct)+' complete'+
+            (m.meta.phase==='current'
+              ?' · '+(pv>=0?'<b class="ok">'+gp1Money(Math.abs(pv))+' ahead of</b>':'<b class="bad">'+gp1Money(Math.abs(pv))+' behind</b>')+' pace'
+              :'')+'</div>'+
+        '</div>'+
+        gp1StatusChip(m.status,true)+
+      '</div>'+
+      '<div class="gp1-bar lg"><div class="gp1-bar-f '+(GP1_STATUS_CLASS[m.status.key]||'')+'" style="width:'+pct+'%"></div>'+
+        (m.meta.phase==='current'?'<div class="gp1-bar-pace" style="left:'+Math.min(100,m.meta.dayOfMonth/m.meta.daysInMonth*100)+'%" title="pace marker"></div>':'')+
+      '</div>';
+  }
+
+  /* The ten numbers, in one strip. */
+  var strip=document.getElementById('gp1Metrics');
+  if(strip){
+    var cells=[
+      {v:gp1Money(m.actual),l:'Actual',accent:m.actual>0},
+      {v:gp1Money(m.remaining),l:'Remaining'},
+      {v:gp1Pct(m.pct),l:'Of goal'},
+      {v:String(m.daysElapsed),l:'Days elapsed'},
+      {v:String(m.daysRemaining),l:'Days remaining'},
+      {v:gp1Money(m.requiredPerDay),l:'Required / day',accent:true},
+      {v:gp1Money(m.avgPerDay),l:'Current avg / day'},
+      {v:gp1Money(m.projected),l:'Projected'},
+      {v:(m.variance>=0?'+':'−')+gp1Money(Math.abs(m.variance)),l:m.variance>=0?'Projected surplus':'Projected shortfall'},
+      {v:gp1Money(m.mrr),l:'Of which MRR'}
+    ];
+    strip.innerHTML=cells.map(function(c){
+      return '<div class="metric"><div class="metric-v'+(c.accent?' accent':'')+'">'+esc(c.v)+'</div><div class="metric-l">'+esc(c.l)+'</div></div>';
+    }).join('');
+  }
+
+  /* Today + this week */
+  var td=document.getElementById('gp1Today');
+  if(td){
+    if(m.meta.phase!=='current'){
+      td.innerHTML='<div class="gp1-note">'+(m.meta.phase==='past'?'This month is closed.':'This month has not started.')+'</div>';
+    }else{
+      var qr=m.today.generators.filter(function(g){return g.units;});
+      td.innerHTML=
+        '<div class="gp1-today">'+
+          '<div class="gp1-today-v">'+gp1Money(m.today.revenue)+'</div>'+
+          '<div class="gp1-today-l">required today to stay on Growth Point 1</div>'+
+          (qr.length?'<div class="gp1-today-u">'+qr.map(function(g){
+            return '<span><b>'+gp1Int(g.units)+'</b> '+esc(g.label)+' '+esc(g.unitNoun)+(g.units===1?'':'s')+'</span>';
+          }).join('')+'</div>':'')+
+        '</div>'+
+        '<div class="gp1-sub">'+m.today.generators.map(function(g){
+          return '<div class="row"><span class="grow row-t">'+esc(g.label)+'</span><span class="mono">'+gp1Money(g.revenue)+'</span></div>';
+        }).join('')+'</div>';
+    }
+  }
+
+  var wk=document.getElementById('gp1Week');
+  if(wk){
+    if(m.meta.phase!=='current'||m.thisWeek.days<=0){
+      wk.innerHTML='<div class="gp1-note">No week in progress for this month.</div>';
+    }else{
+      wk.innerHTML=
+        '<div class="gp1-weekhead">'+
+          '<div><div class="gp1-today-v">'+gp1Money(m.thisWeek.revenue)+'</div>'+
+          '<div class="gp1-today-l">required over the next '+m.thisWeek.days+' day'+(m.thisWeek.days===1?'':'s')+' ('+esc(m.thisWeek.label)+')</div></div>'+
+          '<button class="btn '+(m.thisWeek.done?'primary':'quiet')+' sm" onclick="gp1ToggleWeek()">'+
+            (m.thisWeek.done?ico('check')+'Week hit':'Mark week hit')+'</button>'+
+        '</div>'+
+        '<div class="gp1-sub">'+m.thisWeek.generators.map(function(g){
+          return '<div class="row"><span class="grow row-t">'+esc(g.label)+'</span>'+
+            (g.units!=null?'<span class="mono dim">'+gp1Int(g.units)+' '+esc(g.unitNoun)+(g.units===1?'':'s')+'</span>':'')+
+            '<span class="mono">'+gp1Money(g.revenue)+'</span></div>';
+        }).join('')+'</div>';
+    }
+  }
+
+  /* What I need to do */
+  var act=document.getElementById('gp1Actions');
+  if(act){
+    if(!m.actions.length){
+      act.innerHTML='<div class="gp1-clear">'+ico('check')+'Every generator is at or above its target. Nothing is missing.</div>';
+    }else{
+      var lead=m.meta.phase!=='current'?'':
+        (m.paceVariance>=0
+          ?'<div class="gp1-lead ok">You are '+gp1Money(Math.abs(m.paceVariance))+' <b>ahead of</b> the Growth Point 1 pace.</div>'
+          :'<div class="gp1-lead bad">You are '+gp1Money(Math.abs(m.paceVariance))+' <b>behind</b> the Growth Point 1 pace.</div>');
+      act.innerHTML=lead+'<div class="gp1-acts">'+m.actions.map(function(a){
+        var need=a.measure==='units'
+          ? '+'+gp1Int(a.gapUnits)+' '+esc(a.unitNoun)+(a.gapUnits===1?'':'s')+' needed'
+          : '+'+gp1Money(a.gapRevenue)+' revenue needed';
+        var pace=a.measure==='units'
+          ? gp1Int(a.perDayUnits)+' '+esc(a.unitNoun)+(a.perDayUnits===1?'':'s')+'/day'
+          : gp1Money(a.perDay)+'/day';
+        return '<div class="gp1-act">'+
+          '<span class="gp1-act-r">'+a.rank+'</span>'+
+          '<span class="grow"><span class="row-t">'+esc(a.label)+'</span><span class="row-s">'+need+
+            (a.measure==='units'?' · worth '+gp1Money(a.gapRevenue)+' of the gap':'')+'</span></span>'+
+          '<span class="gp1-act-p mono">'+pace+'</span>'+
+        '</div>';
+      }).join('')+'</div>';
+    }
+  }
+
+  /* Generator cards */
+  var cards=document.getElementById('gp1Cards');
+  if(cards)cards.innerHTML=m.generators.map(function(g){return gp1GenCard(g,m.meta);}).join('');
+
+  /* History */
+  var hist=document.getElementById('gp1History');
+  if(hist){
+    hist.innerHTML='<div class="gp1-scroll"><table class="gp1-tbl"><thead><tr><th>Month</th><th class="r">Target</th><th class="r">Actual</th><th class="r">% achieved</th><th>Status</th></tr></thead><tbody>'+
+      GP1.history(s,new Date()).map(function(h){
+        return '<tr'+(h.month===m.month?' class="on"':'')+'>'+
+          '<td>'+esc(h.label)+(h.locked?' <span class="gp1-src none">locked</span>':'')+'</td>'+
+          '<td class="r mono">'+gp1Money(h.target)+'</td>'+
+          '<td class="r mono">'+(h.hasData?gp1Money(h.actual):'—')+'</td>'+
+          '<td class="r mono">'+(h.hasData?gp1Pct(h.pct):'—')+'</td>'+
+          '<td>'+(h.status?gp1StatusChip(h.status):'—')+'</td>'+
+        '</tr>';
+      }).join('')+'</tbody></table></div>';
+  }
+
+  gp1RenderStatus();
+}
+
+function gp1RenderStatus(){
+  var el=document.getElementById('gp1SyncLine');if(!el)return;
+  var s=gp1State(),m=gp1Model(),sy=s.sync||{};
+  var txt,cls='';
+  if(sy.status==='not_configured'){
+    txt='Not connected — set the bridge URL in Settings to read live actuals';
+  }else if(sy.status==='error'){
+    txt='Stale — '+(sy.error||'business data unavailable')+
+        (sy.lastOkAt?' · last good read '+wobAgo(sy.lastOkAt):'');cls='warn';
+  }else if(sy.status==='ok'){
+    txt=(m.liveComplete?'Live':'Partly live')+' · read '+wobAgo(sy.lastOkAt);
+    cls=m.liveComplete?'live':'info';
+  }else txt='Waiting for the first read';
+  var gi=GP1.goalIntegrity();
+  if(!gi.ok){txt='Goal misconfigured — generators sum to '+gp1Money(gi.sum)+', target is '+gp1Money(gi.target);cls='bad';}
+  el.textContent=txt;el.className='status '+cls;
+}
+
+function gp1Boot(){
+  if(!appData||!appData.lastDate){setTimeout(gp1Boot,150);return;}
+  var s=gp1State();
+  GP1.autoLock(s,new Date().toISOString());
+  gp1Render();
+  gp1Fetch(gp1Month(),true);
+  /* Refresh when Josh comes back to the app — the cheapest way to make a
+     cancellation that happened while he was away show up immediately. */
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden)gp1Fetch(gp1Month(),true);
+  });
+  /* And on the same 5-minute cadence as business work, so the two views of
+     the business can never drift apart. */
+  setInterval(function(){gp1Fetch(gp1Month(),true);},5*60000);
+}
+
 function wobBoot(){
   if(!appData||!appData.lastDate){setTimeout(wobBoot,150);return;}
   wobState();
@@ -7174,6 +8259,7 @@ function wobBoot(){
   },5*60000);
 }
 wobBoot();
+gp1Boot();
 
 azBoot();
 </script>

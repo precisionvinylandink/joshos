@@ -191,6 +191,67 @@ their `data` — forward compatible.
 
 ---
 
+## 4.5 Growth Point 1 metrics (`GET /metrics`)
+
+Growth Point 1 is JoshOS's revenue operating goal: **$53,990 every month**,
+August 2026 through February 2027, the same target each month.
+
+**JoshOS owns the goal. WorkOS owns the actuals.** Every gap, pace, projection
+and status is computed in JoshOS from the goal and the clock; this endpoint
+returns only what actually happened.
+
+```
+GET {BRIDGE_URL}/metrics?month=YYYY-MM
+Authorization: Bearer <token with scope metrics:read>
+```
+
+The aggregation lives in the database as `joshos_gp1_metrics(text)` rather than
+in the edge function, because each figure is a *definition of a business
+metric* and belongs beside the tables it reads.
+
+### Source of truth, per generator
+
+| Generator | Measured as | Source | Live |
+|---|---|---|---|
+| **Dynamic QR** | active subscribers → MRR | `cpg_subscriptions` where `plan='qr_monthly' and status='active'` | ✅ |
+| **Print Club** | active subscribers → MRR | `print_club_subscriptions` where status is active and `cancelled_at is null` | ✅ |
+| **Precision Vinyl & Ink** | cash collected | `pvi_invoices` (paid/partial, by `paid_at`) + storefront `orders`, deduped on `quote_id` | ✅ |
+| **Chicago Promotional Group** | cash collected | `cpg_revenue_events`, `revenue_stream='transactional'` only | ✅ |
+| **Scratch Off Studio** | cash collected | **none — no system of record exists** | ❌ manual |
+
+Three decisions that are easy to get wrong and expensive to get wrong:
+
+1. **CPG counts transactional revenue only.** Dynamic QR and Print Club
+   recurring revenue rides in `cpg_subscriptions` *and* is mirrored into
+   `cpg_revenue_events` as `qr_mrr` / `print_club_mrr`. Counting those into the
+   CPG generator would book the same $15,990 twice.
+2. **Print Club reads `print_club_subscriptions`, not `cpg_subscriptions`.**
+   The former is the product's own Square-billed subscription table — the
+   system of record. The latter is CPG's recurring-revenue rollup.
+3. **Active, never historical.** Subscriber counts use the current active
+   state. 3,100 people having ever subscribed while 2,850 are active is
+   `2,850 / 3,000`, not `3,100 / 3,000`. `historicalUnits` is returned
+   alongside so reporting can show the difference without inflating the goal.
+
+`available: false` is a first-class answer. Scratch Off Studio returns it with
+a `reason`, and JoshOS falls back to a manual entry it *labels* as manual.
+Inventing a proxy metric would be worse than admitting the gap.
+
+**Precedence is absolute: live beats manual, always.** A stale typed-in number
+can never hold the goal up after a cancellation. Manual entry exists only for a
+generator whose source cannot answer.
+
+### Freshness
+
+Polled, not pushed — same constraint as §9: the desktop app has no public URL.
+JoshOS reads on boot, on window focus, every 5 minutes in the background, and
+every 60 seconds while the Growth Point 1 page is open. The limitation is
+isolated to one function (`gp1Fetch`); swapping it for a push subscription
+would change nothing above it.
+
+A failed read **never** becomes a zero. The last good figures stay on screen
+and the status line says the reading is stale, with the reason.
+
 ## 5. JoshOS → WorkOS
 
 ```
@@ -437,8 +498,12 @@ boundary is drawn this way, and they are worth addressing on their own.
   date, rush as a first-class property, unconfigured/provisional lead times
   handled honestly, reconciliation that preserves completed stages
 - **Deadline monitoring** (§6.2) feeding the calendar and the daily open-loop list
-- 66 integration tests, run against the shipped engine
-  (`workos-bridge.test.js` 30 · `order-execution.test.js` 36)
+- **Growth Point 1** (§4.5): canonical goal config, active-subscriber
+  accounting, pace/projection/status, ranked action list, today/week targets,
+  month selector, end-of-month locking and history
+- 102 integration tests, run against the shipped engine
+  (`workos-bridge.test.js` 30 · `order-execution.test.js` 36 ·
+  `growth-point-1.test.js` 36)
 
 ### ✅ BUILT AND DEPLOYED (business side, 2026-08-11 · extended 2026-08-12)
 - Schema: five additive migrations, **applied** — see
@@ -471,6 +536,26 @@ boundary is drawn this way, and they are worth addressing on their own.
 - **Resume the paused `joshos-sync` Supabase project** (`lavbxjegicshhfvytapb`)
   — unrelated to this work, but JoshOS's own multi-device sync is dead until
   then (DNS does not resolve; every call fails silently)
+
+### 📉 GROWTH POINT 1 — WHAT THE DATA CANNOT YET ANSWER
+
+The pipeline is live and correct, but on 2026-08-13 the business tables it
+reads are **empty**: `cpg_subscriptions` 0 rows, `print_club_subscriptions` 0,
+`cpg_revenue_events` 0, `orders` 0, `pvi_invoices` 1 (a void self-test). The
+dashboard therefore honestly reads $0 / $53,990. That is a data-entry gap in
+the business system, not a JoshOS bug — the moment a subscriber or a paid
+invoice lands in those tables, Growth Point 1 moves.
+
+Two structural gaps only the business side can close:
+
+- **Scratch Off Studio has no system of record.** No table, product line or
+  revenue stream anywhere in `siwotzlqfwgmhhnnnppc` represents it. Its $6,000
+  target is tracked manually and labelled as such until one exists.
+- **Print Club churn is not event-sourced.** `print_club_subscriptions` holds
+  one mutable row per member, so a resubscription overwrites `cancelled_at` and
+  the earlier cancellation is no longer visible. Active counts are always
+  correct; `unitsChurned` only reflects churn still recorded on the row. A
+  subscription event log would fix this.
 
 ### 🔌 STILL REQUIRES A BUSINESS-SIDE DECISION
 - `quote_requests` has no FK to `clients`, and `pvi_quotes.client_id` references
