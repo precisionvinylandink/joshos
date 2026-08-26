@@ -2,14 +2,19 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 /**
- * joshos-bridge — the business side of the JoshOS integration.
+ * joshos-bridge — the business side of the JoshOS / WorkOS integration.
  *
  *   DEPLOYED to precision-vinyl (siwotzlqfwgmhhnnnppc) as function `joshos-bridge`.
- *   This file is the source of truth; keep it identical to what is deployed.
+ *   Versioned source: JobOS repo, integrations/pvi/joshos-bridge/index.ts
+ *   (mirrored in the joshos repo as docs/workos/joshos-bridge.ts).
+ *   Keep this file identical to what is deployed.
  *
- *   GET  /work?since=<ISO>      -> { items, events, serverTime }
- *   GET  /metrics?month=YYYY-MM -> { month, generators, serverTime }
- *   POST /events                -> { ok, duplicate? }
+ *   GET  /work?since=<ISO>          -> { items, events, serverTime }
+ *   GET  /metrics?month=YYYY-MM     -> { month, generators, serverTime }
+ *   GET  /finance                   -> { receivables, payments, subscriptions, obligations, serverTime }   [added]
+ *   POST /events                    -> { ok, duplicate? }
+ *   GET  /outbox?since=&limit=      -> { events, cursor, count, serverTime }   [added]
+ *   POST /outbox/ack  { ids }       -> { acked, serverTime }                   [added]
  *
  * verify_jwt is DISABLED deliberately: JoshOS is not a Supabase auth user. It
  * authenticates with a scoped bearer token that this function validates itself
@@ -186,6 +191,131 @@ async function handleMetrics(url: URL) {
 }
 
 /**
+ * Business cash view for the JoshOS Financial Engine (scope finance:read).
+ *
+ * Same shape of decision as /metrics: the projection is a database function
+ * (`joshos_finance_snapshot`) because "what counts as an open receivable" is a
+ * business-metric definition and belongs beside the tables. This handler only
+ * authorizes and forwards.
+ *
+ * What it deliberately is NOT: an invoice API. It returns cash facts keyed by
+ * (externalTable, externalId) plus a document number — no customer names, no
+ * emails, no line items. JoshOS derives expected-payment events from it and
+ * may never write any of it back.
+ */
+async function handleFinance() {
+  const { data, error } = await db.rpc("joshos_finance_snapshot");
+  if (error) throw new Error(`finance_snapshot: ${error.message}`);
+  return { status: 200, body: data };
+}
+
+/**
+ * The outbox, for a consumer that intends to PROCESS these events.
+ *
+ * Two things distinguish it from the `events` block inside /work, and both are
+ * the reason it exists:
+ *
+ *   1. IT DOES NOT ACKNOWLEDGE. /work marks every event it returns as
+ *      delivered, fire-and-forget, before the consumer has done anything with
+ *      it. A consumer that dies after the response is written loses those
+ *      events permanently and silently. Here, delivery is confirmed by an
+ *      explicit call to /outbox/ack after the work is done. A read is not an
+ *      acknowledgement.
+ *
+ *   2. IT RETURNS THE ROW AS STORED, not a display projection. toWorkItem()
+ *      renames fields and drops external_table, which a consumer needs to
+ *      resolve which business record an event is about.
+ *
+ * `since` is exclusive and pages on created_at. `undelivered=true` (the
+ * default) filters to events that have not been acknowledged, so an
+ * interrupted consumer resumes exactly where it stopped.
+ */
+async function handleOutbox(url: URL) {
+  const since = url.searchParams.get("since");
+  const limitParam = Number(url.searchParams.get("limit") ?? "500");
+  const limit = Number.isFinite(limitParam) ? Math.min(Math.max(limitParam, 1), 1000) : 500;
+  const undeliveredOnly = url.searchParams.get("undelivered") !== "false";
+
+  if (since && Number.isNaN(Date.parse(since))) {
+    return { status: 400, body: { error: "since must be an ISO-8601 timestamp" } };
+  }
+
+  let q = db
+    .from("joshos_work_events")
+    .select("id, event_type, external_id, external_table, payload, created_at, delivered_at")
+    .order("created_at", { ascending: true })
+    .limit(limit);
+
+  if (undeliveredOnly) q = q.is("delivered_at", null);
+  if (since) q = q.gt("created_at", since);
+
+  const { data, error } = await q;
+  if (error) throw new Error(`outbox: ${error.message}`);
+
+  const events = data ?? [];
+  return {
+    status: 200,
+    body: {
+      events,
+      // Pass this back as `since` to continue. Null when nothing was returned,
+      // so a caller cannot accidentally advance past events it never saw.
+      cursor: events.length ? events[events.length - 1].created_at : null,
+      count: events.length,
+      // True when there may be more behind this page.
+      hasMore: events.length === limit,
+      serverTime: new Date().toISOString(),
+    },
+  };
+}
+
+/**
+ * Explicit acknowledgement. Call ONLY after the events have been processed.
+ *
+ * `is("delivered_at", null)` makes a repeated ack a no-op rather than an
+ * overwrite, so a retry cannot rewrite the delivery time of an event that was
+ * already settled.
+ */
+async function handleOutboxAck(req: Request) {
+  let body: Record<string, unknown> | null = null;
+  try { body = await req.json(); } catch { /* handled below */ }
+
+  const ids = Array.isArray(body?.ids) ? body!.ids : null;
+  if (!ids || ids.length === 0) {
+    return { status: 400, body: { ok: false, error: "ids must be a non-empty array" } };
+  }
+  if (ids.length > 1000) {
+    return { status: 400, body: { ok: false, error: "at most 1000 ids per ack" } };
+  }
+  if (!ids.every((id) => typeof id === "string")) {
+    return { status: 400, body: { ok: false, error: "ids must be strings" } };
+  }
+
+  const { data, error } = await db
+    .from("joshos_work_events")
+    .update({ delivered_at: new Date().toISOString() })
+    .in("id", ids)
+    .is("delivered_at", null)
+    .select("id");
+
+  if (error) {
+    console.error("[joshos-bridge] ack failed", error.code, error.message);
+    return { status: 500, body: { ok: false, error: "could not acknowledge" } };
+  }
+
+  return {
+    status: 200,
+    body: {
+      ok: true,
+      // How many this call actually settled. A second ack of the same ids
+      // returns 0, which is the correct answer rather than an error.
+      acked: (data ?? []).length,
+      requested: ids.length,
+      serverTime: new Date().toISOString(),
+    },
+  };
+}
+
+/**
  * Record a JoshOS activity against the business record.
  *
  * Two writes, in this order:
@@ -282,6 +412,27 @@ Deno.serve(async (req: Request) => {
       const auth = await authorize(req, "metrics:read");
       if (!auth.ok) return new Response(JSON.stringify({ error: auth.error }), { status: auth.status, headers });
       const r = await handleMetrics(url);
+      return new Response(JSON.stringify(r.body), { status: r.status, headers });
+    }
+
+    if (req.method === "GET" && path === "/finance") {
+      const auth = await authorize(req, "finance:read");
+      if (!auth.ok) return new Response(JSON.stringify({ error: auth.error }), { status: auth.status, headers });
+      const r = await handleFinance();
+      return new Response(JSON.stringify(r.body), { status: r.status, headers });
+    }
+
+    if (req.method === "GET" && path === "/outbox") {
+      const auth = await authorize(req, "work:read");
+      if (!auth.ok) return new Response(JSON.stringify({ error: auth.error }), { status: auth.status, headers });
+      const r = await handleOutbox(url);
+      return new Response(JSON.stringify(r.body), { status: r.status, headers });
+    }
+
+    if (req.method === "POST" && path === "/outbox/ack") {
+      const auth = await authorize(req, "events:write");
+      if (!auth.ok) return new Response(JSON.stringify({ error: auth.error }), { status: auth.status, headers });
+      const r = await handleOutboxAck(req);
       return new Response(JSON.stringify(r.body), { status: r.status, headers });
     }
 

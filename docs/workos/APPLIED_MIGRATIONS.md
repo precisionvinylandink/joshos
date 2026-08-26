@@ -10,6 +10,7 @@
 | `20260812000003` | `order_execution_handoff` | 2026-08-12 |
 | `20260812000004` | `joshos_bridge_orders` | 2026-08-12 |
 | `20260813000001` | `joshos_gp1_metrics` | 2026-08-13 |
+| `20260826013520` | `joshos_finance_snapshot` | 2026-08-26 |
 
 The last two are the **order execution handoff** and live in the PVI repo at
 `supabase/migrations/`. See §4 below.
@@ -139,6 +140,25 @@ is already converted returns its existing order rather than creating a second.
 Tests: `supabase/tests/order_execution_handoff_test.sql` (PVI, transactional
 and rolls back) and `desktop/test/order-execution.test.js` (this repo).
 
+## 5. `joshos_finance_snapshot` (2026-08-26)
+
+One function, no tables, no triggers, no policy changes:
+`public.joshos_finance_snapshot()` — the business cash view behind the
+bridge's `GET /finance` (scope `finance:read`). Open receivables
+(`pvi_invoices` with a balance + unpaid storefront `orders`, deduped on
+`quote_id` exactly like GP1), settled `payments` from the last 90 days,
+active subscription MRR (`print_club_subscriptions` + `cpg_subscriptions`,
+same predicates as GP1), and active `cpg_cash_obligations`.
+
+No customer PII crosses the bridge: identity is `(externalTable, externalId)`
+plus the document number. `EXECUTE` is revoked from `public`, `anon` and
+`authenticated` — the service role (the bridge) is the only caller. Exact SQL:
+[`20260826013520_joshos_finance_snapshot.sql`](20260826013520_joshos_finance_snapshot.sql).
+
+> Follow-up owed to the PVI repo: this migration was applied via MCP and its
+> canonical copy should also land in `site/supabase/migrations/` next time
+> that repo is touched from a current branch.
+
 ---
 
 ## Rollback
@@ -168,6 +188,7 @@ drop table if exists public.joshos_work_events;
 drop table if exists public.joshos_inbound_events;
 drop table if exists public.joshos_bridge_tokens;
 drop function if exists public.joshos_gp1_metrics(text);
+drop function if exists public.joshos_finance_snapshot();
 drop function if exists public.joshos_canonical_status(text);
 
 -- The added columns are harmless if left, but to remove them:

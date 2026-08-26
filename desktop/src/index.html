@@ -1180,6 +1180,34 @@ body.locked #sb,body.locked #content,body.locked .topbar{filter:blur(7px);pointe
 .auth-msg.err{color:var(--danger,#ff5c5c)}
 .auth-foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--border);
   font-family:var(--font-mono);font-size:.6rem;color:var(--text-muted);line-height:1.5}
+/* ═══ MONEY ═══ */
+.fin-tabs{display:flex;gap:var(--s1);flex-wrap:wrap;margin-bottom:var(--s4)}
+.fin-tab{background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 12px;border-radius:999px;cursor:pointer;font:inherit;font-size:var(--fs-sm)}
+.fin-tab:hover{color:var(--text);border-color:var(--text-muted)}
+.fin-tab.active{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600}
+.fin-row{display:flex;align-items:center;gap:var(--s3);padding:7px 0;border-bottom:1px solid var(--border);font-size:var(--fs-sm)}
+.fin-row:last-child{border-bottom:none}
+.fin-date{font-family:var(--font-mono);color:var(--text-muted);flex:0 0 44px}
+.fin-name{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fin-name .ssl{white-space:normal}
+.fin-acc{color:var(--text-muted);font-size:var(--fs-xs);flex:0 0 auto}
+.fin-conf{color:var(--text-muted);font-size:var(--fs-xs);flex:0 0 auto;font-family:var(--font-mono)}
+.fin-amt{font-family:var(--font-mono);flex:0 0 auto;text-align:right;min-width:84px}
+.fin-amt.in{color:var(--accent)}
+.fin-amt.out{color:var(--text)}
+.fin-chip{display:inline-block;font-size:var(--fs-xs);border:1px solid var(--border);border-radius:999px;padding:1px 7px;color:var(--text-muted);vertical-align:1px}
+.fin-chip.warn{border-color:var(--accent2);color:var(--accent2)}
+.fin-chip.bad{border-color:#e5484d;color:#e5484d}
+.fin-chip.live{border-color:var(--accent);color:var(--accent)}
+.fin-catsel{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:4px 6px;font:inherit;font-size:var(--fs-xs);max-width:170px}
+.fin-inline{display:flex;align-items:center;gap:6px;font-size:var(--fs-sm);color:var(--text-dim)}
+.fin-brow{display:grid;grid-template-columns:1fr auto auto;gap:var(--s2) var(--s3);align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:var(--fs-sm)}
+.fin-brow:last-child{border-bottom:none}
+.fin-brow .prog{grid-column:1/-1}
+@media (max-width:820px){
+  .fin-row{flex-wrap:wrap}
+  .fin-amt{min-width:0}
+}
 </style>
 </head>
 <body>
@@ -1232,6 +1260,7 @@ body.locked #sb,body.locked #content,body.locked .topbar{filter:blur(7px);pointe
       <div class="ni" role="link" tabindex="0" onclick="goTo('growthpoint',this)"><span class="ni-ico" data-ico="trend"></span>Growth Point 1</div>
       <div class="ni" role="link" tabindex="0" onclick="goTo('scorecard',this)"><span class="ni-ico" data-ico="target"></span>Scorecard</div>
       <div class="ni" role="link" tabindex="0" onclick="goTo('timelog',this)"><span class="ni-ico" data-ico="clock"></span>Time Log</div>
+      <div class="ni" role="link" tabindex="0" onclick="goTo('bizmoney',this)"><span class="ni-ico" data-ico="bank"></span>Business Money</div>
     </div>
     <div class="sb-sec">
       <div class="sb-lbl">Life</div>
@@ -1239,6 +1268,7 @@ body.locked #sb,body.locked #content,body.locked .topbar{filter:blur(7px);pointe
       <div class="ni" role="link" tabindex="0" onclick="goTo('calendar',this)"><span class="ni-ico" data-ico="calendar"></span>Calendar</div>
       <div class="ni" role="link" tabindex="0" onclick="goTo('visionboard',this)"><span class="ni-ico" data-ico="compass"></span>Vision Board</div>
       <div class="ni" role="link" tabindex="0" onclick="goTo('garden',this)"><span class="ni-ico" data-ico="leaf"></span>Garden<span class="badge" id="bdGarden" style="display:none">0</span></div>
+      <div class="ni" role="link" tabindex="0" onclick="goTo('money',this)"><span class="ni-ico" data-ico="coins"></span>Money</div>
     </div>
     <div class="sb-sec">
       <div class="sb-lbl">Brain</div>
@@ -1278,6 +1308,9 @@ body.locked #sb,body.locked #content,body.locked .topbar{filter:blur(7px);pointe
 
           <!-- GROWTH POINT 1 — the revenue answer, before anything else -->
           <div id="homeGP1"></div>
+
+          <!-- MONEY — cash, the week ahead, and what needs review -->
+          <div id="homeFin"></div>
 
           <div class="mstrip" id="homeMetrics"></div>
 
@@ -1972,6 +2005,12 @@ body.locked #sb,body.locked #content,body.locked .topbar{filter:blur(7px);pointe
                 <div class="sr"><div class="sl">Status</div><div class="sctl"><span class="status" id="wobStatusLine">Not configured</span><button class="btn quiet sm" onclick="wobSyncNow()">Sync now</button></div></div>
               </div>
               <div class="sg">
+                <div class="sgl">Money &amp; banking</div>
+                <div class="sr"><div class="sl">Business finance<span class="ssl">Receivables, expected payments and obligations ride the WorkOS bridge above with scope <code>finance:read</code>. No extra setup once the bridge token has the scope.</span></div><div class="sctl"><span id="finSettingsStatus">&mdash;</span></div></div>
+                <div class="sr"><div class="sl">Bank connections (Plaid)<span class="ssl">Server-side only — the <code>joshos-plaid</code> edge function is not deployed yet. Until it is, use manual entry or CSV import on the Money page. Credentials never live in this app or this repo.</span></div><div class="sctl"><span class="status">Not configured</span></div></div>
+                <div class="sr"><div class="sl">Sandbox mode<span class="ssl">Obviously fake money data for exploring. Your real books are stashed untouched and restored exactly when you turn it off. Never mixed.</span></div><div class="sctl"><label class="fin-inline"><input type="checkbox" id="finSandboxChk" onchange="finSandboxToggle(this.checked)"> Sandbox</label></div></div>
+              </div>
+              <div class="sg">
                 <div class="sgl">Maintenance</div>
                 <div class="sr"><div class="sl">Reset today<span class="ssl">Clears today&rsquo;s checkboxes. Journals, wins and history are kept.</span></div><div class="sctl"><button class="btn quiet" onclick="confirmReset()">Reset</button></div></div>
                 <div class="sr"><div class="sl">Export everything<span class="ssl">A full JSON snapshot of appData</span></div><div class="sctl"><button class="btn quiet" onclick="exportData()"><span data-ico="save"></span>Export JSON</button></div></div>
@@ -1980,6 +2019,52 @@ body.locked #sb,body.locked #content,body.locked .topbar{filter:blur(7px);pointe
 
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- MONEY — one shared financial engine, two lenses. LifeOS lens + command center. -->
+    <div class="page" id="page-money">
+      <div class="ph">
+        <div class="ph-main">
+          <h2>Money</h2>
+          <p>Personal and business money, side by side with a hard boundary. Forecasts carry confidence — never certainty.</p>
+        </div>
+        <div class="ph-actions">
+          <span id="finSyncLine"></span>
+          <button class="btn quiet" onclick="finRefreshNow()"><span data-ico="refresh"></span>Refresh</button>
+        </div>
+      </div>
+      <div class="pb">
+        <div class="wrap">
+          <div class="fin-tabs">
+            <button class="fin-tab active" data-tab="overview" onclick="finTabGo('overview',this)">Overview</button>
+            <button class="fin-tab" data-tab="txns" onclick="finTabGo('txns',this)">Transactions</button>
+            <button class="fin-tab" data-tab="cashflow" onclick="finTabGo('cashflow',this)">Cash Flow</button>
+            <button class="fin-tab" data-tab="budget" onclick="finTabGo('budget',this)">Budget</button>
+            <button class="fin-tab" data-tab="recurring" onclick="finTabGo('recurring',this)">Recurring</button>
+            <button class="fin-tab" data-tab="balance" onclick="finTabGo('balance',this)">Balance Sheet</button>
+            <button class="fin-tab" data-tab="review" onclick="finTabGo('review',this)">Review</button>
+          </div>
+          <div id="finBody"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUSINESS MONEY — the WorkOS lens: receivables, expected checks, obligations.
+         Read-only over the bridge; the business system of record owns every invoice. -->
+    <div class="page" id="page-bizmoney">
+      <div class="ph">
+        <div class="ph-main">
+          <h2>Business Money</h2>
+          <p>What customers owe, what is expected, what is committed. The invoices themselves live in the business system — this is the cash view.</p>
+        </div>
+        <div class="ph-actions">
+          <span id="finBizSyncLine"></span>
+          <button class="btn quiet" onclick="finRefreshNow()"><span data-ico="refresh"></span>Refresh</button>
+        </div>
+      </div>
+      <div class="pb">
+        <div class="wrap" id="finBizBody"></div>
       </div>
     </div>
 
@@ -2293,6 +2378,8 @@ const ICO={
   db:'<ellipse cx="12" cy="6" rx="7.5" ry="3"/><path d="M4.5 6v12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6"/><path d="M4.5 12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3"/>',
   grid:'<rect x="4" y="4" width="7" height="7" rx="1.2"/><rect x="13" y="4" width="7" height="7" rx="1.2"/><rect x="4" y="13" width="7" height="7" rx="1.2"/><rect x="13" y="13" width="7" height="7" rx="1.2"/>',
   seed:'<path d="M12 21V11"/><path d="M12 11c0-4 2.5-7 7-7 0 4.5-3 7-7 7Z"/><path d="M12 14c-3.2 0-5.5-2-5.5-5.5C9.7 8.5 12 10.6 12 14Z"/>',
+  coins:'<circle cx="9" cy="9" r="5.5"/><path d="M9 6.8v4.4"/><path d="M7.3 8h2.6a1.1 1.1 0 0 1 0 2.2H9"/><path d="M17.5 9.6a5.5 5.5 0 1 1-7.9 6.9"/>',
+  bank:'<path d="M3.5 9.5 12 4l8.5 5.5"/><path d="M5 10v7"/><path d="M9.5 10v7"/><path d="M14.5 10v7"/><path d="M19 10v7"/><path d="M3.5 20h17"/>',
 };
 function ico(name,cls){
   const d=ICO[name];if(!d)return '';
@@ -2318,10 +2405,12 @@ const ROUTES=[
   {id:'growthpoint',label:'Growth Point 1',  ico:'trend',    group:'Work'},
   {id:'scorecard',  label:'Scorecard',       ico:'target',   group:'Work'},
   {id:'timelog',    label:'Time Log',        ico:'clock',    group:'Work'},
+  {id:'bizmoney',   label:'Business Money',  ico:'bank',     group:'Work'},
   {id:'growth',     label:'Growth & Habits', ico:'trend',    group:'Life'},
   {id:'calendar',   label:'Calendar',        ico:'calendar', group:'Life'},
   {id:'visionboard',label:'Vision Board',    ico:'compass',  group:'Life'},
   {id:'garden',     label:'Garden',          ico:'leaf',     group:'Life'},
+  {id:'money',      label:'Money',           ico:'coins',    group:'Life'},
   {id:'reader',     label:'Reader',          ico:'book',     group:'Brain'},
   {id:'aiconsult',  label:'Assistant',       ico:'spark',    group:'Brain'},
   {id:'settings',   label:'Settings',        ico:'sliders',  group:'Config'},
@@ -2341,12 +2430,14 @@ function goTo(id,el){
   document.querySelectorAll('#mnav .mn').forEach(b=>b.classList.toggle('active',b.dataset.mroute===id));
   if(window.innerWidth<=820)toggleSidebar(false);
   const body=page.querySelector('.pb,.tl-content,.ai-msgs');if(body)body.scrollTop=0;
-  if(id==='dashboard')renderHome();
+  if(id==='dashboard'){renderHome();finRenderHome();}
   /* Growth Point 1 polls only while it is the page being looked at; the
      5-minute background read keeps Home fresh the rest of the time. */
   if(id==='growthpoint'){gp1RenderPage();gp1Fetch(gp1Month(),true);gp1StartPolling();}
   else gp1StopPolling();
   if(id==='timelog'){renderTLTimeline();updateTLBadge();}
+  if(id==='money'){finRenderMoney();if(finBizConfigured())finPull(true);}
+  if(id==='bizmoney'){finRenderBiz();if(finBizConfigured())finPull(true);}
   if(id==='scorecard')renderScorecard();
   if(id==='growth'){renderGrowthStats();renderGrowthTrend();renderGrowthSystems();renderGrowthEntries();}
   if(id==='calendar'){renderCal();renderFocusBlocks();renderCalAhead();}
@@ -3152,7 +3243,9 @@ function localHasContent(){
     || Object.keys(appData.timeLog||{}).length
     || Object.keys(appData.journal||{}).length
     || Object.keys(appData.scorecard||{}).length
-    || ((appData.assist||{}).dump||[]).length);
+    || ((appData.assist||{}).dump||[]).length
+    || Object.keys((appData.finance||{}).accounts||{}).length
+    || Object.keys((appData.finance||{}).txns||{}).length);
 }
 
 /* Strip device-local and oversized fields before the state goes to the cloud. */
@@ -8258,8 +8351,2489 @@ function wobBoot(){
     if(wobTransport())wobSync(true);else wobRenderStatus();
   },5*60000);
 }
+/* ═══════════════════════════════════════════════════════════════════════════
+   FIN-ENGINE:BEGIN — the Financial Engine
+
+   One shared financial domain model for both lenses of JoshOS:
+     LIFE — Josh's personal money (LifeOS lens)
+     WORK — the businesses' money as JoshOS may see it (WorkOS lens)
+
+   Deliberately DOM-free and clock-injectable (`now` is always passed in) so
+   desktop/test/financial-engine.test.js can extract this exact block and
+   execute it under Node. Do not reach for document/window/fetch inside the
+   engine; all I/O and rendering live in the glue below the END marker.
+
+   Ground rules, from docs/FINANCIAL_ENGINE.md:
+   - Money is INTEGER CENTS everywhere. Bank/business figures are converted at
+     the edge, never inside.
+   - Every record answers: whose is it (domain), which business (businessId),
+     which account, where did it come from (source/sourceId).
+   - JoshOS never authors business records. Business items here are
+     reference + display snapshot, keyed by externalId, and a fresh business
+     snapshot always beats local state ("live beats manual").
+   - Nothing is silently deleted: provider removals and reconciliations mark
+     rows `removed` and write the audit trail.
+   - Forecasts carry confidence and are presented as scenarios, never as fact.
+   ═══════════════════════════════════════════════════════════════════════════ */
+var FIN=(function(){
+'use strict';
+
+/* ── Canonical config — the only place these numbers exist ──────────────── */
+var CFG={
+  RETENTION_MONTHS:24,        // posted txns older than this compact into monthly archive
+  TRANSFER_WINDOW_DAYS:4,     // opposite amounts within this window are transfer candidates
+  TRANSFER_AUTO_DAYS:2,       // auto-pair only inside this tighter window
+  TRANSFER_MIN_CENTS:100,     // ignore sub-$1 noise
+  PENDING_MATCH_DAYS:5,       // pending→posted reconciliation window
+  PENDING_MATCH_PCT:15,       // amount drift a posted txn may show vs its pending hold
+  PENDING_STALE_DAYS:10,      // a pending txn older than this needs review
+  PRICE_CHANGE_PCT:8,         // recurring charge moved more than this → price change
+  PRICE_CHANGE_MIN_CENTS:200,
+  PRICE_STABLE_PCT:2,         // …but only when the PRIOR price was this stable —
+  PRICE_STABLE_MIN_CENTS:50,  //    weekly groceries varying is variance, not a hike
+  EXPECTED_TOL_PCT:5,         // expected-payment match tolerance
+  EXPECTED_WINDOW_DAYS:7,     // default window around an expected date
+  EXPECTED_GRACE_DAYS:3,      // past window+grace → flagged missed
+  LOW_BALANCE_CENTS:20000,
+  PROJ_LOW_CENTS:10000,
+  LARGE_EVENT_CENTS:50000,
+  BIZ_STALE_HOURS:24,
+  AUDIT_CAP:400,
+  FORECAST_DAYS:30,
+  /* Scenario cuts: an INFLOW is included when its confidence clears the cut.
+     Outflows are always included in every scenario — optimism about income is
+     one thing; optimism about bills is how forecasts lie. */
+  SCENARIOS:{conservative:0.8,expected:0.5,optimistic:0.25},
+  CONFIDENCE:{VERY_HIGH:0.95,HIGH:0.8,MEDIUM:0.5,LOW:0.3,SPECULATIVE:0.1},
+  RECEIVABLE_DUE_CONF:0.8,    // open invoice with a real due date
+  RECEIVABLE_OPEN_CONF:0.5    // open invoice with no due date
+};
+var DOMAINS=['LIFE','WORK'];
+var CASH_KINDS={checking:1,savings:1,cash:1};
+
+/* ── Clock & date helpers ───────────────────────────────────────────────────
+   Accepts a Date or an ISO string, like GP1.clock. Financial dates are plain
+   'YYYY-MM-DD' strings compared lexicographically; arithmetic goes through
+   UTC so a timezone can never shift a transaction across a day boundary. */
+function clock(now){
+  var d=(now instanceof Date)?now:new Date(now||0);
+  if(isNaN(d.getTime()))d=new Date(0);
+  return d;
+}
+function iso(now){return clock(now).toISOString();}
+function dayOf(now){return iso(now).slice(0,10);}
+function dayMs(day){return Date.UTC(Number(day.slice(0,4)),Number(day.slice(5,7))-1,Number(day.slice(8,10)));}
+function addDays(day,n){var d=new Date(dayMs(day)+n*864e5);return d.toISOString().slice(0,10);}
+function daysBetween(a,b){return Math.round((dayMs(b)-dayMs(a))/864e5);}
+function monthOf(day){return String(day||'').slice(0,7);}
+function isDay(s){return typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s);}
+/* isDay checks the shape; realDay also rejects impossible dates (Feb 30). */
+function realDay(s){return isDay(s)&&new Date(dayMs(s)).toISOString().slice(0,10)===s;}
+
+/* ── Money ── integer cents; formatting is the ONE place dollars appear ── */
+function cents(n){n=Number(n);return isFinite(n)?Math.round(n):0;}
+function fmt(c,opts){
+  opts=opts||{};
+  var v=cents(c),neg=v<0,a=Math.abs(v);
+  var s='$'+Math.floor(a/100).toLocaleString('en-US')+'.'+('0'+(a%100)).slice(-2);
+  if(opts.round)s='$'+Math.round(a/100).toLocaleString('en-US');
+  if(neg)s='−'+s;
+  else if(opts.sign&&v>0)s='+'+s;
+  return s;
+}
+
+/* ── Small utilities ────────────────────────────────────────────────────── */
+function hash(s){
+  s=String(s||'');var h=5381,i;
+  for(i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;
+  return (h>>>0).toString(36);
+}
+function median(xs){
+  if(!xs.length)return 0;
+  var a=xs.slice().sort(function(x,y){return x-y;});
+  var m=Math.floor(a.length/2);
+  return a.length%2?a[m]:Math.round((a[m-1]+a[m])/2);
+}
+function mad(xs){
+  if(xs.length<2)return 0;
+  var m=median(xs);
+  return median(xs.map(function(x){return Math.abs(x-m);}));
+}
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+function values(o){return Object.keys(o||{}).map(function(k){return o[k];});}
+function nextId(f,prefix){f.seq=(f.seq||0)+1;return prefix+'_'+f.seq.toString(36);}
+function sanitizeId(s){return String(s||'').replace(/[^a-zA-Z0-9_.:-]/g,'_').slice(0,80);}
+
+/* ── Merchant normalization ─────────────────────────────────────────────── */
+function normalizeMerchant(s){
+  s=String(s||'').trim();
+  s=s.replace(/^(SQ \*|TST\*\s?|PAYPAL \*|PP\*|POS |DEBIT |CREDIT |CHECKCARD |ACH |WEB |PMT\*|PY \*)/i,'');
+  s=s.replace(/#\s?\d+/g,'').replace(/\b\d{5,}\b/g,'').replace(/\s{2,}/g,' ').trim();
+  return s.slice(0,60);
+}
+function merchantKey(t){return normalizeMerchant(t.merchant||t.name).toLowerCase();}
+
+/* Built-in classifier for common merchants. LIFE-domain hints only; a user
+   rule always outranks these (see categorize precedence). Order matters —
+   "uber eats" must hit before "uber". */
+var SYSTEM_MERCHANTS=[
+  [/uber\s*eats|doordash|grubhub|postmates/i,'cat_dining'],
+  [/netflix|spotify|hulu|disney\+|paramount|peacock|youtube\s*prem|apple\.com|icloud|patreon|audible/i,'cat_subscriptions'],
+  [/uber|lyft|metra|ventra|cta /i,'cat_transport'],
+  [/shell|bp\b|exxon|speedway|marathon|mobil|casey/i,'cat_auto'],
+  [/jewel|aldi|mariano|kroger|trader joe|whole foods|meijer|costco|sam's club/i,'cat_groceries'],
+  [/mcdonald|chipotle|starbucks|dunkin|subway|portillo|culver|wendy|taco bell|panera|domino/i,'cat_dining'],
+  [/comed|nicor|xfinity|comcast|at&t|verizon|t-mobile/i,'cat_utilities'],
+  [/amazon|target|walmart|best buy|ebay|etsy/i,'cat_shopping'],
+  [/geico|state farm|progressive|allstate/i,'cat_insurance'],
+  [/walgreens|cvs|rite aid/i,'cat_health']
+];
+/* WORK-domain hints. Payout processors are revenue landing, not income earned —
+   the business system of record owns revenue recognition; this only labels the
+   cash movement. */
+var SYSTEM_MERCHANTS_WORK=[
+  [/stripe payout|stripe transfer|square inc|sq deposit|shopify payout/i,'cat_w_revenue'],
+  [/uline|grimco|fellers|montroy|s&f supply/i,'cat_w_supplies'],
+  [/adobe|canva|figma|supabase|vercel|anthropic|godaddy|namecheap|google workspace/i,'cat_w_software'],
+  [/usps|ups store|fedex|pirate ship|shipstation/i,'cat_w_shipping'],
+  [/facebk|facebook ads|google ads|meta platforms/i,'cat_w_marketing']
+];
+
+/* ── Category seed ── stable ids; ensure() adds missing, never overwrites ── */
+var SEED_CATEGORIES=[
+  ['cat_paycheck','Paycheck','income','LIFE'],
+  ['cat_income','Other income','income','LIFE'],
+  ['cat_housing','Housing & rent','expense','LIFE'],
+  ['cat_utilities','Utilities','expense','LIFE'],
+  ['cat_groceries','Groceries','expense','LIFE'],
+  ['cat_dining','Dining & coffee','expense','LIFE'],
+  ['cat_transport','Transport','expense','LIFE'],
+  ['cat_auto','Auto & gas','expense','LIFE'],
+  ['cat_insurance','Insurance','expense','LIFE'],
+  ['cat_health','Health','expense','LIFE'],
+  ['cat_shopping','Shopping','expense','LIFE'],
+  ['cat_entertainment','Entertainment','expense','LIFE'],
+  ['cat_subscriptions','Subscriptions','expense','LIFE'],
+  ['cat_travel','Travel','expense','LIFE'],
+  ['cat_fees','Fees & interest','expense','LIFE'],
+  ['cat_debt','Debt payment','expense','LIFE'],
+  ['cat_savings','Savings & investing','expense','LIFE'],
+  ['cat_misc','Miscellaneous','expense','LIFE'],
+  ['cat_w_revenue','Revenue collected','income','WORK'],
+  ['cat_w_cogs','COGS — materials & labor','expense','WORK'],
+  ['cat_w_supplies','Supplies & equipment','expense','WORK'],
+  ['cat_w_software','Software & SaaS','expense','WORK'],
+  ['cat_w_shipping','Shipping & postage','expense','WORK'],
+  ['cat_w_fees','Processing fees','expense','WORK'],
+  ['cat_w_marketing','Marketing','expense','WORK'],
+  ['cat_w_tax','Sales tax','expense','WORK'],
+  ['cat_w_other','Other business expense','expense','WORK'],
+  ['cat_transfer','Transfer','transfer','BOTH'],
+  ['cat_uncat','Uncategorized','other','BOTH']
+];
+
+/* ── State root ── appData.finance, created lazily like appData.work ────── */
+function ensure(app){
+  if(!app.finance||typeof app.finance!=='object'||Array.isArray(app.finance))app.finance={};
+  var f=app.finance;
+  if(!f.v)f.v=1;
+  if(typeof f.sandbox!=='boolean')f.sandbox=false;
+  if(!('stash' in f))f.stash=null;
+  ['accounts','txns','categories','recurring','expected','budgets','goals','debts',
+   'manualAssets','inboxDismissed','alertCfg','archive','seenImports'].forEach(function(k){
+    if(!f[k]||typeof f[k]!=='object'||Array.isArray(f[k]))f[k]={};
+  });
+  ['rules','netWorth','audit'].forEach(function(k){if(!Array.isArray(f[k]))f[k]=[];});
+  if(!f.biz||typeof f.biz!=='object')f.biz={};
+  if(!f.biz.items||typeof f.biz.items!=='object')f.biz.items={};
+  if(!Array.isArray(f.biz.payments))f.biz.payments=[];
+  if(!f.biz.sync)f.biz.sync={status:'not_configured',lastOkAt:null,error:null};
+  if(!('fetchedAt' in f.biz))f.biz.fetchedAt=null;
+  if(!f.seq)f.seq=0;
+  SEED_CATEGORIES.forEach(function(c){
+    if(!f.categories[c[0]])f.categories[c[0]]={id:c[0],name:c[1],kind:c[2],domain:c[3],system:true,archived:false};
+  });
+  return f;
+}
+
+/* ── Audit ring ── newest first, capped; important mutations only ───────── */
+function audit(f,kind,ref,prev,next,by,now){
+  f.audit.unshift({at:iso(now),kind:kind,ref:ref,prev:prev===undefined?null:prev,next:next===undefined?null:next,by:by||'system'});
+  if(f.audit.length>CFG.AUDIT_CAP)f.audit.length=CFG.AUDIT_CAP;
+}
+
+/* ── Accounts ───────────────────────────────────────────────────────────── */
+function addAccount(app,a,now){
+  var f=ensure(app);
+  if(!a||!a.name)return{ok:false,reason:'name_required'};
+  if(DOMAINS.indexOf(a.domain)<0)return{ok:false,reason:'bad_domain'};
+  var id=a.id||nextId(f,'acc');
+  if(f.accounts[id])return{ok:false,reason:'exists'};
+  f.accounts[id]={
+    id:id,name:String(a.name).slice(0,60),domain:a.domain,
+    businessId:a.domain==='WORK'?(a.businessId||null):null,
+    kind:['checking','savings','credit','loan','cash','other'].indexOf(a.kind)>=0?a.kind:'other',
+    source:a.source||'manual',providerAccountId:a.providerAccountId||null,
+    mask:a.mask||null,currency:a.currency||'USD',
+    /* Manual accounts are a ledger: balance = opening + sum of txns.
+       Provider accounts report a balance; the provider figure is the truth. */
+    openingBalanceCents:cents(a.openingBalanceCents||0),
+    balanceCents:a.balanceCents==null?null:cents(a.balanceCents),
+    balanceAt:a.balanceAt||null,
+    archived:false,createdAt:iso(now)
+  };
+  audit(f,'account.add',id,null,f.accounts[id].name,a.source||'manual',now);
+  return{ok:true,id:id};
+}
+function updateAccount(app,id,patch,now){
+  var f=ensure(app),a=f.accounts[id];
+  if(!a)return{ok:false,reason:'not_found'};
+  ['name','kind','businessId','mask'].forEach(function(k){if(patch[k]!==undefined)a[k]=patch[k];});
+  if(patch.openingBalanceCents!==undefined)a.openingBalanceCents=cents(patch.openingBalanceCents);
+  audit(f,'account.update',id,null,null,'user',now);
+  return{ok:true};
+}
+function archiveAccount(app,id,now){
+  var f=ensure(app),a=f.accounts[id];
+  if(!a)return{ok:false,reason:'not_found'};
+  a.archived=true;audit(f,'account.archive',id,null,null,'user',now);
+  return{ok:true};
+}
+function accountBalance(app,id){
+  var f=ensure(app),a=f.accounts[id];
+  if(!a)return 0;
+  if(a.source!=='manual'&&a.balanceCents!=null)return a.balanceCents;
+  var sum=a.openingBalanceCents||0;
+  values(f.txns).forEach(function(t){
+    if(t.accountId===id&&t.status!=='removed'&&t.status!=='reversed')sum+=t.amountCents;
+  });
+  return sum;
+}
+function listAccounts(app,opts){
+  opts=opts||{};
+  var f=ensure(app);
+  return values(f.accounts).filter(function(a){
+    if(a.archived&&!opts.archived)return false;
+    if(opts.domain&&a.domain!==opts.domain)return false;
+    return true;
+  }).sort(function(x,y){return x.name<y.name?-1:1;});
+}
+/* Provider account sync: upsert by providerAccountId; balances come from the
+   provider and are never fabricated locally. */
+function upsertProviderAccounts(app,source,list,now){
+  var f=ensure(app),out={added:0,updated:0};
+  (list||[]).forEach(function(p){
+    if(!p||!p.providerAccountId)return;
+    var found=null;
+    values(f.accounts).forEach(function(a){if(a.providerAccountId===p.providerAccountId)found=a;});
+    if(found){
+      if(p.balanceCents!=null){found.balanceCents=cents(p.balanceCents);found.balanceAt=p.balanceAt||iso(now);}
+      if(p.name)found.name=p.name;
+      out.updated++;
+    }else{
+      var r=addAccount(app,{name:p.name||'Account',domain:p.domain||'LIFE',businessId:p.businessId,
+        kind:p.kind||'checking',source:source,providerAccountId:p.providerAccountId,mask:p.mask,
+        balanceCents:p.balanceCents,balanceAt:p.balanceAt||iso(now)},now);
+      if(r.ok)out.added++;
+    }
+  });
+  return out;
+}
+
+/* ── Categorization ─────────────────────────────────────────────────────── */
+function listCategories(app,domain){
+  var f=ensure(app);
+  return values(f.categories).filter(function(c){
+    return !c.archived&&(!domain||c.domain===domain||c.domain==='BOTH');
+  }).sort(function(x,y){return x.name<y.name?-1:1;});
+}
+function addCategory(app,c,now){
+  var f=ensure(app);
+  if(!c||!c.name)return{ok:false,reason:'name_required'};
+  var id=nextId(f,'cat');
+  f.categories[id]={id:id,name:String(c.name).slice(0,40),kind:c.kind||'expense',
+    domain:c.domain||'LIFE',system:false,archived:false};
+  audit(f,'category.add',id,null,c.name,'user',now);
+  return{ok:true,id:id};
+}
+function ruleMatches(rule,t,key){
+  var m=rule.match||{};
+  if(m.domain&&m.domain!==t.domain)return false;
+  if(m.accountId&&m.accountId!==t.accountId)return false;
+  if(m.sign==='in'&&t.amountCents<0)return false;
+  if(m.sign==='out'&&t.amountCents>0)return false;
+  if(m.minCents!=null&&Math.abs(t.amountCents)<m.minCents)return false;
+  if(m.maxCents!=null&&Math.abs(t.amountCents)>m.maxCents)return false;
+  if(m.merchant&&key!==String(m.merchant).toLowerCase())return false;
+  if(m.nameContains&&(t.name||'').toLowerCase().indexOf(String(m.nameContains).toLowerCase())<0)return false;
+  return true;
+}
+/* Precedence, absolute: user override > user rule > system rule > provider
+   hint > nothing. An AI suggestion is applied by the glue as catBy:'ai' and
+   never outranks anything a person or a rule decided. */
+function categorize(app,t){
+  var f=ensure(app);
+  if(t.reviewed||t.catBy==='user')return{categoryId:t.categoryId,by:t.catBy,confidence:t.catConfidence||1,skipped:true};
+  var key=merchantKey(t),i,r;
+  var rules=f.rules.filter(function(x){return x.enabled!==false;})
+    .sort(function(a,b){return (b.priority||0)-(a.priority||0);});
+  for(i=0;i<rules.length;i++){
+    r=rules[i];
+    if(r.set&&r.set.categoryId&&ruleMatches(r,t,key)&&f.categories[r.set.categoryId]){
+      return{categoryId:r.set.categoryId,by:'rule',confidence:0.9,ruleId:r.id,
+             businessId:r.set.businessId,domain:r.set.domain};
+    }
+  }
+  if(t.domain==='LIFE'){
+    if(t.amountCents>0&&/payroll|direct dep|dir dep|salary/.test(key))
+      return{categoryId:'cat_paycheck',by:'system',confidence:0.8};
+    for(i=0;i<SYSTEM_MERCHANTS.length;i++){
+      if(SYSTEM_MERCHANTS[i][0].test(key))return{categoryId:SYSTEM_MERCHANTS[i][1],by:'system',confidence:0.7};
+    }
+  }else if(t.domain==='WORK'){
+    for(i=0;i<SYSTEM_MERCHANTS_WORK.length;i++){
+      if(SYSTEM_MERCHANTS_WORK[i][0].test(key))return{categoryId:SYSTEM_MERCHANTS_WORK[i][1],by:'system',confidence:0.7};
+    }
+  }
+  if(t.categoryHint&&f.categories[t.categoryHint])return{categoryId:t.categoryHint,by:'provider',confidence:0.5};
+  return{categoryId:'cat_uncat',by:null,confidence:0};
+}
+function setCategory(app,txnId,catId,by,now){
+  var f=ensure(app),t=f.txns[txnId];
+  if(!t)return{ok:false,reason:'not_found'};
+  if(!f.categories[catId])return{ok:false,reason:'no_such_category'};
+  var prev=t.categoryId;
+  t.categoryId=catId;t.catBy=by||'user';t.catConfidence=by==='ai'?0.6:1;
+  if(by==='user'||by===undefined)t.reviewed=true;
+  t.updatedAt=iso(now);
+  audit(f,'txn.category',txnId,prev,catId,by||'user',now);
+  return{ok:true};
+}
+function markReviewed(app,txnId,now){
+  var f=ensure(app),t=f.txns[txnId];
+  if(!t)return{ok:false,reason:'not_found'};
+  t.reviewed=true;t.updatedAt=iso(now);
+  return{ok:true};
+}
+function addRule(app,rule,now){
+  var f=ensure(app);
+  if(!rule||!rule.set||!rule.set.categoryId)return{ok:false,reason:'set_category_required'};
+  if(!f.categories[rule.set.categoryId])return{ok:false,reason:'no_such_category'};
+  var id=nextId(f,'rule');
+  f.rules.push({id:id,priority:cents(rule.priority||10),enabled:rule.enabled!==false,
+    createdBy:rule.createdBy||'user',createdAt:iso(now),hits:0,
+    match:rule.match||{},set:rule.set});
+  audit(f,'rule.add',id,null,JSON.stringify(rule.match||{}),rule.createdBy||'user',now);
+  return{ok:true,id:id};
+}
+function removeRule(app,id,now){
+  var f=ensure(app),n=f.rules.length;
+  f.rules=f.rules.filter(function(r){return r.id!==id;});
+  if(f.rules.length<n)audit(f,'rule.remove',id,null,null,'user',now);
+  return{ok:f.rules.length<n};
+}
+/* Retro-application NEVER touches a reviewed or user-categorized txn — a
+   confirmed classification cannot be silently changed. Tested. */
+function applyRulesRetro(app,now){
+  var f=ensure(app),n=0;
+  values(f.txns).forEach(function(t){
+    if(t.status==='removed'||t.reviewed||t.catBy==='user'||t.transferId)return;
+    var c=categorize(app,t);
+    if(c.categoryId&&c.categoryId!==t.categoryId){
+      t.categoryId=c.categoryId;t.catBy=c.by;t.catConfidence=c.confidence;
+      t.updatedAt=iso(now);n++;
+      if(c.ruleId){var r=f.rules.filter(function(x){return x.id===c.ruleId;})[0];if(r)r.hits=(r.hits||0)+1;}
+    }
+  });
+  return{recategorized:n};
+}
+
+/* ── Transaction ingestion ──────────────────────────────────────────────────
+   One pipeline for every source: bank provider, CSV import, manual entry,
+   sandbox. Idempotent on (source, sourceId): replaying a webhook or
+   re-importing a file cannot duplicate a transaction. */
+function txnId(source,sourceId){return 'tx_'+sanitizeId(source)+'_'+sanitizeId(sourceId);}
+function findPendingMatch(f,raw,accountId){
+  var best=null;
+  values(f.txns).forEach(function(t){
+    if(t.status!=='pending'||t.accountId!==accountId)return;
+    if((t.amountCents<0)!==(raw.amountCents<0))return;
+    var a=Math.abs(t.amountCents),b=Math.abs(raw.amountCents);
+    if(Math.abs(a-b)>Math.max(a,b)*CFG.PENDING_MATCH_PCT/100)return;
+    if(Math.abs(daysBetween(t.date,raw.date))>CFG.PENDING_MATCH_DAYS)return;
+    if(!best||Math.abs(a-b)<Math.abs(Math.abs(best.amountCents)-b))best=t;
+  });
+  return best;
+}
+function ingest(app,source,raws,now){
+  var f=ensure(app);
+  var res={added:0,updated:0,removed:0,rejected:0,matchedPending:0,transfers:0,matchedExpected:0};
+  (raws||[]).forEach(function(raw){
+    if(!raw||!f.accounts[raw.accountId]||!isDay(raw.date)||!isFinite(Number(raw.amountCents))){res.rejected++;return;}
+    var acct=f.accounts[raw.accountId];
+    var sid=raw.sourceId!=null?String(raw.sourceId):null;
+    if(!sid){res.rejected++;return;}
+    var id=txnId(source,sid);
+    var existing=f.txns[id];
+    /* Provider removal: the record stays, marked removed, out of every sum. */
+    if(raw.removed){
+      if(existing&&existing.status!=='removed'){
+        existing.status='removed';existing.removedAt=iso(now);existing.updatedAt=iso(now);
+        audit(f,'txn.removed',id,null,null,source,now);res.removed++;
+      }
+      return;
+    }
+    if(existing){
+      var changed=false;
+      if(existing.amountCents!==cents(raw.amountCents)){
+        audit(f,'txn.amount',id,existing.amountCents,cents(raw.amountCents),source,now);
+        existing.amountCents=cents(raw.amountCents);changed=true;
+      }
+      if(raw.date&&existing.date!==raw.date){existing.date=raw.date;changed=true;}
+      if(raw.name&&existing.name!==raw.name){existing.name=String(raw.name).slice(0,120);changed=true;}
+      if(existing.status==='pending'&&raw.pending===false){existing.status='posted';changed=true;}
+      if(changed){existing.updatedAt=iso(now);res.updated++;}
+      return;
+    }
+    /* Pending → posted reconciliation: the posted record replaces its hold and
+       inherits every human decision made on it. */
+    var pend=null;
+    if(raw.pendingSourceId)pend=f.txns[txnId(source,String(raw.pendingSourceId))];
+    if((!pend||pend.status!=='pending')&&!raw.pending)pend=findPendingMatch(f,{amountCents:cents(raw.amountCents),date:raw.date},raw.accountId);
+    var t={
+      id:id,accountId:raw.accountId,domain:acct.domain,businessId:acct.businessId||null,
+      amountCents:cents(raw.amountCents),date:raw.date,
+      name:String(raw.name||'').slice(0,120)||'(no description)',
+      merchant:normalizeMerchant(raw.merchant||raw.name),
+      status:raw.pending?'pending':'posted',
+      source:source,sourceId:sid,categoryHint:raw.categoryHint||null,
+      categoryId:null,catBy:null,catConfidence:0,reviewed:false,
+      transferId:null,splits:null,note:'',prevPendingId:null,
+      createdAt:iso(now),updatedAt:iso(now)
+    };
+    if(pend&&pend.status==='pending'){
+      t.categoryId=pend.categoryId;t.catBy=pend.catBy;t.catConfidence=pend.catConfidence;
+      t.reviewed=pend.reviewed;t.splits=pend.splits;t.note=pend.note;t.prevPendingId=pend.id;
+      pend.status='removed';pend.removedAt=iso(now);pend.supersededBy=t.id;
+      res.matchedPending++;
+    }
+    f.txns[id]=t;res.added++;
+    if(!t.categoryId){
+      var c=categorize(app,t);
+      t.categoryId=c.categoryId;t.catBy=c.by;t.catConfidence=c.confidence;
+      if(c.businessId&&!t.reviewed)t.businessId=c.businessId;
+      if(c.domain&&!t.reviewed&&DOMAINS.indexOf(c.domain)>=0)t.domain=c.domain;
+    }
+  });
+  var d=detectTransfers(app,now);res.transfers=d.paired.length;
+  res.matchedExpected=matchExpected(app,now).matched;
+  return res;
+}
+/* Manual entry rides the same pipeline with a generated sourceId, so it gets
+   the same dedupe, categorization and matching as a bank feed. */
+function addManualTxn(app,m,now){
+  var f=ensure(app);
+  if(!m||!f.accounts[m.accountId])return{ok:false,reason:'no_such_account'};
+  if(!isDay(m.date))return{ok:false,reason:'bad_date'};
+  if(!isFinite(Number(m.amountCents))||cents(m.amountCents)===0)return{ok:false,reason:'bad_amount'};
+  var sid='m'+(f.seq+1).toString(36)+'_'+hash(m.accountId+m.date+m.amountCents+(m.name||''));
+  f.seq++;
+  var r=ingest(app,'manual',[{sourceId:sid,accountId:m.accountId,date:m.date,
+    amountCents:cents(m.amountCents),name:m.name||'Manual entry',merchant:m.merchant}],now);
+  if(r.added!==1)return{ok:false,reason:'not_added'};
+  var id=txnId('manual',sid);
+  if(m.categoryId&&f.categories[m.categoryId])setCategory(app,id,m.categoryId,'user',now);
+  return{ok:true,id:id};
+}
+function listTxns(app,opts){
+  opts=opts||{};
+  var f=ensure(app);
+  return values(f.txns).filter(function(t){
+    if(t.status==='removed'&&!opts.removed)return false;
+    if(opts.domain&&t.domain!==opts.domain)return false;
+    if(opts.accountId&&t.accountId!==opts.accountId)return false;
+    if(opts.month&&monthOf(t.date)!==opts.month)return false;
+    if(opts.uncategorized&&!(t.categoryId==='cat_uncat'||!t.categoryId))return false;
+    if(opts.from&&t.date<opts.from)return false;
+    if(opts.to&&t.date>opts.to)return false;
+    return true;
+  }).sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:(a.id<b.id?1:-1);});
+}
+
+/* ── Splits ── parts must sum EXACTLY to the original; it stays auditable ── */
+function setSplits(app,id,parts,now){
+  var f=ensure(app),t=f.txns[id];
+  if(!t)return{ok:false,reason:'not_found'};
+  if(!Array.isArray(parts)||parts.length<2)return{ok:false,reason:'need_two_parts'};
+  var sum=0,bad=null;
+  parts.forEach(function(p){
+    if(!p||!isFinite(Number(p.amountCents))||cents(p.amountCents)===0)bad='bad_amount';
+    if(p.categoryId&&!f.categories[p.categoryId])bad='no_such_category';
+    if(p.domain&&DOMAINS.indexOf(p.domain)<0)bad='bad_domain';
+    sum+=cents(p.amountCents);
+  });
+  if(bad)return{ok:false,reason:bad};
+  if(sum!==t.amountCents)return{ok:false,reason:'sum_mismatch',expected:t.amountCents,got:sum};
+  t.splits=parts.map(function(p){return{amountCents:cents(p.amountCents),
+    categoryId:p.categoryId||t.categoryId||'cat_uncat',
+    domain:p.domain||t.domain,businessId:p.businessId!==undefined?p.businessId:t.businessId,note:p.note||''};});
+  t.reviewed=true;t.updatedAt=iso(now);
+  audit(f,'txn.split',id,null,parts.length+' parts','user',now);
+  return{ok:true};
+}
+function clearSplits(app,id,now){
+  var f=ensure(app),t=f.txns[id];
+  if(!t)return{ok:false,reason:'not_found'};
+  t.splits=null;t.updatedAt=iso(now);
+  audit(f,'txn.unsplit',id,null,null,'user',now);
+  return{ok:true};
+}
+/* Expand splits for reporting: a split txn contributes its parts, each with
+   the parent's date/status, never the parent amount as well. */
+function contributions(t){
+  if(t.splits&&t.splits.length)return t.splits.map(function(p){
+    return{amountCents:p.amountCents,categoryId:p.categoryId,domain:p.domain,businessId:p.businessId,date:t.date,status:t.status,txnId:t.id};
+  });
+  return[{amountCents:t.amountCents,categoryId:t.categoryId||'cat_uncat',domain:t.domain,businessId:t.businessId,date:t.date,status:t.status,txnId:t.id}];
+}
+
+/* ── Transfers ── money moving between own accounts is neither income nor
+   spending, and must never be counted as either. ─────────────────────────── */
+function transferCandidates(f){
+  /* Bucketed by |amount| so this stays linear-ish over the whole ledger. */
+  var buckets={};
+  values(f.txns).forEach(function(t){
+    if(t.status==='removed'||t.transferId||Math.abs(t.amountCents)<CFG.TRANSFER_MIN_CENTS)return;
+    (buckets[Math.abs(t.amountCents)]=buckets[Math.abs(t.amountCents)]||[]).push(t);
+  });
+  var out=[];
+  Object.keys(buckets).forEach(function(k){
+    var ts=buckets[k],i,j;
+    for(i=0;i<ts.length;i++)for(j=i+1;j<ts.length;j++){
+      var a=ts[i],b=ts[j];
+      if(a.accountId===b.accountId)continue;
+      if(a.amountCents!==-b.amountCents)continue;
+      var dd=Math.abs(daysBetween(a.date,b.date));
+      if(dd>CFG.TRANSFER_WINDOW_DAYS)continue;
+      out.push({a:a.id,b:b.id,days:dd});
+    }
+  });
+  return out;
+}
+function pairTransfer(app,idA,idB,now){
+  var f=ensure(app),a=f.txns[idA],b=f.txns[idB];
+  if(!a||!b)return{ok:false,reason:'not_found'};
+  if(a.accountId===b.accountId)return{ok:false,reason:'same_account'};
+  if(a.amountCents!==-b.amountCents)return{ok:false,reason:'amount_mismatch'};
+  if(a.transferId||b.transferId)return{ok:false,reason:'already_paired'};
+  var tid='tr_'+(idA<idB?idA+'_'+idB:idB+'_'+idA);
+  [a,b].forEach(function(t){
+    t.transferId=tid;
+    if(t.catBy!=='user'){t.categoryId='cat_transfer';t.catBy='system';t.catConfidence=1;}
+    t.updatedAt=iso(now);
+  });
+  audit(f,'transfer.pair',tid,null,fmt(Math.abs(a.amountCents)),'system',now);
+  return{ok:true,transferId:tid};
+}
+function unpairTransfer(app,transferId,now){
+  var f=ensure(app),n=0;
+  values(f.txns).forEach(function(t){
+    if(t.transferId===transferId){
+      t.transferId=null;
+      if(t.catBy==='system'&&t.categoryId==='cat_transfer'){t.categoryId='cat_uncat';t.catBy=null;t.catConfidence=0;}
+      t.updatedAt=iso(now);n++;
+    }
+  });
+  if(n)audit(f,'transfer.unpair',transferId,null,null,'user',now);
+  return{ok:n>0};
+}
+/* Auto-pair only what is unambiguous: exact opposite amounts, a tight date
+   window, and no human classification that says otherwise. Everything looser
+   becomes a Review suggestion instead of a silent guess. */
+function detectTransfers(app,now){
+  var f=ensure(app),paired=[],suggested=[];
+  var used={};
+  transferCandidates(f).sort(function(x,y){return x.days-y.days;}).forEach(function(c){
+    if(used[c.a]||used[c.b])return;
+    var a=f.txns[c.a],b=f.txns[c.b];
+    var humanSaysNo=(a.catBy==='user'&&a.categoryId!=='cat_transfer')||(b.catBy==='user'&&b.categoryId!=='cat_transfer');
+    if(c.days<=CFG.TRANSFER_AUTO_DAYS&&!humanSaysNo){
+      var r=pairTransfer(app,c.a,c.b,now);
+      if(r.ok){used[c.a]=used[c.b]=1;paired.push([c.a,c.b]);}
+    }else{
+      suggested.push([c.a,c.b]);
+    }
+  });
+  return{paired:paired,suggested:suggested};
+}
+
+/* ── Recurring streams ──────────────────────────────────────────────────────
+   Detection is derived; the stream rows persist so that user intent (muted,
+   paused) and price-change history survive re-detection. A stream never
+   claims a payment WILL happen — it carries a confidence and the forecast
+   treats it accordingly. */
+var CADENCES=[
+  {name:'weekly',days:7,lo:5,hi:9},
+  {name:'biweekly',days:14,lo:11,hi:17},
+  {name:'monthly',days:31,lo:24,hi:38},
+  {name:'quarterly',days:91,lo:80,hi:100},
+  {name:'yearly',days:365,lo:340,hi:390}
+];
+function detectRecurring(app,now){
+  var f=ensure(app),today=dayOf(now);
+  var groups={};
+  values(f.txns).forEach(function(t){
+    if(t.status!=='posted'||t.transferId)return;
+    if(Math.abs(t.amountCents)<CFG.TRANSFER_MIN_CENTS)return;
+    var key=merchantKey(t)+'|'+t.accountId+'|'+(t.amountCents<0?'out':'in');
+    (groups[key]=groups[key]||[]).push(t);
+  });
+  var seen={};
+  Object.keys(groups).forEach(function(key){
+    var ts=groups[key].sort(function(a,b){return a.date<b.date?-1:1;});
+    var days=[];ts.forEach(function(t){if(days.indexOf(t.date)<0)days.push(t.date);});
+    if(days.length<3)return;
+    var intervals=[],i;
+    for(i=1;i<days.length;i++)intervals.push(daysBetween(days[i-1],days[i]));
+    var med=median(intervals),cad=null;
+    for(i=0;i<CADENCES.length;i++)if(med>=CADENCES[i].lo&&med<=CADENCES[i].hi)cad=CADENCES[i];
+    if(!cad)return;
+    var amts=ts.map(function(t){return t.amountCents;});
+    var medAmt=median(amts);
+    var regularity=1-clamp(mad(intervals)/Math.max(1,med),0,1);
+    var stability=1-clamp(mad(amts)/Math.max(1,Math.abs(medAmt)),0,1);
+    var confidence=Math.round(clamp(0.35*Math.min((days.length-2)/4,1)+0.4*regularity+0.25*stability,0,1)*100)/100;
+    var last=ts[ts.length-1],lastDate=days[days.length-1];
+    var nextDate=addDays(lastDate,cad.days);
+    var late=daysBetween(nextDate,today);
+    var status=late>2*cad.days?'ended':late>0.6*cad.days?'uncertain':'active';
+    /* Price change: the newest charge vs the median of what came before.
+       Gated on the prior price having been STABLE — a fixed-price
+       subscription that moved is a price change; a grocery run that cost
+       more than last week is just life. */
+    var priceChange=null;
+    if(medAmt<0&&ts.length>=3){
+      var priorAmts=amts.slice(0,-1);
+      var prior=median(priorAmts);
+      var priorStable=mad(priorAmts)<=Math.max(CFG.PRICE_STABLE_MIN_CENTS,Math.abs(prior)*CFG.PRICE_STABLE_PCT/100);
+      var diff=Math.abs(last.amountCents-prior);
+      if(priorStable&&diff>=CFG.PRICE_CHANGE_MIN_CENTS&&diff>Math.abs(prior)*CFG.PRICE_CHANGE_PCT/100){
+        priceChange={fromCents:prior,toCents:last.amountCents,at:lastDate};
+      }
+    }
+    var id='rs_'+hash(key);
+    var prev=f.recurring[id]||{};
+    f.recurring[id]={
+      id:id,key:key,name:normalizeMerchant(last.merchant||last.name),
+      accountId:last.accountId,domain:last.domain,businessId:last.businessId,
+      categoryId:last.categoryId,cadence:cad.name,intervalDays:cad.days,
+      expectedAmountCents:medAmt,lastAmountCents:last.amountCents,lastDate:lastDate,
+      nextDate:nextDate,count:days.length,confidence:confidence,
+      status:prev.userStatus==='paused'?'paused':status,
+      userStatus:prev.userStatus||null,muted:!!prev.muted,
+      priceChange:priceChange||prev.priceChange||null,
+      priceChangeSeen:prev.priceChangeSeen||null,
+      updatedAt:iso(now)
+    };
+    seen[id]=1;
+  });
+  /* A stream that stopped being detectable is over, not deleted — history and
+     any user flags survive. */
+  Object.keys(f.recurring).forEach(function(id){
+    if(!seen[id]&&f.recurring[id].status!=='paused')f.recurring[id].status='ended';
+  });
+  return values(f.recurring);
+}
+function listRecurring(app,opts){
+  opts=opts||{};
+  var f=ensure(app);
+  return values(f.recurring).filter(function(s){
+    if(opts.domain&&s.domain!==opts.domain)return false;
+    if(opts.active&&['active','uncertain'].indexOf(s.status)<0)return false;
+    return true;
+  }).sort(function(a,b){return Math.abs(b.expectedAmountCents)-Math.abs(a.expectedAmountCents);});
+}
+function muteStream(app,id,muted,now){
+  var f=ensure(app),s=f.recurring[id];
+  if(!s)return{ok:false,reason:'not_found'};
+  s.muted=!!muted;s.updatedAt=iso(now);
+  return{ok:true};
+}
+function setStreamStatus(app,id,status,now){
+  var f=ensure(app),s=f.recurring[id];
+  if(!s)return{ok:false,reason:'not_found'};
+  if(['paused',null].indexOf(status)<0)return{ok:false,reason:'bad_status'};
+  s.userStatus=status;if(status==='paused')s.status='paused';
+  s.updatedAt=iso(now);
+  return{ok:true};
+}
+function ackPriceChange(app,id,now){
+  var f=ensure(app),s=f.recurring[id];
+  if(!s||!s.priceChange)return{ok:false};
+  s.priceChangeSeen=s.priceChange.at+'|'+s.priceChange.toCents;
+  s.updatedAt=iso(now);
+  return{ok:true};
+}
+function monthlyCents(s){
+  var a=Math.abs(s.expectedAmountCents);
+  switch(s.cadence){
+    case 'weekly':return Math.round(a*52/12);
+    case 'biweekly':return Math.round(a*26/12);
+    case 'monthly':return a;
+    case 'quarterly':return Math.round(a/3);
+    case 'yearly':return Math.round(a/12);
+    default:return a;
+  }
+}
+function subscriptions(app,now){
+  var f=ensure(app);
+  var subs=values(f.recurring).filter(function(s){
+    return s.expectedAmountCents<0&&!s.muted&&['active','uncertain'].indexOf(s.status)>=0;
+  }).map(function(s){
+    return{id:s.id,name:s.name,domain:s.domain,businessId:s.businessId,accountId:s.accountId,
+      cadence:s.cadence,amountCents:Math.abs(s.expectedAmountCents),lastAmountCents:Math.abs(s.lastAmountCents),
+      monthlyCents:monthlyCents(s),annualCents:monthlyCents(s)*12,
+      nextDate:s.nextDate,lastDate:s.lastDate,status:s.status,confidence:s.confidence,
+      priceChange:s.priceChange&&s.priceChangeSeen!==(s.priceChange.at+'|'+s.priceChange.toCents)?s.priceChange:null};
+  }).sort(function(a,b){return b.monthlyCents-a.monthlyCents;});
+  var monthly=0;subs.forEach(function(s){monthly+=s.monthlyCents;});
+  return{subs:subs,monthlyCents:monthly,annualCents:monthly*12};
+}
+
+/* ── Expected payments ── the "check is in the mail" model ───────────────── */
+function addExpected(app,e,now){
+  var f=ensure(app);
+  if(!e||!isFinite(Number(e.amountCents))||cents(e.amountCents)<=0)return{ok:false,reason:'bad_amount'};
+  if(['in','out'].indexOf(e.direction)<0)return{ok:false,reason:'bad_direction'};
+  if(DOMAINS.indexOf(e.domain)<0)return{ok:false,reason:'bad_domain'};
+  var id=e.id||nextId(f,'exp');
+  if(f.expected[id])return{ok:false,reason:'exists'};
+  var day=isDay(e.expectedDate)?e.expectedDate:null;
+  f.expected[id]={
+    id:id,label:String(e.label||'Expected payment').slice(0,80),
+    direction:e.direction,amountCents:cents(e.amountCents),
+    tolerancePct:e.tolerancePct!=null?e.tolerancePct:CFG.EXPECTED_TOL_PCT,
+    expectedDate:day,
+    windowFrom:isDay(e.windowFrom)?e.windowFrom:(day?addDays(day,-CFG.EXPECTED_WINDOW_DAYS):dayOf(now)),
+    windowTo:isDay(e.windowTo)?e.windowTo:(day?addDays(day,CFG.EXPECTED_WINDOW_DAYS):null),
+    method:e.method||'other',domain:e.domain,businessId:e.businessId||null,accountId:e.accountId||null,
+    source:e.source||'manual',ref:e.ref||null,
+    confidence:e.confidence!=null?clamp(e.confidence,0,1):CFG.CONFIDENCE.MEDIUM,
+    status:'open',matchedTxnId:null,note:e.note||'',
+    createdAt:iso(now),updatedAt:iso(now)
+  };
+  audit(f,'expected.add',id,null,f.expected[id].label,e.source||'user',now);
+  return{ok:true,id:id};
+}
+function listExpected(app,opts){
+  opts=opts||{};
+  var f=ensure(app);
+  return values(f.expected).filter(function(e){
+    if(opts.status&&e.status!==opts.status)return false;
+    if(opts.domain&&e.domain!==opts.domain)return false;
+    return true;
+  }).sort(function(a,b){return String(a.expectedDate||'9999')<String(b.expectedDate||'9999')?-1:1;});
+}
+function markExpectedReceived(app,id,matchedTxnId,now){
+  var f=ensure(app),e=f.expected[id];
+  if(!e)return{ok:false,reason:'not_found'};
+  e.status='received';e.matchedTxnId=matchedTxnId||null;e.updatedAt=iso(now);
+  audit(f,'expected.received',id,null,matchedTxnId,'system',now);
+  return{ok:true};
+}
+function cancelExpected(app,id,now){
+  var f=ensure(app),e=f.expected[id];
+  if(!e)return{ok:false,reason:'not_found'};
+  e.status='cancelled';e.updatedAt=iso(now);
+  audit(f,'expected.cancel',id,null,null,'user',now);
+  return{ok:true};
+}
+function markExpectedMissed(app,id,now){
+  var f=ensure(app),e=f.expected[id];
+  if(!e)return{ok:false,reason:'not_found'};
+  e.status='missed';e.updatedAt=iso(now);
+  audit(f,'expected.missed',id,null,null,'user',now);
+  return{ok:true};
+}
+function expectedCandidates(f,e){
+  var used={};
+  values(f.expected).forEach(function(x){if(x.matchedTxnId)used[x.matchedTxnId]=1;});
+  return values(f.txns).filter(function(t){
+    if(t.status!=='posted'||t.transferId||used[t.id])return false;
+    if(t.domain!==e.domain)return false;
+    if(e.accountId&&t.accountId!==e.accountId)return false;
+    if(e.direction==='in'&&t.amountCents<=0)return false;
+    if(e.direction==='out'&&t.amountCents>=0)return false;
+    var want=e.amountCents,got=Math.abs(t.amountCents);
+    if(Math.abs(got-want)>want*(e.tolerancePct||CFG.EXPECTED_TOL_PCT)/100)return false;
+    if(e.windowFrom&&t.date<e.windowFrom)return false;
+    if(e.windowTo&&t.date>addDays(e.windowTo,CFG.EXPECTED_GRACE_DAYS))return false;
+    return true;
+  });
+}
+/* Auto-match only a single unambiguous candidate; several candidates become a
+   Review item rather than a guess. */
+function matchExpected(app,now){
+  var f=ensure(app),matched=0;
+  values(f.expected).forEach(function(e){
+    if(e.status!=='open')return;
+    var cands=expectedCandidates(f,e);
+    if(cands.length===1){
+      markExpectedReceived(app,e.id,cands[0].id,now);
+      matched++;
+    }
+  });
+  return{matched:matched};
+}
+function suggestedExpectedMatches(app){
+  var f=ensure(app),out=[];
+  values(f.expected).forEach(function(e){
+    if(e.status!=='open')return;
+    var cands=expectedCandidates(f,e);
+    if(cands.length>1)out.push({expectedId:e.id,txnIds:cands.map(function(t){return t.id;})});
+  });
+  return out;
+}
+
+/* ── Financial events ── one unified feed the calendar and forecast read ── */
+function events(app,opts,now){
+  opts=opts||{};
+  var f=ensure(app),today=dayOf(now);
+  var from=opts.from||today,to=opts.to||addDays(today,CFG.FORECAST_DAYS);
+  var domain=opts.domain||null;
+  var out=[];
+  function want(d,bid){
+    if(domain&&domain!=='ALL'&&d!==domain)return false;
+    return true;
+  }
+  /* Open expected payments — both directions, at their expected date (or the
+     window end when no date is known: the honest latest). */
+  values(f.expected).forEach(function(e){
+    if(e.status!=='open')return;
+    if(!want(e.domain))return;
+    var d=e.expectedDate||e.windowTo||to;
+    if(d<from||d>to)return;
+    out.push({date:d,amountCents:(e.direction==='in'?1:-1)*e.amountCents,
+      type:e.source==='business'?'receivable':'expected',
+      label:e.label,source:e.source,ref:e.ref,confidence:e.confidence,
+      domain:e.domain,businessId:e.businessId,id:'ev_exp_'+e.id});
+  });
+  /* Recurring projections — active streams step forward from nextDate. */
+  values(f.recurring).forEach(function(s){
+    if(s.muted||['active','uncertain'].indexOf(s.status)<0)return;
+    if(!want(s.domain))return;
+    if(s.categoryId==='cat_transfer')return;
+    var conf=s.status==='uncertain'?Math.round(s.confidence*0.6*100)/100:s.confidence;
+    var d=s.nextDate,i=0;
+    while(d<=to&&i<24){
+      if(d>=from)out.push({date:d,amountCents:s.expectedAmountCents,type:'recurring',
+        label:s.name,source:'recurring',ref:{streamId:s.id},confidence:conf,
+        domain:s.domain,businessId:s.businessId,id:'ev_rs_'+s.id+'_'+d});
+      d=addDays(d,s.intervalDays);i++;
+    }
+  });
+  /* Business obligations (payables) — committed outflows from the snapshot. */
+  values(f.biz.items).forEach(function(b){
+    if(b.kind!=='obligation'||b.active===false)return;
+    if(!want('WORK'))return;
+    if(b.recurringMonthly){
+      var m=monthOf(from),i=0,day=b.dueDate?b.dueDate.slice(8,10):'01';
+      for(i=0;i<13;i++){
+        var cand=m+'-'+day;
+        if(realDay(cand)&&cand>=from&&cand<=to)out.push({date:cand,amountCents:-b.amountCents,type:'payable',
+          label:b.label,source:'business',ref:{externalId:b.externalId,externalTable:b.externalTable},
+          confidence:CFG.CONFIDENCE.HIGH,domain:'WORK',businessId:b.business,id:'ev_ob_'+b.externalId+'_'+cand});
+        var nm=new Date(dayMs(m+'-01')+40*864e5);
+        m=nm.toISOString().slice(0,7);
+      }
+    }else if(b.dueDate&&b.dueDate>=from&&b.dueDate<=to){
+      out.push({date:b.dueDate,amountCents:-b.amountCents,type:'payable',
+        label:b.label,source:'business',ref:{externalId:b.externalId,externalTable:b.externalTable},
+        confidence:CFG.CONFIDENCE.HIGH,domain:'WORK',businessId:b.business,id:'ev_ob_'+b.externalId});
+    }
+  });
+  /* Debt minimums — monthly on their due day. */
+  values(f.debts).forEach(function(d){
+    if(!d.minPaymentCents||!d.dueDay)return;
+    if(!want(d.domain||'LIFE'))return;
+    var m=monthOf(from),i;
+    for(i=0;i<13;i++){
+      var dd=('0'+d.dueDay).slice(-2);
+      var cand=m+'-'+dd;
+      if(realDay(cand)&&cand>=from&&cand<=to)out.push({date:cand,amountCents:-d.minPaymentCents,type:'debt',
+        label:d.name+' — minimum',source:'debt',ref:{debtId:d.id},confidence:0.9,
+        domain:d.domain||'LIFE',businessId:null,id:'ev_dbt_'+d.id+'_'+cand});
+      var nm=new Date(dayMs(m+'-01')+40*864e5);
+      m=nm.toISOString().slice(0,7);
+    }
+  });
+  out.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;});
+  return out;
+}
+
+/* ── Cash-flow forecast ── the balance curve, in three honesties ─────────── */
+function forecast(app,opts,now){
+  opts=opts||{};
+  var f=ensure(app),today=dayOf(now);
+  var days=opts.days||CFG.FORECAST_DAYS;
+  var to=addDays(today,days);
+  var domain=opts.domain||'LIFE';
+  var opening=0;
+  listAccounts(app,{domain:domain==='ALL'?null:domain}).forEach(function(a){
+    if(opts.accountIds&&opts.accountIds.indexOf(a.id)<0)return;
+    if(!CASH_KINDS[a.kind])return;
+    if(domain!=='ALL'&&a.domain!==domain)return;
+    opening+=accountBalance(app,a.id);
+  });
+  var evs=events(app,{from:addDays(today,1),to:to,domain:domain},now);
+  function scenario(cut){
+    var bal=opening,min=opening,minDate=today,curve=[],byDate={};
+    evs.forEach(function(e){
+      if(e.amountCents>0&&e.confidence<cut)return;
+      (byDate[e.date]=byDate[e.date]||[]).push(e);
+    });
+    Object.keys(byDate).sort().forEach(function(d){
+      var delta=0;
+      byDate[d].forEach(function(e){delta+=e.amountCents;});
+      bal+=delta;
+      curve.push({date:d,deltaCents:delta,balanceCents:bal,events:byDate[d]});
+      if(bal<min){min=bal;minDate=d;}
+    });
+    return{endingCents:bal,minCents:min,minDate:minDate,curve:curve};
+  }
+  return{
+    openingCents:opening,from:today,to:to,domain:domain,
+    conservative:scenario(CFG.SCENARIOS.conservative),
+    expected:scenario(CFG.SCENARIOS.expected),
+    optimistic:scenario(CFG.SCENARIOS.optimistic),
+    events:evs
+  };
+}
+
+/* ── Budgets ── monthly, per category, optional rollover ────────────────── */
+function budgetSet(app,month,catId,limitCents,opts,now){
+  var f=ensure(app);
+  if(!/^\d{4}-\d{2}$/.test(month||''))return{ok:false,reason:'bad_month'};
+  if(!f.categories[catId])return{ok:false,reason:'no_such_category'};
+  var b=f.budgets[month]=f.budgets[month]||{items:{}};
+  if(limitCents==null){delete b.items[catId];}
+  else b.items[catId]={limitCents:cents(limitCents),rollover:!!(opts&&opts.rollover)};
+  audit(f,'budget.set',month+'/'+catId,null,limitCents,'user',now);
+  return{ok:true};
+}
+function prevMonth(month){
+  var d=new Date(dayMs(month+'-01')-2*864e5);
+  return d.toISOString().slice(0,7);
+}
+function spentByCategory(app,month,domain){
+  var f=ensure(app),by={};
+  values(f.txns).forEach(function(t){
+    if(t.status==='removed'||t.status==='reversed'||t.transferId)return;
+    if(monthOf(t.date)!==month)return;
+    contributions(t).forEach(function(c){
+      if(domain&&c.domain!==domain)return;
+      by[c.categoryId]=(by[c.categoryId]||0)+c.amountCents;
+    });
+  });
+  return by;
+}
+function budgetStatus(app,month,now){
+  var f=ensure(app);
+  var b=f.budgets[month]||{items:{}};
+  var by=spentByCategory(app,month,'LIFE');
+  var items=Object.keys(b.items).map(function(catId){
+    var it=b.items[catId];
+    var spent=-Math.min(0,by[catId]||0);
+    var rolloverIn=0;
+    if(it.rollover){
+      var pm=prevMonth(month),pb=(f.budgets[pm]||{items:{}}).items[catId];
+      if(pb){
+        var pSpent=-Math.min(0,spentByCategory(app,pm,'LIFE')[catId]||0);
+        rolloverIn=pb.limitCents-pSpent;
+      }
+    }
+    var limit=it.limitCents+rolloverIn;
+    return{categoryId:catId,name:(f.categories[catId]||{}).name||catId,
+      limitCents:it.limitCents,rolloverInCents:rolloverIn,effectiveLimitCents:limit,
+      spentCents:spent,remainingCents:limit-spent,
+      pct:limit>0?Math.min(999,Math.round(spent/limit*100)):0};
+  }).sort(function(a,b){return b.spentCents-a.spentCents;});
+  var income=0,spend=0;
+  Object.keys(by).forEach(function(catId){
+    var c=f.categories[catId];
+    if(c&&c.kind==='transfer')return;
+    var v=by[catId];
+    if(v>0)income+=v;else spend-=v;
+  });
+  return{month:month,items:items,incomeCents:income,spendCents:spend,netCents:income-spend};
+}
+function spendingReport(app,opts,now){
+  opts=opts||{};
+  var f=ensure(app),month=opts.month||monthOf(dayOf(now));
+  var domain=opts.domain||'LIFE';
+  var by=spentByCategory(app,month,domain);
+  var rows=Object.keys(by).map(function(catId){
+    var c=f.categories[catId]||{name:catId,kind:'expense'};
+    return{categoryId:catId,name:c.name,kind:c.kind,amountCents:by[catId]};
+  });
+  var income=rows.filter(function(r){return r.amountCents>0&&r.kind!=='transfer';})
+    .sort(function(a,b){return b.amountCents-a.amountCents;});
+  var spend=rows.filter(function(r){return r.amountCents<0&&r.kind!=='transfer';})
+    .map(function(r){return{categoryId:r.categoryId,name:r.name,amountCents:-r.amountCents};})
+    .sort(function(a,b){return b.amountCents-a.amountCents;});
+  var archived=f.archive[month]||null;
+  return{month:month,domain:domain,income:income,spend:spend,archive:archived};
+}
+
+/* ── Net worth ── by domain, side by side, never merged into one pool ───── */
+function netWorthCompute(app,now){
+  var f=ensure(app);
+  var out={LIFE:{assetsCents:0,liabilitiesCents:0},WORK:{assetsCents:0,liabilitiesCents:0}};
+  listAccounts(app).forEach(function(a){
+    var bal=accountBalance(app,a.id);
+    var side=out[a.domain];if(!side)return;
+    if(bal>=0)side.assetsCents+=bal;else side.liabilitiesCents+=-bal;
+  });
+  values(f.manualAssets).forEach(function(m){
+    var side=out[m.domain||'LIFE'];if(!side)return;
+    side.assetsCents+=cents(m.valueCents);
+  });
+  values(f.debts).forEach(function(d){
+    if(d.accountId&&f.accounts[d.accountId])return; // the account already carries this balance
+    var side=out[d.domain||'LIFE'];if(!side)return;
+    side.liabilitiesCents+=cents(d.balanceCents);
+  });
+  DOMAINS.forEach(function(k){out[k].netCents=out[k].assetsCents-out[k].liabilitiesCents;});
+  out.combined={assetsCents:out.LIFE.assetsCents+out.WORK.assetsCents,
+    liabilitiesCents:out.LIFE.liabilitiesCents+out.WORK.liabilitiesCents};
+  out.combined.netCents=out.combined.assetsCents-out.combined.liabilitiesCents;
+  return out;
+}
+function netWorthSnapshot(app,now){
+  var f=ensure(app),today=dayOf(now);
+  var nw=netWorthCompute(app,now);
+  var snap={date:today,LIFE:nw.LIFE,WORK:nw.WORK};
+  var last=f.netWorth[f.netWorth.length-1];
+  if(last&&last.date===today)f.netWorth[f.netWorth.length-1]=snap;
+  else f.netWorth.push(snap);
+  if(f.netWorth.length>800)f.netWorth=f.netWorth.slice(-800);
+  return snap;
+}
+function netWorthTrend(app,days,now){
+  var f=ensure(app),today=dayOf(now);
+  var cutoff=addDays(today,-days);
+  var past=null;
+  for(var i=f.netWorth.length-1;i>=0;i--){
+    if(f.netWorth[i].date<=cutoff){past=f.netWorth[i];break;}
+  }
+  if(!past&&f.netWorth.length)past=f.netWorth[0];
+  var cur=netWorthCompute(app,now);
+  if(!past)return{deltaCents:null};
+  var prev=(past.LIFE.netCents||0)+(past.WORK.netCents||0);
+  return{deltaCents:cur.combined.netCents-prev,fromDate:past.date};
+}
+
+/* ── Debts ── payoff simulation with the honest caveat built in ─────────── */
+function upsertDebt(app,d,now){
+  var f=ensure(app);
+  if(!d||!d.name)return{ok:false,reason:'name_required'};
+  var id=d.id||nextId(f,'debt');
+  f.debts[id]={id:id,name:String(d.name).slice(0,60),
+    kind:d.kind||'credit_card',domain:DOMAINS.indexOf(d.domain)>=0?d.domain:'LIFE',
+    balanceCents:cents(d.balanceCents),aprBps:cents(d.aprBps||0),
+    minPaymentCents:cents(d.minPaymentCents||0),dueDay:d.dueDay?clamp(cents(d.dueDay),1,28):null,
+    accountId:d.accountId&&f.accounts[d.accountId]?d.accountId:null,
+    createdAt:(f.debts[id]||{}).createdAt||iso(now),updatedAt:iso(now)};
+  audit(f,'debt.upsert',id,null,d.name,'user',now);
+  return{ok:true,id:id};
+}
+function removeDebt(app,id,now){
+  var f=ensure(app);
+  if(!f.debts[id])return{ok:false,reason:'not_found'};
+  delete f.debts[id];
+  audit(f,'debt.remove',id,null,null,'user',now);
+  return{ok:true};
+}
+function amortize(balanceCents,aprBps,paymentCents){
+  var rate=aprBps/10000/12;
+  var bal=balanceCents,months=0,interest=0;
+  if(paymentCents<=Math.ceil(bal*rate))return{paysOff:false,months:null,interestCents:null};
+  while(bal>0&&months<600){
+    var i=Math.round(bal*rate);
+    interest+=i;bal=bal+i-paymentCents;months++;
+  }
+  return{paysOff:bal<=0,months:months,interestCents:interest};
+}
+function payoffPlan(app,debtId,extraCents,now){
+  var f=ensure(app),d=f.debts[debtId];
+  if(!d)return{ok:false,reason:'not_found'};
+  var base=amortize(d.balanceCents,d.aprBps,d.minPaymentCents);
+  var plus=amortize(d.balanceCents,d.aprBps,d.minPaymentCents+cents(extraCents||0));
+  var today=dayOf(now);
+  function dateAfter(m){return m==null?null:addDays(today,Math.round(m*30.44));}
+  return{ok:true,
+    baseline:{paysOff:base.paysOff,months:base.months,interestCents:base.interestCents,payoffDate:dateAfter(base.months)},
+    plan:{paysOff:plus.paysOff,months:plus.months,interestCents:plus.interestCents,payoffDate:dateAfter(plus.months),
+      monthlyCents:d.minPaymentCents+cents(extraCents||0)},
+    interestSavedCents:(base.paysOff&&plus.paysOff)?base.interestCents-plus.interestCents:null,
+    monthsSaved:(base.paysOff&&plus.paysOff)?base.months-plus.months:null};
+}
+
+/* ── Goals ── generic financial goals; Major Goals (vehicles) is its own
+   feature on its own branch and is deliberately not modeled here. ────────── */
+function upsertGoal(app,g,now){
+  var f=ensure(app);
+  if(!g||!g.name)return{ok:false,reason:'name_required'};
+  if(!isFinite(Number(g.targetCents))||cents(g.targetCents)<=0)return{ok:false,reason:'bad_target'};
+  var id=g.id||nextId(f,'goal');
+  f.goals[id]={id:id,name:String(g.name).slice(0,60),targetCents:cents(g.targetCents),
+    linkedAccountId:g.linkedAccountId&&f.accounts[g.linkedAccountId]?g.linkedAccountId:null,
+    manualCurrentCents:cents(g.manualCurrentCents||0),
+    deadline:isDay(g.deadline)?g.deadline:null,
+    domain:DOMAINS.indexOf(g.domain)>=0?g.domain:'LIFE',
+    createdAt:(f.goals[id]||{}).createdAt||iso(now),updatedAt:iso(now)};
+  audit(f,'goal.upsert',id,null,g.name,'user',now);
+  return{ok:true,id:id};
+}
+function removeGoal(app,id,now){
+  var f=ensure(app);
+  if(!f.goals[id])return{ok:false,reason:'not_found'};
+  delete f.goals[id];
+  audit(f,'goal.remove',id,null,null,'user',now);
+  return{ok:true};
+}
+function goalStatus(app,id,now){
+  var f=ensure(app),g=f.goals[id];
+  if(!g)return null;
+  var current=g.linkedAccountId?accountBalance(app,g.linkedAccountId):g.manualCurrentCents;
+  var remaining=Math.max(0,g.targetCents-current);
+  var today=dayOf(now);
+  var monthsLeft=null,required=null;
+  if(g.deadline){
+    monthsLeft=Math.max(1,Math.round(daysBetween(today,g.deadline)/30.44));
+    required=Math.ceil(remaining/monthsLeft);
+  }
+  return{id:id,name:g.name,targetCents:g.targetCents,currentCents:current,
+    remainingCents:remaining,deadline:g.deadline,monthsLeft:monthsLeft,
+    requiredMonthlyCents:required,
+    status:remaining<=0?'funded':g.deadline?'saving':'no_deadline',
+    pct:g.targetCents>0?Math.min(100,Math.round(current/g.targetCents*100)):0};
+}
+
+/* ── What-if simulator ── clones state, never touches the real books ────── */
+function whatIf(app,ops,opts,now){
+  opts=opts||{};
+  var f=ensure(app);
+  var domain=opts.domain||'LIFE',days=opts.days||CFG.FORECAST_DAYS;
+  var base=forecast(app,{domain:domain,days:days},now);
+  var cloneApp={finance:JSON.parse(JSON.stringify(f))};
+  var cf=cloneApp.finance,today=dayOf(now);
+  (ops||[]).forEach(function(op){
+    if(!op)return;
+    if(op.type==='spend'){
+      addExpected(cloneApp,{label:op.label||'One-time spend',direction:'out',
+        amountCents:Math.abs(cents(op.amountCents)),expectedDate:isDay(op.date)?op.date:addDays(today,1),
+        domain:domain==='ALL'?'LIFE':domain,confidence:1,source:'manual'},now);
+    }else if(op.type==='income_delta_pct'){
+      var k=1+Number(op.pct||0)/100;
+      values(cf.recurring).forEach(function(s){
+        if(s.expectedAmountCents>0)s.expectedAmountCents=Math.round(s.expectedAmountCents*k);
+      });
+      values(cf.expected).forEach(function(e){
+        if(e.status==='open'&&e.direction==='in')e.amountCents=Math.round(e.amountCents*k);
+      });
+    }else if(op.type==='add_monthly'){
+      var amt=cents(op.amountCents);
+      cf.recurring['rs_whatif_'+hash(op.label||String(amt))]={
+        id:'rs_whatif_'+hash(op.label||String(amt)),key:'whatif',name:op.label||'Scenario item',
+        accountId:null,domain:domain==='ALL'?'LIFE':domain,businessId:null,categoryId:null,
+        cadence:'monthly',intervalDays:31,expectedAmountCents:amt,lastAmountCents:amt,
+        lastDate:today,nextDate:addDays(today,3),count:3,confidence:0.9,
+        status:'active',userStatus:null,muted:false,priceChange:null,updatedAt:iso(now)};
+    }else if(op.type==='payoff_debt'&&cf.debts[op.debtId]){
+      var d=cf.debts[op.debtId];
+      addExpected(cloneApp,{label:'Pay off '+d.name,direction:'out',amountCents:d.balanceCents,
+        expectedDate:isDay(op.date)?op.date:addDays(today,1),domain:d.domain||'LIFE',confidence:1,source:'manual'},now);
+      delete cf.debts[op.debtId];
+    }else if(op.type==='remove_stream'&&cf.recurring[op.streamId]){
+      cf.recurring[op.streamId].muted=true;
+    }
+  });
+  var scen=forecast(cloneApp,{domain:domain,days:days},now);
+  var minC=scen.expected.minCents;
+  var risk=minC<0?'high':minC<CFG.PROJ_LOW_CENTS?'elevated':'low';
+  return{base:base,scenario:scen,
+    diffEndingCents:scen.expected.endingCents-base.expected.endingCents,
+    diffMinCents:scen.expected.minCents-base.expected.minCents,
+    projectedMinCents:scen.expected.minCents,
+    projectedEndingCents:scen.expected.endingCents,
+    riskLevel:risk};
+}
+
+/* ── Business finance snapshot ── reference + display snapshot, never a
+   second invoice system. The snapshot is authoritative: an item that
+   disappears or closes server-side closes here, whatever was typed. ──────── */
+function bizKey(t,id){return 'biz_'+sanitizeId(t)+'_'+sanitizeId(id);}
+function applyBizFinance(app,payload,now){
+  var f=ensure(app);
+  if(!payload||typeof payload!=='object')return{applied:false,reason:'empty_payload'};
+  var hasAny=['receivables','payments','subscriptions','obligations'].some(function(k){return Array.isArray(payload[k]);});
+  if(!hasAny)return{applied:false,reason:'no_sections'};
+  var t=iso(payload.serverTime?payload.serverTime:now);
+  var seenRec={};
+  (payload.receivables||[]).forEach(function(r){
+    if(!r||!r.externalId)return;
+    var key=bizKey(r.externalTable||'pvi_invoices',r.externalId);
+    seenRec[key]=1;
+    f.biz.items[key]={kind:'receivable',externalId:r.externalId,externalTable:r.externalTable||'pvi_invoices',
+      business:r.business||'PVI',label:String(r.label||'Invoice').slice(0,80),number:r.number||null,
+      totalCents:cents(r.totalCents),paidCents:cents(r.paidCents),remainingCents:cents(r.remainingCents),
+      status:r.status||null,issuedAt:r.issuedAt||null,dueDate:isDay(r.dueDate)?r.dueDate:null,paidAt:r.paidAt||null,
+      updatedAt:t};
+    /* Derive/refresh the expected inflow for an OPEN receivable. Source is
+       'business': a fresh snapshot always overwrites it, typed edits cannot
+       prop it up, and it closes the moment the invoice does. */
+    var expId='exp_'+key;
+    if(cents(r.remainingCents)>0){
+      if(f.expected[expId]){
+        var e=f.expected[expId];
+        e.amountCents=cents(r.remainingCents);
+        e.expectedDate=isDay(r.dueDate)?r.dueDate:e.expectedDate;
+        e.windowTo=isDay(r.dueDate)?addDays(r.dueDate,14):e.windowTo;
+        e.confidence=isDay(r.dueDate)?CFG.RECEIVABLE_DUE_CONF:CFG.RECEIVABLE_OPEN_CONF;
+        e.label=('AR · '+(r.label||r.number||r.externalId)).slice(0,80);
+        if(e.status!=='open'&&!e.matchedTxnId)e.status='open';
+        e.updatedAt=t;
+      }else{
+        addExpected(app,{id:expId,label:('AR · '+(r.label||r.number||r.externalId)).slice(0,80),
+          direction:'in',amountCents:cents(r.remainingCents),
+          expectedDate:isDay(r.dueDate)?r.dueDate:null,
+          windowFrom:r.issuedAt?String(r.issuedAt).slice(0,10):null,
+          windowTo:isDay(r.dueDate)?addDays(r.dueDate,14):null,
+          method:'other',domain:'WORK',businessId:r.business||'PVI',
+          source:'business',ref:{externalTable:r.externalTable||'pvi_invoices',externalId:r.externalId},
+          confidence:isDay(r.dueDate)?CFG.RECEIVABLE_DUE_CONF:CFG.RECEIVABLE_OPEN_CONF},now);
+      }
+    }else if(f.expected[expId]&&f.expected[expId].status==='open'){
+      f.expected[expId].status='received';
+      f.expected[expId].updatedAt=t;
+      audit(f,'expected.received',expId,null,'receivable settled server-side','business',now);
+    }
+  });
+  /* A receivable the snapshot no longer reports is settled or gone. Its
+     derived expected must not keep forecasting money. */
+  Object.keys(f.biz.items).forEach(function(key){
+    var b=f.biz.items[key];
+    if(b.kind!=='receivable'||seenRec[key])return;
+    if(Array.isArray(payload.receivables)){
+      b.status='closed';b.remainingCents=0;b.updatedAt=t;
+      var e=f.expected['exp_'+key];
+      if(e&&e.status==='open'){e.status=b.paidAt?'received':'cancelled';e.updatedAt=t;}
+    }
+  });
+  if(Array.isArray(payload.payments)){
+    f.biz.payments=payload.payments.slice(0,200).map(function(p){
+      return{externalId:p.externalId,business:p.business||'PVI',amountCents:cents(p.amountCents),
+        method:p.method||null,paidAt:p.paidAt||null,invoiceExternalId:p.invoiceExternalId||null,status:p.status||null};
+    });
+  }
+  (payload.subscriptions||[]).forEach(function(s){
+    if(!s||!s.externalId)return;
+    var key=bizKey(s.externalTable||'subscriptions',s.externalId);
+    f.biz.items[key]={kind:'subscription',externalId:s.externalId,externalTable:s.externalTable||'subscriptions',
+      business:s.business||'PVI',label:String(s.label||s.plan||'Subscription').slice(0,80),
+      plan:s.plan||null,mrrCents:cents(s.mrrCents),status:s.status||null,
+      renewalDate:isDay(s.renewalDate)?s.renewalDate:null,updatedAt:t};
+  });
+  (payload.obligations||[]).forEach(function(o){
+    if(!o||!o.externalId)return;
+    var key=bizKey(o.externalTable||'cpg_cash_obligations',o.externalId);
+    f.biz.items[key]={kind:'obligation',externalId:o.externalId,externalTable:o.externalTable||'cpg_cash_obligations',
+      business:o.business||'CPG',label:String(o.label||'Obligation').slice(0,80),
+      amountCents:cents(o.amountCents),dueDate:isDay(o.dueDate)?o.dueDate:null,
+      recurringMonthly:!!o.recurringMonthly,active:o.active!==false,updatedAt:t};
+  });
+  f.biz.fetchedAt=t;
+  f.biz.sync={status:'ok',lastOkAt:t,error:null};
+  return{applied:true};
+}
+function markBizError(app,err,now){
+  var f=ensure(app);
+  f.biz.sync={status:'error',lastOkAt:f.biz.sync&&f.biz.sync.lastOkAt||null,
+    error:String(err&&err.message||err||'unknown').slice(0,200)};
+  return f.biz.sync;
+}
+function bizReceivables(app,now){
+  var f=ensure(app),today=dayOf(now);
+  var open=[],overdue=0,openCents=0;
+  values(f.biz.items).forEach(function(b){
+    if(b.kind!=='receivable'||!(b.remainingCents>0))return;
+    var isOver=b.dueDate&&b.dueDate<today;
+    if(isOver)overdue+=b.remainingCents;
+    openCents+=b.remainingCents;
+    open.push({externalId:b.externalId,externalTable:b.externalTable,business:b.business,
+      label:b.label,number:b.number,remainingCents:b.remainingCents,totalCents:b.totalCents,
+      dueDate:b.dueDate,overdue:!!isOver,
+      ageDays:b.issuedAt?daysBetween(String(b.issuedAt).slice(0,10),today):null});
+  });
+  open.sort(function(a,b){return String(a.dueDate||'9999')<String(b.dueDate||'9999')?-1:1;});
+  return{open:open,openCents:openCents,overdueCents:overdue,
+    mrrCents:values(f.biz.items).reduce(function(s,b){
+      return s+(b.kind==='subscription'&&(b.status==='active'||b.status==='trialing')?b.mrrCents:0);},0)};
+}
+
+/* ── Review inbox ── everything that needs a human decision, with actions ── */
+function inbox(app,now){
+  var f=ensure(app),today=dayOf(now),items=[];
+  function push(key,kind,title,detail,refs,actions){
+    if(f.inboxDismissed[key])return;
+    items.push({key:key,kind:kind,title:title,detail:detail||'',refs:refs||{},actions:actions||[]});
+  }
+  listTxns(app,{uncategorized:true}).slice(0,20).forEach(function(t){
+    push('uncat#'+t.id,'uncategorized','Needs a category',
+      t.name+' · '+fmt(t.amountCents,{sign:true})+' · '+t.date,
+      {txnId:t.id},['categorize','dismiss']);
+  });
+  detectTransfersPreview(f).forEach(function(p){
+    var a=f.txns[p[0]],b=f.txns[p[1]];
+    if(!a||!b)return;
+    push('xfer#'+p[0]+'#'+p[1],'possible_transfer','Possible transfer',
+      a.name+' ↔ '+b.name+' · '+fmt(Math.abs(a.amountCents)),
+      {a:p[0],b:p[1]},['confirm_transfer','dismiss']);
+  });
+  values(f.recurring).forEach(function(s){
+    if(!s.priceChange)return;
+    if(s.priceChangeSeen===(s.priceChange.at+'|'+s.priceChange.toCents))return;
+    push('price#'+s.id+'#'+s.priceChange.toCents,'price_change','Subscription price changed',
+      s.name+' · '+fmt(Math.abs(s.priceChange.fromCents))+' → '+fmt(Math.abs(s.priceChange.toCents)),
+      {streamId:s.id},['acknowledge','dismiss']);
+  });
+  values(f.expected).forEach(function(e){
+    if(e.status!=='open')return;
+    if(e.windowTo&&addDays(e.windowTo,CFG.EXPECTED_GRACE_DAYS)<today){
+      push('expmiss#'+e.id,'expected_missed','Expected payment has not arrived',
+        e.label+' · '+fmt(e.amountCents)+(e.expectedDate?' · expected '+e.expectedDate:''),
+        {expectedId:e.id},['mark_missed','keep_waiting','dismiss']);
+    }
+  });
+  suggestedExpectedMatches(app).forEach(function(s){
+    var e=f.expected[s.expectedId];
+    push('expmatch#'+s.expectedId,'match_payment','Payment may match: '+e.label,
+      s.txnIds.length+' candidate transactions',
+      {expectedId:s.expectedId,txnIds:s.txnIds},['match','dismiss']);
+  });
+  values(f.txns).forEach(function(t){
+    if(t.status!=='pending')return;
+    if(daysBetween(t.date,today)>CFG.PENDING_STALE_DAYS){
+      push('pend#'+t.id,'pending_stale','Pending for '+daysBetween(t.date,today)+' days',
+        t.name+' · '+fmt(t.amountCents,{sign:true}),{txnId:t.id},['dismiss']);
+    }
+  });
+  if(f.biz.sync.status==='error'){
+    push('bizsync#'+(f.biz.sync.lastOkAt||'never'),'sync_error','Business finance sync failing',
+      f.biz.sync.error||'',{}, ['dismiss']);
+  }
+  var integ=integrity(app);
+  integ.problems.forEach(function(p){
+    push('int#'+hash(p.code+p.ref),'integrity','Data problem: '+p.code,p.detail,{ref:p.ref},['dismiss']);
+  });
+  return items;
+}
+/* Suggestion-only variant used by inbox — pure, pairs nothing. */
+function detectTransfersPreview(f){
+  var out=[];
+  transferCandidates(f).forEach(function(c){
+    var a=f.txns[c.a],b=f.txns[c.b];
+    var humanSaysNo=(a.catBy==='user'&&a.categoryId!=='cat_transfer')||(b.catBy==='user'&&b.categoryId!=='cat_transfer');
+    if(c.days>CFG.TRANSFER_AUTO_DAYS||humanSaysNo)out.push([c.a,c.b]);
+  });
+  return out;
+}
+function dismissInbox(app,key,now){
+  var f=ensure(app);
+  f.inboxDismissed[key]=iso(now);
+  var ks=Object.keys(f.inboxDismissed);
+  if(ks.length>300){
+    ks.sort();
+    ks.slice(0,ks.length-300).forEach(function(k){delete f.inboxDismissed[k];});
+  }
+  return{ok:true};
+}
+
+/* ── Alerts ── configurable; derived, never stored as truth ─────────────── */
+function alerts(app,now){
+  var f=ensure(app),out=[];
+  function add(type,level,title,detail){
+    if((f.alertCfg[type]||{}).off)return;
+    out.push({type:type,level:level,title:title,detail:detail||''});
+  }
+  listAccounts(app).forEach(function(a){
+    if(!CASH_KINDS[a.kind])return;
+    var bal=accountBalance(app,a.id);
+    if(bal<CFG.LOW_BALANCE_CENTS)add('low_balance',bal<0?'bad':'warn',
+      a.name+' is low',fmt(bal)+' available');
+  });
+  var fc=forecast(app,{domain:'LIFE',days:30},now);
+  if(fc.expected.minCents<CFG.PROJ_LOW_CENTS)add('projected_low',fc.expected.minCents<0?'bad':'warn',
+    'Cash projected to dip to '+fmt(fc.expected.minCents),'around '+fc.expected.minDate+' (expected scenario)');
+  values(f.recurring).forEach(function(s){
+    if(s.priceChange&&s.priceChangeSeen!==(s.priceChange.at+'|'+s.priceChange.toCents))
+      add('subscription_increase','warn',s.name+' price changed',
+        fmt(Math.abs(s.priceChange.fromCents))+' → '+fmt(Math.abs(s.priceChange.toCents)));
+  });
+  var today=dayOf(now);
+  values(f.expected).forEach(function(e){
+    if(e.status==='open'&&e.windowTo&&addDays(e.windowTo,CFG.EXPECTED_GRACE_DAYS)<today)
+      add('expected_missed','warn','Expected payment overdue',e.label+' · '+fmt(e.amountCents));
+  });
+  bizReceivables(app,now).open.forEach(function(r){
+    if(r.overdue)add('receivable_overdue','warn','Receivable overdue',
+      r.label+' · '+fmt(r.remainingCents)+' · due '+r.dueDate);
+  });
+  if(f.biz.sync.status==='ok'&&f.biz.fetchedAt){
+    var ageH=(clock(now).getTime()-clock(f.biz.fetchedAt).getTime())/36e5;
+    if(ageH>CFG.BIZ_STALE_HOURS)add('biz_stale','info','Business figures are stale',
+      Math.round(ageH)+'h since the last successful read');
+  }
+  events(app,{from:today,to:addDays(today,7),domain:'ALL'},now).forEach(function(e){
+    if(e.amountCents<=-CFG.LARGE_EVENT_CENTS)add('large_upcoming','info',
+      'Large payment ahead: '+e.label,fmt(e.amountCents)+' · '+e.date);
+  });
+  return out;
+}
+function setAlertCfg(app,type,cfg,now){
+  var f=ensure(app);
+  f.alertCfg[type]=cfg||{};
+  return{ok:true};
+}
+
+/* ── Daily briefing ── the numbers Josh reads before anything else ──────── */
+function briefing(app,now){
+  var f=ensure(app),today=dayOf(now);
+  var lifeCash=0,workCash=0;
+  listAccounts(app).forEach(function(a){
+    if(!CASH_KINDS[a.kind])return;
+    var bal=accountBalance(app,a.id);
+    if(a.domain==='LIFE')lifeCash+=bal;else workCash+=bal;
+  });
+  var week=events(app,{from:today,to:addDays(today,7),domain:'ALL'},now);
+  var weekIn=0,weekOut=0;
+  week.forEach(function(e){
+    if(e.amountCents>0){if(e.confidence>=CFG.SCENARIOS.expected)weekIn+=e.amountCents;}
+    else weekOut+=-e.amountCents;
+  });
+  var fc=forecast(app,{domain:'LIFE',days:30},now);
+  var delta=0;
+  values(f.txns).forEach(function(t){
+    if(t.date===today&&t.status!=='removed'&&!t.transferId&&t.domain==='LIFE')delta+=t.amountCents;
+  });
+  var inb=inbox(app,now);
+  var ar=bizReceivables(app,now);
+  return{lifeCashCents:lifeCash,workCashCents:workCash,
+    weekInCents:weekIn,weekOutCents:weekOut,
+    minProjected30Cents:fc.expected.minCents,minProjectedDate:fc.expected.minDate,
+    upcoming:week.slice(0,5),attentionCount:inb.length,attention:inb.slice(0,3),
+    receivablesOpenCents:ar.openCents,receivablesOverdueCents:ar.overdueCents,
+    todayDeltaCents:delta,hasData:!!(Object.keys(f.accounts).length||Object.keys(f.txns).length)};
+}
+
+/* ── CSV import ── tolerant of the common bank export shapes ────────────── */
+function parseCsv(text){
+  var lines=String(text||'').split(/\r?\n/).filter(function(l){return l.trim();});
+  if(!lines.length)return{ok:false,reason:'empty',txns:[],errors:[]};
+  var delim=[',',';','\t'].sort(function(a,b){
+    return lines[0].split(b).length-lines[0].split(a).length;})[0];
+  function cells(line){
+    var out=[],cur='',q=false,i,ch;
+    for(i=0;i<line.length;i++){
+      ch=line[i];
+      if(ch==='"'){q=!q;continue;}
+      if(ch===delim&&!q){out.push(cur);cur='';continue;}
+      cur+=ch;
+    }
+    out.push(cur);
+    return out.map(function(c){return c.trim();});
+  }
+  var head=cells(lines[0]).map(function(h){return h.toLowerCase();});
+  var di=-1,ai=-1,ni=-1,dbi=-1,cri=-1;
+  head.forEach(function(h,i){
+    if(di<0&&/date/.test(h))di=i;
+    if(ai<0&&/^amount|amt/.test(h))ai=i;
+    if(ni<0&&/desc|name|payee|memo|merchant/.test(h))ni=i;
+    if(dbi<0&&/debit|withdraw/.test(h))dbi=i;
+    if(cri<0&&/credit|deposit/.test(h))cri=i;
+  });
+  var hasHeader=di>=0&&(ai>=0||dbi>=0||cri>=0);
+  var start=hasHeader?1:0;
+  if(!hasHeader){di=0;ai=1;ni=2;}
+  function parseAmount(s){
+    if(s==null||s==='')return null;
+    s=String(s).replace(/[$,\s]/g,'');
+    var neg=/^\(.*\)$/.test(s);
+    if(neg)s=s.slice(1,-1);
+    var v=Number(s);
+    if(!isFinite(v))return null;
+    return Math.round(v*100)*(neg?-1:1);
+  }
+  function parseDate(s){
+    s=String(s||'').trim();
+    if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(0,10);
+    var m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+    if(m){
+      var y=m[3].length===2?'20'+m[3]:m[3];
+      return y+'-'+('0'+m[1]).slice(-2)+'-'+('0'+m[2]).slice(-2);
+    }
+    return null;
+  }
+  var txns=[],errors=[];
+  for(var i=start;i<lines.length;i++){
+    var c=cells(lines[i]);
+    var date=parseDate(c[di]);
+    var amt=null;
+    if(ai>=0)amt=parseAmount(c[ai]);
+    if(amt==null&&(dbi>=0||cri>=0)){
+      var deb=dbi>=0?parseAmount(c[dbi]):null;
+      var cre=cri>=0?parseAmount(c[cri]):null;
+      if(deb!=null&&deb!==0)amt=-Math.abs(deb);
+      else if(cre!=null&&cre!==0)amt=Math.abs(cre);
+    }
+    var name=ni>=0?c[ni]:c.filter(function(x,j){return j!==di&&j!==ai;}).join(' ');
+    if(!date||amt==null||amt===0){errors.push({line:i+1,raw:lines[i].slice(0,80)});continue;}
+    txns.push({date:date,amountCents:amt,name:name||'(imported)'});
+  }
+  if(!txns.length)return{ok:false,reason:'no_rows',txns:[],errors:errors};
+  var importId='imp_'+hash(text.length+'|'+txns.length+'|'+txns[0].date+'|'+txns[0].amountCents+'|'+(txns[txns.length-1].date));
+  return{ok:true,txns:txns,errors:errors,importId:importId};
+}
+function importCsv(app,accountId,text,now){
+  var f=ensure(app);
+  if(!f.accounts[accountId])return{ok:false,reason:'no_such_account'};
+  var p=parseCsv(text);
+  if(!p.ok)return p;
+  if(f.seenImports[p.importId])return{ok:false,reason:'already_imported',importId:p.importId};
+  var raws=p.txns.map(function(t,i){
+    return{sourceId:p.importId+'_'+i,accountId:accountId,date:t.date,
+      amountCents:t.amountCents,name:t.name};
+  });
+  var res=ingest(app,'import',raws,now);
+  f.seenImports[p.importId]=iso(now);
+  audit(f,'import.csv',p.importId,null,res.added+' rows','user',now);
+  return{ok:true,importId:p.importId,result:res,errors:p.errors};
+}
+
+/* ── Sandbox ── obviously fake, fully isolated. Entering stashes the real
+   books untouched; exiting restores them byte-for-byte. Never mixed. ─────── */
+var SANDBOX_KEYS=['accounts','txns','recurring','expected','budgets','goals','debts',
+  'manualAssets','netWorth','biz','rules','inboxDismissed','audit','archive','seenImports','seq'];
+function sandboxEnter(app,now){
+  var f=ensure(app);
+  if(f.sandbox)return{ok:false,reason:'already_sandbox'};
+  var stash={};
+  SANDBOX_KEYS.forEach(function(k){stash[k]=f[k];});
+  f.stash=JSON.parse(JSON.stringify(stash));
+  SANDBOX_KEYS.forEach(function(k){
+    f[k]=Array.isArray(f[k])?[]:(typeof f[k]==='number'?0:{});
+  });
+  f.biz={items:{},payments:[],fetchedAt:null,sync:{status:'not_configured',lastOkAt:null,error:null}};
+  f.sandbox=true;
+  seedSandbox(app,now);
+  return{ok:true};
+}
+function sandboxExit(app,now){
+  var f=ensure(app);
+  if(!f.sandbox)return{ok:false,reason:'not_sandbox'};
+  var stash=f.stash||{};
+  SANDBOX_KEYS.forEach(function(k){
+    f[k]=stash[k]!==undefined?stash[k]:(Array.isArray(f[k])?[]:{});
+  });
+  f.stash=null;f.sandbox=false;
+  return{ok:true};
+}
+function seedSandbox(app,now){
+  var f=ensure(app),today=dayOf(now);
+  function ago(n){return addDays(today,-n);}
+  var chk=addAccount(app,{name:'Sandbox Checking',domain:'LIFE',kind:'checking',source:'sandbox',openingBalanceCents:250000},now).id;
+  var sav=addAccount(app,{name:'Sandbox Savings',domain:'LIFE',kind:'savings',source:'sandbox',openingBalanceCents:1100000},now).id;
+  var cc=addAccount(app,{name:'Sandbox Credit Card',domain:'LIFE',kind:'credit',source:'sandbox',openingBalanceCents:-84500},now).id;
+  var wchk=addAccount(app,{name:'Sandbox PVI Checking',domain:'WORK',businessId:'PVI',kind:'checking',source:'sandbox',openingBalanceCents:520000},now).id;
+  var raws=[],n=0;
+  function add(acct,daysAgo,amt,name,extra){
+    var r={sourceId:'sbx'+(++n),accountId:acct,date:ago(daysAgo),amountCents:amt,name:name};
+    if(extra)Object.keys(extra).forEach(function(k){r[k]=extra[k];});
+    raws.push(r);
+  }
+  var i;
+  for(i=0;i<7;i++)add(chk,i*14+2,215000,'ACME PAYROLL DIRECT DEP');
+  for(i=0;i<3;i++)add(chk,i*30+5,-160000,'GREENSTONE PROPERTIES RENT');
+  for(i=0;i<3;i++)add(cc,i*30+3,i===0?-1799:-1549,'Netflix.com');
+  for(i=0;i<3;i++)add(cc,i*30+11,-1199,'Spotify USA');
+  for(i=0;i<3;i++)add(cc,i*30+8,-299,'APPLE.COM/BILL iCloud');
+  for(i=0;i<3;i++)add(chk,i*30+15,-4400,'IRON TEMPLE GYM');
+  for(i=0;i<12;i++)add(chk,i*7+1,-(6200+((i*937)%5600)),'JEWEL-OSCO #3341');
+  for(i=0;i<10;i++)add(cc,i*8+2,-(900+((i*613)%3800)),i%2?'CHIPOTLE 1187':'STARBUCKS #442');
+  for(i=0;i<6;i++)add(chk,i*13+4,-(3800+((i*511)%2400)),'SHELL OIL 5573');
+  for(i=0;i<3;i++)add(chk,i*30+9,-(11200+((i*700)%2100)),'COMED ELECTRIC');
+  add(chk,0,-675,'STARBUCKS #442',{pending:true});
+  add(cc,12,-8999,'BEST BUY #211');
+  add(cc,10,8999,'BEST BUY #211 REFUND');
+  for(i=0;i<2;i++){
+    add(chk,i*30+6,-50000,'ONLINE TRANSFER TO SAVINGS');
+    add(sav,i*30+6,50000,'ONLINE TRANSFER FROM CHECKING');
+  }
+  add(wchk,4,154000,'STRIPE PAYOUT');
+  add(wchk,9,-38000,'ULINE SHIP SUPPLIES');
+  add(wchk,13,-4900,'ADOBE CREATIVE CLOUD');
+  ingest(app,'sandbox',raws,now);
+  detectRecurring(app,now);
+  addExpected(app,{label:'Check · Fox Valley Signage',direction:'in',amountCents:250000,
+    expectedDate:addDays(today,6),method:'check',domain:'WORK',businessId:'PVI',
+    confidence:CFG.CONFIDENCE.MEDIUM,source:'manual',note:'Customer said the check is in the mail'},now);
+  var m=monthOf(today);
+  budgetSet(app,m,'cat_groceries',50000,{},now);
+  budgetSet(app,m,'cat_dining',25000,{},now);
+  budgetSet(app,m,'cat_shopping',20000,{},now);
+  upsertDebt(app,{name:'Sandbox Credit Card',kind:'credit_card',balanceCents:84500,aprBps:2499,
+    minPaymentCents:4500,dueDay:21,accountId:cc,domain:'LIFE'},now);
+  upsertGoal(app,{name:'Emergency fund',targetCents:1500000,linkedAccountId:sav,domain:'LIFE'},now);
+  netWorthSnapshot(app,now);
+  return{ok:true};
+}
+
+/* ── Compaction ── the appData blob must stay bounded. Posted history older
+   than the retention window collapses into monthly category totals. ──────── */
+function compact(app,now){
+  var f=ensure(app),today=dayOf(now);
+  var cutoffMonth=monthOf(addDays(today,-CFG.RETENTION_MONTHS*30));
+  var removed=0;
+  values(f.txns).forEach(function(t){
+    var m=monthOf(t.date);
+    if(m>=cutoffMonth)return;
+    if(t.status==='pending')return;
+    var a=f.archive[m]=f.archive[m]||{count:0,inCents:0,outCents:0,byCat:{}};
+    if(t.status!=='removed'&&!t.transferId){
+      contributions(t).forEach(function(c){
+        a.byCat[c.categoryId]=(a.byCat[c.categoryId]||0)+c.amountCents;
+        if(c.amountCents>0)a.inCents+=c.amountCents;else a.outCents-=c.amountCents;
+      });
+    }
+    a.count++;
+    delete f.txns[t.id];
+    removed++;
+  });
+  return{compacted:removed};
+}
+
+/* ── Integrity ── invariants a financial store must never violate ────────── */
+function integrity(app){
+  var f=ensure(app),problems=[];
+  values(f.txns).forEach(function(t){
+    if(!isFinite(t.amountCents)||t.amountCents!==Math.round(t.amountCents))
+      problems.push({code:'non_integer_amount',ref:t.id,detail:t.name});
+    if(!f.accounts[t.accountId])
+      problems.push({code:'orphan_account',ref:t.id,detail:'account '+t.accountId+' missing'});
+    if(t.categoryId&&!f.categories[t.categoryId])
+      problems.push({code:'orphan_category',ref:t.id,detail:'category '+t.categoryId+' missing'});
+    if(t.splits){
+      var sum=0;t.splits.forEach(function(p){sum+=p.amountCents;});
+      if(sum!==t.amountCents)problems.push({code:'split_sum',ref:t.id,
+        detail:'parts '+fmt(sum)+' vs txn '+fmt(t.amountCents)});
+    }
+    if(t.transferId){
+      var mates=values(f.txns).filter(function(x){return x.transferId===t.transferId;});
+      if(mates.length!==2)problems.push({code:'transfer_arity',ref:t.transferId,detail:mates.length+' legs'});
+      else if(mates[0].amountCents!==-mates[1].amountCents)
+        problems.push({code:'transfer_amounts',ref:t.transferId,detail:'legs do not cancel'});
+    }
+  });
+  values(f.expected).forEach(function(e){
+    if(e.matchedTxnId&&!f.txns[e.matchedTxnId])
+      problems.push({code:'orphan_match',ref:e.id,detail:'matched txn missing'});
+  });
+  /* Deduplicate transfer problems (each leg reports the pair). */
+  var seen={},uniq=[];
+  problems.forEach(function(p){
+    var k=p.code+'|'+p.ref;
+    if(!seen[k]){seen[k]=1;uniq.push(p);}
+  });
+  return{ok:!uniq.length,problems:uniq};
+}
+
+return{
+  CFG:CFG,DOMAINS:DOMAINS,
+  clock:clock,dayOf:dayOf,addDays:addDays,daysBetween:daysBetween,monthOf:monthOf,
+  fmt:fmt,cents:cents,hash:hash,
+  ensure:ensure,
+  normalizeMerchant:normalizeMerchant,merchantKey:merchantKey,
+  addAccount:addAccount,updateAccount:updateAccount,archiveAccount:archiveAccount,
+  accountBalance:accountBalance,listAccounts:listAccounts,upsertProviderAccounts:upsertProviderAccounts,
+  listCategories:listCategories,addCategory:addCategory,
+  categorize:categorize,setCategory:setCategory,markReviewed:markReviewed,
+  addRule:addRule,removeRule:removeRule,applyRulesRetro:applyRulesRetro,
+  ingest:ingest,addManualTxn:addManualTxn,listTxns:listTxns,
+  setSplits:setSplits,clearSplits:clearSplits,contributions:contributions,
+  pairTransfer:pairTransfer,unpairTransfer:unpairTransfer,detectTransfers:detectTransfers,
+  detectRecurring:detectRecurring,listRecurring:listRecurring,
+  muteStream:muteStream,setStreamStatus:setStreamStatus,ackPriceChange:ackPriceChange,
+  subscriptions:subscriptions,
+  addExpected:addExpected,listExpected:listExpected,cancelExpected:cancelExpected,
+  markExpectedReceived:markExpectedReceived,markExpectedMissed:markExpectedMissed,
+  matchExpected:matchExpected,suggestedExpectedMatches:suggestedExpectedMatches,
+  events:events,forecast:forecast,
+  budgetSet:budgetSet,budgetStatus:budgetStatus,spendingReport:spendingReport,
+  netWorthCompute:netWorthCompute,netWorthSnapshot:netWorthSnapshot,netWorthTrend:netWorthTrend,
+  upsertDebt:upsertDebt,removeDebt:removeDebt,payoffPlan:payoffPlan,
+  upsertGoal:upsertGoal,removeGoal:removeGoal,goalStatus:goalStatus,
+  whatIf:whatIf,
+  applyBizFinance:applyBizFinance,markBizError:markBizError,bizReceivables:bizReceivables,
+  inbox:inbox,dismissInbox:dismissInbox,alerts:alerts,setAlertCfg:setAlertCfg,
+  briefing:briefing,
+  parseCsv:parseCsv,importCsv:importCsv,
+  sandboxEnter:sandboxEnter,sandboxExit:sandboxExit,
+  compact:compact,integrity:integrity
+};
+})();
+if(typeof window!=='undefined')window.FIN=FIN;
+/* FIN-ENGINE:END */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MONEY — JoshOS glue (DOM-aware; deliberately outside the tested engine
+   above). Every number rendered here comes from FIN; this layer does no
+   financial arithmetic of its own.
+
+   Transport rides the SAME scoped bridge as business work and Growth Point 1:
+   GET {bridge}/finance with the existing bearer token (scope finance:read).
+   JoshOS never holds business database credentials, and a failed read leaves
+   the last good figures on screen labelled stale — never a fake zero.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function finState(){return FIN.ensure(appData);}
+function finNow(){return new Date().toISOString();}
+function finM(c,r){return FIN.fmt(c,{round:r===true});}
+function finMS(c){return FIN.fmt(c,{sign:true});}
+
+var _finTab='overview',_finHorizon=30,_finMonth=null,_finPulling=null,_finTxFilter={domain:'',accountId:'',uncat:false};
+
+function finBizConfigured(){
+  var s=appData.settings||{};
+  return !!((s.workosBridgeUrl||'').trim());
+}
+
+/** Pull the business finance snapshot. Same honesty rules as gp1Fetch. */
+function finPull(silent){
+  var f=finState(),s=appData.settings||{};
+  var url=(s.workosBridgeUrl||'').trim(),tok=(s.workosBridgeToken||'').trim();
+  if(!url){
+    f.biz.sync={status:'not_configured',lastOkAt:f.biz.sync&&f.biz.sync.lastOkAt||null,error:'Bridge not configured'};
+    finRenderAll();return Promise.resolve({ok:false,reason:'not_configured'});
+  }
+  if(_finPulling)return _finPulling;
+  var headers={'Content-Type':'application/json'};
+  if(tok)headers['Authorization']='Bearer '+tok;
+  _finPulling=fetch(url.replace(/\/$/,'')+'/finance',{headers:headers})
+    .then(function(r){
+      if(!r.ok)throw new Error('bridge '+r.status+' '+r.statusText);
+      return r.json();
+    })
+    .then(function(payload){
+      var res=FIN.applyBizFinance(appData,payload,finNow());
+      if(!res.applied)throw new Error('bridge returned '+res.reason);
+      saveData();finRenderAll();
+      if(!silent)showToast('Business finance — refreshed');
+      return{ok:true};
+    })
+    .catch(function(err){
+      FIN.markBizError(appData,err,finNow());
+      saveData();finRenderAll();
+      if(!silent)showToast('Business finance — could not reach the bridge ('+(err&&err.message||err)+')');
+      return{ok:false,error:String(err&&err.message||err)};
+    })
+    .then(function(r){_finPulling=null;return r;});
+  return _finPulling;
+}
+function finRefreshNow(){showToast('Reading business finance…');finPull(false);}
+
+/* ── shared render helpers ─────────────────────────────────────────────── */
+function finAgo(ts){
+  if(!ts)return 'never';
+  var m=Math.round((Date.now()-new Date(ts).getTime())/60000);
+  if(m<1)return 'just now';
+  if(m<60)return m+' min ago';
+  if(m<48*60)return Math.round(m/60)+'h ago';
+  return Math.round(m/1440)+'d ago';
+}
+function finSyncLine(){
+  var f=finState(),b=f.biz.sync||{};
+  var txt,cls;
+  if(f.sandbox){txt='SANDBOX DATA';cls='warn';}
+  else if(b.status==='ok'){txt='Business synced '+finAgo(f.biz.fetchedAt);cls='live';}
+  else if(b.status==='error'){txt='Business sync failed — showing last good figures ('+(b.error||'')+')';cls='bad';}
+  else{txt='Business finance not connected';cls='info';}
+  return '<span class="status '+cls+'">'+esc(txt)+'</span>';
+}
+function finCatSelect(t){
+  var f=finState();
+  var cats=FIN.listCategories(appData,t.domain);
+  var opts=cats.map(function(c){
+    return '<option value="'+c.id+'"'+(t.categoryId===c.id?' selected':'')+'>'+esc(c.name)+'</option>';
+  }).join('');
+  return '<select class="fin-catsel" onchange="finSetCat(\''+t.id+'\',this.value)">'+opts+'</select>';
+}
+function finAccName(id){
+  var a=finState().accounts[id];
+  return a?a.name:'?';
+}
+function finConfLabel(c){
+  var C=FIN.CFG.CONFIDENCE;
+  if(c>=C.VERY_HIGH)return 'very high';
+  if(c>=C.HIGH)return 'high';
+  if(c>=C.MEDIUM)return 'medium';
+  if(c>=C.LOW)return 'low';
+  return 'speculative';
+}
+
+/* ── page: Money ───────────────────────────────────────────────────────── */
+function finTabGo(tab,el){
+  _finTab=tab;
+  document.querySelectorAll('#page-money .fin-tab').forEach(function(b){b.classList.toggle('active',b.dataset.tab===tab);});
+  finRenderMoney();
+}
+function finRenderAll(){
+  if(curRoute==='money')finRenderMoney();
+  if(curRoute==='bizmoney')finRenderBiz();
+  finRenderHome();
+  finRenderSettings();
+}
+function finRenderMoney(){
+  var el=document.getElementById('finBody');
+  if(!el)return;
+  var st=document.getElementById('finSyncLine');
+  if(st)st.outerHTML='<span id="finSyncLine">'+finSyncLine()+'</span>';
+  var html='';
+  try{
+    if(_finTab==='overview')html=finVOverview();
+    else if(_finTab==='txns')html=finVTxns();
+    else if(_finTab==='cashflow')html=finVCashflow();
+    else if(_finTab==='budget')html=finVBudget();
+    else if(_finTab==='recurring')html=finVRecurring();
+    else if(_finTab==='balance')html=finVBalance();
+    else if(_finTab==='review')html=finVReview();
+  }catch(e){
+    html='<div class="card"><p class="muted">Money view failed to render: '+esc(e&&e.message||e)+'</p></div>';
+  }
+  el.innerHTML=html;
+  paintIcons(el);
+}
+
+function finEmptyState(){
+  return '<div class="card"><h3 style="margin:0 0 6px">No money data yet</h3>'+
+    '<p class="muted" style="margin:0 0 10px">Add an account and a few transactions, import a CSV from your bank, or turn on the sandbox to explore with obviously fake data. Live bank sync (Plaid) ships server-side and is not configured yet — see Settings → Data &amp; sync.</p>'+
+    '<div class="hstack">'+
+    '<button class="btn primary" onclick="finTabGo(\'balance\')">Add an account</button>'+
+    '<button class="btn quiet" onclick="finSandboxToggle(true)">Enter sandbox</button>'+
+    '</div></div>';
+}
+
+function finVOverview(){
+  var f=finState(),now=finNow();
+  var b=FIN.briefing(appData,now);
+  if(!b.hasData)return finEmptyState();
+  var nw=FIN.netWorthCompute(appData,now);
+  var tr=FIN.netWorthTrend(appData,30,now);
+  var al=FIN.alerts(appData,now);
+  var ar=FIN.bizReceivables(appData,now);
+  var h='';
+  h+='<div class="mstrip">'+
+    '<div class="metric"><div class="metric-v">'+finM(b.lifeCashCents,true)+'</div><div class="metric-l">Personal cash</div></div>'+
+    '<div class="metric"><div class="metric-v">'+finM(b.workCashCents,true)+'</div><div class="metric-l">Business cash</div></div>'+
+    '<div class="metric"><div class="metric-v">'+finM(b.minProjected30Cents,true)+'</div><div class="metric-l">30-day low (expected)</div></div>'+
+    '<div class="metric"><div class="metric-v">'+finM(nw.combined.netCents,true)+'</div><div class="metric-l">Net worth'+(tr.deltaCents!=null?' · '+finMS(tr.deltaCents)+' / 30d':'')+'</div></div>'+
+    '</div>';
+  h+='<div class="grid2">';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Personal — next 7 days</h3><span class="sec-sub">'+finMS(b.weekInCents)+' in · '+finM(b.weekOutCents)+' out</span></div>';
+  var week=FIN.events(appData,{from:FIN.dayOf(now),to:FIN.addDays(FIN.dayOf(now),7),domain:'LIFE'},now);
+  h+=week.length?week.slice(0,6).map(function(e){
+    return '<div class="fin-row"><span class="fin-date">'+e.date.slice(5)+'</span><span class="fin-name">'+esc(e.label)+'</span>'+
+      '<span class="fin-conf">'+finConfLabel(e.confidence)+'</span><span class="fin-amt '+(e.amountCents<0?'out':'in')+'">'+finMS(e.amountCents)+'</span></div>';
+  }).join(''):'<p class="muted">Nothing due in the next week.</p>';
+  h+='</section>';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Business — receivables</h3><span class="sec-sub">'+finSyncLine()+'</span></div>';
+  if(ar.open.length){
+    h+='<div class="fin-row"><span class="fin-name">Open</span><span class="fin-amt in">'+finM(ar.openCents)+'</span></div>';
+    if(ar.overdueCents)h+='<div class="fin-row"><span class="fin-name">Overdue</span><span class="fin-amt out">'+finM(ar.overdueCents)+'</span></div>';
+    h+=ar.open.slice(0,4).map(function(r){
+      return '<div class="fin-row"><span class="fin-date">'+(r.dueDate?r.dueDate.slice(5):'—')+'</span><span class="fin-name">'+esc(r.label)+(r.overdue?' <span class="fin-chip bad">overdue</span>':'')+'</span><span class="fin-amt in">'+finM(r.remainingCents)+'</span></div>';
+    }).join('');
+  }else if(finBizConfigured()){
+    h+='<p class="muted">No open receivables.</p>';
+  }else{
+    h+='<p class="muted">Connect the WorkOS bridge in Settings to see customer money in flight.</p>';
+  }
+  if(ar.mrrCents)h+='<div class="fin-row"><span class="fin-name">Subscription MRR <span class="fin-chip">run rate — not cash</span></span><span class="fin-amt">'+finM(ar.mrrCents)+'/mo</span></div>';
+  h+='<div style="margin-top:var(--s3)"><button class="btn quiet sm" onclick="goTo(\'bizmoney\')">Open Business Money</button></div>';
+  h+='</section></div>';
+  if(al.length){
+    h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Alerts</h3><span class="sec-sub">'+al.length+'</span></div>';
+    h+=al.slice(0,6).map(function(a){
+      return '<div class="fin-row"><span class="fin-chip '+(a.level==='bad'?'bad':a.level==='warn'?'warn':'')+'">'+esc(a.type.replace(/_/g,' '))+'</span><span class="fin-name">'+esc(a.title)+'</span><span class="fin-conf">'+esc(a.detail)+'</span></div>';
+    }).join('');
+    h+='</section>';
+  }
+  if(b.attentionCount){
+    h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Needs review</h3><span class="sec-sub">'+b.attentionCount+' item'+(b.attentionCount>1?'s':'')+'</span></div>'+
+      '<button class="btn quiet sm" onclick="finTabGo(\'review\')">Open review queue</button></section>';
+  }
+  return h;
+}
+
+function finVTxns(){
+  var f=finState(),now=finNow();
+  var accs=FIN.listAccounts(appData);
+  if(!accs.length)return finEmptyState();
+  var opts={domain:_finTxFilter.domain||null,accountId:_finTxFilter.accountId||null,uncategorized:_finTxFilter.uncat};
+  var ts=FIN.listTxns(appData,opts).slice(0,120);
+  var h='<div class="hstack" style="flex-wrap:wrap;gap:var(--s2);margin-bottom:var(--s3)">';
+  h+='<select class="fin-catsel" onchange="_finTxFilter.domain=this.value;finRenderMoney()"><option value="">All domains</option><option value="LIFE"'+(_finTxFilter.domain==='LIFE'?' selected':'')+'>Personal</option><option value="WORK"'+(_finTxFilter.domain==='WORK'?' selected':'')+'>Business</option></select>';
+  h+='<select class="fin-catsel" onchange="_finTxFilter.accountId=this.value;finRenderMoney()"><option value="">All accounts</option>'+accs.map(function(a){return '<option value="'+a.id+'"'+(_finTxFilter.accountId===a.id?' selected':'')+'>'+esc(a.name)+'</option>';}).join('')+'</select>';
+  h+='<label class="fin-inline"><input type="checkbox" '+(_finTxFilter.uncat?'checked':'')+' onchange="_finTxFilter.uncat=this.checked;finRenderMoney()"> Uncategorized only</label>';
+  h+='</div>';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Transactions</h3><span class="sec-sub">'+ts.length+' shown</span></div>';
+  if(!ts.length)h+='<p class="muted">Nothing matches this filter.</p>';
+  h+=ts.map(function(t){
+    var chips='';
+    if(t.status==='pending')chips+=' <span class="fin-chip">pending</span>';
+    if(t.transferId)chips+=' <span class="fin-chip">transfer</span>';
+    if(t.splits)chips+=' <span class="fin-chip">split ×'+t.splits.length+'</span>';
+    if(t.domain==='WORK')chips+=' <span class="fin-chip">'+esc(t.businessId||'WORK')+'</span>';
+    return '<div class="fin-row">'+
+      '<span class="fin-date">'+t.date.slice(5)+'</span>'+
+      '<span class="fin-name" title="'+esc(t.name)+'">'+esc(t.name)+chips+'</span>'+
+      '<span class="fin-acc">'+esc(finAccName(t.accountId))+'</span>'+
+      finCatSelect(t)+
+      '<span class="fin-amt '+(t.amountCents<0?'out':'in')+'">'+finMS(t.amountCents)+'</span>'+
+      '<button class="ibtn sm" data-ico="check" title="'+(t.reviewed?'Reviewed':'Mark reviewed')+'" style="opacity:'+(t.reviewed?'1':'.4')+'" onclick="finReview(\''+t.id+'\')"></button>'+
+      '<button class="ibtn sm" data-ico="layers" title="Split" onclick="finSplitPrompt(\''+t.id+'\')"></button>'+
+      '</div>';
+  }).join('');
+  h+='</section>';
+  h+='<div class="grid2">';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Add a transaction</h3></div>'+
+    '<div class="hstack" style="flex-wrap:wrap;gap:var(--s2)">'+
+    '<select id="finTxAcc" class="fin-catsel">'+accs.map(function(a){return '<option value="'+a.id+'">'+esc(a.name)+'</option>';}).join('')+'</select>'+
+    '<input class="hi" id="finTxDate" type="date" value="'+FIN.dayOf(now)+'">'+
+    '<input class="hi" id="finTxAmt" placeholder="-42.18" style="width:90px">'+
+    '<input class="hi" id="finTxName" placeholder="Description" style="width:160px">'+
+    '<button class="btn primary sm" onclick="finAddTxn()">Add</button></div>'+
+    '<p class="ssl" style="margin-top:var(--s2)">Negative = money out. Manual entries ride the same pipeline as a bank feed — dedupe, rules, transfers, matching.</p></section>';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Import CSV</h3><span class="sec-sub">date, description, amount — most bank exports work</span></div>'+
+    '<select id="finCsvAcc" class="fin-catsel" style="margin-bottom:var(--s2)">'+accs.map(function(a){return '<option value="'+a.id+'">'+esc(a.name)+'</option>';}).join('')+'</select>'+
+    '<textarea id="finCsvText" class="inp" rows="4" placeholder="Date,Description,Amount&#10;08/20/2026,JEWEL-OSCO,-42.18"></textarea>'+
+    '<div class="hstack" style="margin-top:var(--s2)"><button class="btn quiet sm" onclick="finImportCsv()">Import</button><span class="ssl" id="finCsvStatus"></span></div></section>';
+  h+='</div>';
+  return h;
+}
+
+function finVCashflow(){
+  var f=finState(),now=finNow();
+  var fc=FIN.forecast(appData,{domain:'LIFE',days:_finHorizon},now);
+  var h='<div class="hstack" style="gap:var(--s2);margin-bottom:var(--s3)">';
+  [30,60,90].forEach(function(d){
+    h+='<button class="btn '+(_finHorizon===d?'primary':'quiet')+' sm" onclick="_finHorizon='+d+';finRenderMoney()">'+d+'d</button>';
+  });
+  h+='<span class="ssl">Personal cash accounts · scenarios differ only in which INFLOWS they believe</span></div>';
+  h+='<div class="mstrip">'+
+    '<div class="metric"><div class="metric-v">'+finM(fc.openingCents,true)+'</div><div class="metric-l">Today</div></div>'+
+    '<div class="metric"><div class="metric-v">'+finM(fc.conservative.endingCents,true)+'</div><div class="metric-l">Conservative</div></div>'+
+    '<div class="metric"><div class="metric-v">'+finM(fc.expected.endingCents,true)+'</div><div class="metric-l">Expected</div></div>'+
+    '<div class="metric"><div class="metric-v">'+finM(fc.optimistic.endingCents,true)+'</div><div class="metric-l">Optimistic</div></div>'+
+    '</div>';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Balance curve</h3><span class="sec-sub">expected scenario · low point '+finM(fc.expected.minCents,true)+' on '+fc.expected.minDate+'</span></div>'+finSpark(fc)+'</section>';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Upcoming events</h3><span class="sec-sub">'+fc.events.length+'</span></div>';
+  h+=fc.events.length?fc.events.slice(0,30).map(function(e){
+    return '<div class="fin-row"><span class="fin-date">'+e.date.slice(5)+'</span><span class="fin-name">'+esc(e.label)+' <span class="fin-chip">'+esc(e.type)+'</span></span><span class="fin-conf">'+finConfLabel(e.confidence)+'</span><span class="fin-amt '+(e.amountCents<0?'out':'in')+'">'+finMS(e.amountCents)+'</span></div>';
+  }).join(''):'<p class="muted">No projected events. Add expected payments, or let recurring detection find your bills.</p>';
+  h+='</section>';
+  h+='<div class="grid2">';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Expect a payment</h3><span class="sec-sub">a check in the mail, an invoice, a bill</span></div>'+
+    '<div class="hstack" style="flex-wrap:wrap;gap:var(--s2)">'+
+    '<input class="hi" id="finExpLabel" placeholder="Label" style="width:150px">'+
+    '<select id="finExpDir" class="fin-catsel"><option value="in">Money in</option><option value="out">Money out</option></select>'+
+    '<input class="hi" id="finExpAmt" placeholder="2500.00" style="width:90px">'+
+    '<input class="hi" id="finExpDate" type="date">'+
+    '<select id="finExpDom" class="fin-catsel"><option value="LIFE">Personal</option><option value="WORK">Business</option></select>'+
+    '<button class="btn primary sm" onclick="finAddExpected()">Add</button></div>'+
+    '<p class="ssl" style="margin-top:var(--s2)">No date? Leave it blank — it stays medium-confidence until it lands or you close it.</p></section>';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">What if…</h3><span class="sec-sub">simulated on a copy — the real books never move</span></div>'+
+    '<div class="hstack" style="gap:var(--s2)"><input class="hi" id="finWhatIfAmt" placeholder="1500.00" style="width:110px"><button class="btn quiet sm" onclick="finWhatIfSpend()">I spend this</button></div>'+
+    '<div id="finWhatIfOut" class="ssl" style="margin-top:var(--s2)"></div></section>';
+  h+='</div>';
+  return h;
+}
+function finSpark(fc){
+  var pts=[{date:fc.from,balanceCents:fc.openingCents}].concat(fc.expected.curve);
+  if(pts.length<2)return '<p class="muted">Not enough projected events to draw a curve.</p>';
+  var min=Math.min.apply(null,pts.map(function(p){return p.balanceCents;}).concat([0]));
+  var max=Math.max.apply(null,pts.map(function(p){return p.balanceCents;}));
+  var span=Math.max(1,max-min),W=600,H=120;
+  var t0=new Date(fc.from).getTime(),t1=new Date(fc.to).getTime();
+  function X(d){return Math.round((new Date(d).getTime()-t0)/(t1-t0||1)*W);}
+  function Y(c){return Math.round(H-8-((c-min)/span)*(H-16));}
+  var path=pts.map(function(p,i){return (i?'L':'M')+X(p.date)+' '+Y(p.balanceCents);}).join(' ');
+  var zero=min<0?'<line x1="0" y1="'+Y(0)+'" x2="'+W+'" y2="'+Y(0)+'" stroke="var(--accent2)" stroke-dasharray="4 4" stroke-width="1"/>':'';
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto" preserveAspectRatio="none" aria-label="Projected balance curve">'+zero+
+    '<path d="'+path+'" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>';
+}
+
+function finVBudget(){
+  var now=finNow();
+  var month=_finMonth||FIN.monthOf(FIN.dayOf(now));
+  var s=FIN.budgetStatus(appData,month,now);
+  var cats=FIN.listCategories(appData,'LIFE').filter(function(c){return c.kind==='expense';});
+  var h='<div class="hstack" style="gap:var(--s2);margin-bottom:var(--s3)">'+
+    '<button class="btn quiet sm" onclick="finMonthNav(-1)">&larr;</button>'+
+    '<b>'+month+'</b>'+
+    '<button class="btn quiet sm" onclick="finMonthNav(1)">&rarr;</button>'+
+    '<span class="ssl">Income '+finM(s.incomeCents)+' · Spend '+finM(s.spendCents)+' · Net '+finMS(s.netCents)+'</span></div>';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Category budgets</h3><span class="sec-sub">set a limit to track it; rollover carries the remainder</span></div>';
+  var budgeted={};
+  s.items.forEach(function(i){budgeted[i.categoryId]=i;});
+  var rep=FIN.spendingReport(appData,{month:month,domain:'LIFE'},now);
+  h+=cats.map(function(c){
+    var it=budgeted[c.id];
+    var spent=it?it.spentCents:((rep.spend.find(function(r){return r.categoryId===c.id;})||{amountCents:0}).amountCents);
+    var bar=it?'<div class="prog"><div class="prog-f" style="width:'+Math.min(100,it.pct)+'%;'+(it.pct>100?'background:var(--accent2)':'')+'"></div></div>':'';
+    return '<div class="fin-brow"><span class="fin-name">'+esc(c.name)+'</span>'+
+      '<span class="fin-acc">'+finM(spent)+(it?' / '+finM(it.effectiveLimitCents):'')+(it&&it.rolloverInCents?' <span class="fin-chip">+'+finM(it.rolloverInCents)+' rollover</span>':'')+'</span>'+
+      '<input class="hi" style="width:80px" placeholder="limit $" value="'+(it?Math.round(it.limitCents/100):'')+'" onchange="finSetBudget(\''+month+'\',\''+c.id+'\',this.value)">'+
+      bar+'</div>';
+  }).join('');
+  h+='</section>';
+  return h;
+}
+function finMonthNav(d){
+  var now=finNow();
+  var cur=_finMonth||FIN.monthOf(FIN.dayOf(now));
+  var dt=new Date(cur+'-15T00:00:00Z');dt.setUTCMonth(dt.getUTCMonth()+d);
+  _finMonth=dt.toISOString().slice(0,7);
+  finRenderMoney();
+}
+
+function finVRecurring(){
+  var now=finNow();
+  FIN.detectRecurring(appData,now);
+  var s=FIN.subscriptions(appData,now);
+  var h='<div class="mstrip">'+
+    '<div class="metric"><div class="metric-v">'+finM(s.monthlyCents,true)+'</div><div class="metric-l">Monthly recurring</div></div>'+
+    '<div class="metric"><div class="metric-v">'+finM(s.annualCents,true)+'</div><div class="metric-l">Annualized</div></div>'+
+    '<div class="metric"><div class="metric-v">'+s.subs.length+'</div><div class="metric-l">Active streams</div></div>'+
+    '</div>';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Recurring &amp; subscriptions</h3><span class="sec-sub">detected from your history — confidence shown, never certainty</span></div>';
+  if(!s.subs.length)h+='<p class="muted">Nothing recurring detected yet. Three charges from the same merchant at a steady cadence will show up here.</p>';
+  h+=s.subs.map(function(x){
+    return '<div class="fin-row"><span class="fin-name">'+esc(x.name)+
+      (x.priceChange?' <span class="fin-chip warn">price '+finM(Math.abs(x.priceChange.fromCents))+' → '+finM(Math.abs(x.priceChange.toCents))+'</span>':'')+
+      (x.status==='uncertain'?' <span class="fin-chip">uncertain</span>':'')+'</span>'+
+      '<span class="fin-acc">'+esc(x.cadence)+' · next '+(x.nextDate||'—').slice(5)+'</span>'+
+      '<span class="fin-conf">'+finConfLabel(x.confidence)+'</span>'+
+      '<span class="fin-amt out">'+finM(x.monthlyCents)+'/mo</span>'+
+      '<button class="ibtn sm" data-ico="x" title="Mute — hide from forecasts" onclick="finMute(\''+x.id+'\')"></button>'+
+      '</div>';
+  }).join('');
+  h+='</section>';
+  return h;
+}
+
+function finVBalance(){
+  var f=finState(),now=finNow();
+  var nw=FIN.netWorthCompute(appData,now);
+  var h='<div class="mstrip">'+
+    '<div class="metric"><div class="metric-v">'+finM(nw.LIFE.netCents,true)+'</div><div class="metric-l">Personal net</div></div>'+
+    '<div class="metric"><div class="metric-v">'+finM(nw.WORK.netCents,true)+'</div><div class="metric-l">Business net</div></div>'+
+    '<div class="metric"><div class="metric-v">'+finM(nw.combined.netCents,true)+'</div><div class="metric-l">Combined</div></div>'+
+    '</div>';
+  h+='<div class="grid2">';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Accounts</h3></div>';
+  var accs=FIN.listAccounts(appData);
+  h+=accs.length?accs.map(function(a){
+    var bal=FIN.accountBalance(appData,a.id);
+    return '<div class="fin-row"><span class="fin-name">'+esc(a.name)+' <span class="fin-chip">'+esc(a.kind)+'</span>'+(a.domain==='WORK'?' <span class="fin-chip">'+esc(a.businessId||'WORK')+'</span>':'')+(a.source!=='manual'?' <span class="fin-chip">'+esc(a.source)+'</span>':'')+'</span>'+
+      '<span class="fin-acc">'+(a.source==='manual'?'ledger':'as of '+finAgo(a.balanceAt))+'</span>'+
+      '<span class="fin-amt '+(bal<0?'out':'')+'">'+finM(bal)+'</span>'+
+      '<button class="ibtn sm" data-ico="trash" title="Archive" onclick="finArchiveAcc(\''+a.id+'\')"></button></div>';
+  }).join(''):'<p class="muted">No accounts yet.</p>';
+  h+='<div class="hstack" style="flex-wrap:wrap;gap:var(--s2);margin-top:var(--s3)">'+
+    '<input class="hi" id="finAccName" placeholder="Account name" style="width:130px">'+
+    '<select id="finAccKind" class="fin-catsel"><option>checking</option><option>savings</option><option>credit</option><option>loan</option><option>cash</option><option>other</option></select>'+
+    '<select id="finAccDom" class="fin-catsel"><option value="LIFE">Personal</option><option value="WORK">Business</option></select>'+
+    '<input class="hi" id="finAccOpen" placeholder="opening $" style="width:80px">'+
+    '<button class="btn primary sm" onclick="finAddAccount()">Add</button></div></section>';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Debts</h3><span class="sec-sub">what an extra payment buys you</span></div>';
+  var debts=Object.keys(f.debts).map(function(k){return f.debts[k];});
+  h+=debts.length?debts.map(function(d){
+    return '<div class="fin-brow"><span class="fin-name">'+esc(d.name)+' <span class="fin-chip">'+(d.aprBps/100).toFixed(2)+'% APR</span></span>'+
+      '<span class="fin-acc">'+finM(d.balanceCents)+' · min '+finM(d.minPaymentCents)+'/mo</span>'+
+      '<span class="hstack" style="gap:var(--s1)"><input class="hi" style="width:70px" placeholder="+$/mo" id="finDx_'+d.id+'"><button class="btn quiet sm" onclick="finDebtSim(\''+d.id+'\')">Simulate</button></span>'+
+      '<span class="ssl" id="finDo_'+d.id+'"></span></div>';
+  }).join(''):'<p class="muted">No debts tracked.</p>';
+  h+='<div class="hstack" style="flex-wrap:wrap;gap:var(--s2);margin-top:var(--s3)">'+
+    '<input class="hi" id="finDebtName" placeholder="Debt name" style="width:110px">'+
+    '<input class="hi" id="finDebtBal" placeholder="balance $" style="width:80px">'+
+    '<input class="hi" id="finDebtApr" placeholder="APR %" style="width:60px">'+
+    '<input class="hi" id="finDebtMin" placeholder="min $/mo" style="width:80px">'+
+    '<button class="btn primary sm" onclick="finAddDebt()">Add</button></div></section>';
+  h+='</div>';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Goals</h3></div>';
+  var goals=Object.keys(f.goals).map(function(k){return FIN.goalStatus(appData,k,now);});
+  h+=goals.length?goals.map(function(g){
+    return '<div class="fin-brow"><span class="fin-name">'+esc(g.name)+(g.status==='funded'?' <span class="fin-chip live">funded</span>':'')+'</span>'+
+      '<span class="fin-acc">'+finM(g.currentCents)+' / '+finM(g.targetCents)+(g.requiredMonthlyCents?' · needs '+finM(g.requiredMonthlyCents)+'/mo':'')+'</span>'+
+      '<div class="prog"><div class="prog-f" style="width:'+g.pct+'%"></div></div></div>';
+  }).join(''):'<p class="muted">No goals yet.</p>';
+  h+='<div class="hstack" style="flex-wrap:wrap;gap:var(--s2);margin-top:var(--s3)">'+
+    '<input class="hi" id="finGoalName" placeholder="Goal" style="width:130px">'+
+    '<input class="hi" id="finGoalTarget" placeholder="target $" style="width:90px">'+
+    '<input class="hi" id="finGoalDate" type="date">'+
+    '<button class="btn primary sm" onclick="finAddGoal()">Add</button></div></section>';
+  return h;
+}
+
+function finVReview(){
+  var now=finNow();
+  var items=FIN.inbox(appData,now);
+  var f=finState();
+  var h='<section class="sec"><div class="sec-h"><h3 class="sec-t">Review queue</h3><span class="sec-sub">'+items.length+' item'+(items.length===1?'':'s')+'</span></div>';
+  if(!items.length)h+='<p class="muted">Nothing needs a decision. That is the goal.</p>';
+  h+=items.map(function(i){
+    var act='';
+    if(i.kind==='uncategorized'&&i.refs.txnId){
+      var t=f.txns[i.refs.txnId];
+      if(t)act=finCatSelect(t);
+    }else if(i.kind==='possible_transfer'){
+      act='<button class="btn quiet sm" onclick="finConfirmTransfer(\''+i.refs.a+'\',\''+i.refs.b+'\',\''+esc(i.key)+'\')">Confirm transfer</button>';
+    }else if(i.kind==='price_change'){
+      act='<button class="btn quiet sm" onclick="finAckPrice(\''+i.refs.streamId+'\',\''+esc(i.key)+'\')">Acknowledge</button>';
+    }else if(i.kind==='expected_missed'){
+      act='<button class="btn quiet sm" onclick="finMarkMissed(\''+i.refs.expectedId+'\')">Mark missed</button>';
+    }else if(i.kind==='match_payment'){
+      act='<select class="fin-catsel" id="finMatch_'+i.refs.expectedId+'">'+i.refs.txnIds.map(function(id){
+        var t=f.txns[id];return '<option value="'+id+'">'+(t?esc(t.date+' · '+t.name+' · '+finM(t.amountCents)):id)+'</option>';
+      }).join('')+'</select> <button class="btn quiet sm" onclick="finMatchPick(\''+i.refs.expectedId+'\')">Match</button>';
+    }
+    return '<div class="fin-row"><span class="fin-chip">'+esc(i.kind.replace(/_/g,' '))+'</span>'+
+      '<span class="fin-name">'+esc(i.title)+'<span class="ssl" style="display:block">'+esc(i.detail)+'</span></span>'+
+      '<span class="hstack" style="gap:var(--s1)">'+act+
+      '<button class="ibtn sm" data-ico="x" title="Dismiss" onclick="finDismiss(\''+esc(i.key)+'\')"></button></span></div>';
+  }).join('');
+  h+='</section>';
+  var integ=FIN.integrity(appData);
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Data integrity</h3><span class="sec-sub">'+(integ.ok?'clean':'PROBLEMS')+'</span></div>';
+  h+=integ.ok?'<p class="muted">Every invariant holds — splits sum, transfers cancel, references resolve.</p>':
+    integ.problems.map(function(p){return '<div class="fin-row"><span class="fin-chip bad">'+esc(p.code)+'</span><span class="fin-name">'+esc(p.detail||p.ref)+'</span></div>';}).join('');
+  h+='</section>';
+  return h;
+}
+
+/* ── page: Business Money ──────────────────────────────────────────────── */
+function finRenderBiz(){
+  var el=document.getElementById('finBizBody');
+  if(!el)return;
+  var st=document.getElementById('finBizSyncLine');
+  if(st)st.innerHTML=finSyncLine();
+  var f=finState(),now=finNow();
+  var ar=FIN.bizReceivables(appData,now);
+  var h='';
+  if(!finBizConfigured()&&f.biz.sync.status!=='ok'){
+    h+='<div class="card"><h3 style="margin:0 0 6px">Bridge not connected</h3><p class="muted" style="margin:0">Business money reads the same WorkOS bridge as business work — Settings → Data &amp; sync → Bridge URL + token. The token needs the <code>finance:read</code> scope. JoshOS never holds business database credentials.</p></div>';
+  }
+  var weekTo=FIN.addDays(FIN.dayOf(now),7);
+  var expWeek=FIN.listExpected(appData,{status:'open',domain:'WORK'}).filter(function(e){return e.expectedDate&&e.expectedDate<=weekTo;});
+  var expWeekCents=expWeek.reduce(function(s,e){return s+(e.direction==='in'?e.amountCents:0);},0);
+  h+='<div class="mstrip">'+
+    '<div class="metric"><div class="metric-v">'+finM(ar.openCents,true)+'</div><div class="metric-l">Open receivables</div></div>'+
+    '<div class="metric"><div class="metric-v">'+finM(ar.overdueCents,true)+'</div><div class="metric-l">Overdue</div></div>'+
+    '<div class="metric"><div class="metric-v">'+finM(expWeekCents,true)+'</div><div class="metric-l">Expected this week</div></div>'+
+    '<div class="metric"><div class="metric-v">'+finM(ar.mrrCents,true)+'</div><div class="metric-l">MRR (run rate, not cash)</div></div>'+
+    '</div>';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Receivables</h3><span class="sec-sub">who owes what — the invoice itself lives in the business system</span></div>';
+  h+=ar.open.length?ar.open.map(function(r){
+    return '<div class="fin-row"><span class="fin-date">'+(r.dueDate?r.dueDate.slice(5):'—')+'</span>'+
+      '<span class="fin-name">'+esc(r.label)+' <span class="fin-chip">'+esc(r.business)+'</span>'+(r.overdue?' <span class="fin-chip bad">overdue</span>':'')+'</span>'+
+      '<span class="fin-acc">'+(r.ageDays!=null?r.ageDays+'d old':'')+'</span>'+
+      '<span class="fin-amt in">'+finM(r.remainingCents)+'</span></div>';
+  }).join(''):'<p class="muted">No open receivables in the last snapshot.</p>';
+  h+='</section>';
+  h+='<div class="grid2">';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Expected payments</h3><span class="sec-sub">checks in the mail, promised payments</span></div>';
+  var exps=FIN.listExpected(appData,{domain:'WORK'}).filter(function(e){return e.status==='open';});
+  h+=exps.length?exps.map(function(e){
+    return '<div class="fin-row"><span class="fin-date">'+(e.expectedDate?e.expectedDate.slice(5):'—')+'</span>'+
+      '<span class="fin-name">'+esc(e.label)+' <span class="fin-chip">'+esc(e.method)+'</span>'+(e.source==='business'?' <span class="fin-chip">from invoice</span>':'')+'</span>'+
+      '<span class="fin-conf">'+finConfLabel(e.confidence)+'</span>'+
+      '<span class="fin-amt '+(e.direction==='in'?'in':'out')+'">'+finM(e.amountCents)+'</span>'+
+      (e.source!=='business'?'<button class="ibtn sm" data-ico="x" title="Cancel" onclick="finCancelExpected(\''+e.id+'\')"></button>':'')+
+      '</div>';
+  }).join(''):'<p class="muted">Nothing expected. When a customer says &ldquo;the check is in the mail&rdquo;, record it here.</p>';
+  h+='<div class="hstack" style="flex-wrap:wrap;gap:var(--s2);margin-top:var(--s3)">'+
+    '<input class="hi" id="finBExpLabel" placeholder="Customer check" style="width:140px">'+
+    '<input class="hi" id="finBExpAmt" placeholder="2500.00" style="width:90px">'+
+    '<input class="hi" id="finBExpDate" type="date">'+
+    '<button class="btn primary sm" onclick="finAddBizExpected()">Expect it</button></div></section>';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Recent payments</h3><span class="sec-sub">as recorded by the business system</span></div>';
+  h+=f.biz.payments.length?f.biz.payments.slice(0,10).map(function(p){
+    return '<div class="fin-row"><span class="fin-date">'+(p.paidAt?String(p.paidAt).slice(5,10):'—')+'</span><span class="fin-name">'+esc(p.method||'payment')+' <span class="fin-chip">'+esc(p.business||'')+'</span></span><span class="fin-amt in">'+finM(p.amountCents)+'</span></div>';
+  }).join(''):'<p class="muted">No payments in the last snapshot.</p>';
+  h+='</section></div>';
+  var obs=Object.keys(f.biz.items).map(function(k){return f.biz.items[k];}).filter(function(b){return b.kind==='obligation'&&b.active!==false;});
+  if(obs.length){
+    h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Obligations</h3><span class="sec-sub">committed business outflows</span></div>';
+    h+=obs.map(function(o){
+      return '<div class="fin-row"><span class="fin-date">'+(o.dueDate?o.dueDate.slice(5):'—')+'</span><span class="fin-name">'+esc(o.label)+' <span class="fin-chip">'+esc(o.business)+'</span>'+(o.recurringMonthly?' <span class="fin-chip">monthly</span>':'')+'</span><span class="fin-amt out">−'+finM(o.amountCents)+'</span></div>';
+    }).join('');
+    h+='</section>';
+  }
+  el.innerHTML=h;
+  paintIcons(el);
+}
+
+/* ── home card ─────────────────────────────────────────────────────────── */
+function finRenderHome(){
+  var el=document.getElementById('homeFin');
+  if(!el)return;
+  var now=finNow();
+  var b=FIN.briefing(appData,now);
+  if(!b.hasData){el.innerHTML='';return;}
+  var f=finState();
+  var h='<section class="sec" aria-labelledby="h-hfin"><div class="sec-h"><h2 class="sec-t" id="h-hfin">Money</h2><span class="sec-sub">'+(f.sandbox?'SANDBOX':'personal + business')+'</span></div>';
+  h+='<div class="mstrip">'+
+    '<div class="metric"><div class="metric-v">'+finM(b.lifeCashCents,true)+'</div><div class="metric-l">Cash</div></div>'+
+    '<div class="metric"><div class="metric-v">'+finMS(b.weekInCents-b.weekOutCents)+'</div><div class="metric-l">Next 7 days</div></div>'+
+    '<div class="metric"><div class="metric-v">'+finM(b.minProjected30Cents,true)+'</div><div class="metric-l">30-day low</div></div>'+
+    (b.receivablesOpenCents?'<div class="metric"><div class="metric-v">'+finM(b.receivablesOpenCents,true)+'</div><div class="metric-l">Customers owe</div></div>':'')+
+    '</div>';
+  if(b.attentionCount)h+='<div class="fin-row"><span class="fin-chip warn">'+b.attentionCount+' to review</span><span class="fin-name">'+esc(b.attention.map(function(a){return a.title;}).join(' · '))+'</span><button class="btn quiet sm" onclick="goTo(\'money\');finTabGo(\'review\')">Review</button></div>';
+  h+='</section>';
+  el.innerHTML=h;
+}
+
+/* ── settings ──────────────────────────────────────────────────────────── */
+function finRenderSettings(){
+  var el=document.getElementById('finSandboxChk');
+  if(el)el.checked=!!finState().sandbox;
+  var st=document.getElementById('finSettingsStatus');
+  if(st)st.innerHTML=finSyncLine();
+}
+function finSandboxToggle(force){
+  var f=finState(),now=finNow();
+  var on=force!==undefined?!!force:!f.sandbox;
+  if(on&&!f.sandbox){
+    FIN.sandboxEnter(appData,now);
+    showToast('Sandbox on — obviously fake data. Your real books are stashed untouched.');
+  }else if(!on&&f.sandbox){
+    FIN.sandboxExit(appData,now);
+    showToast('Sandbox off — real data restored.');
+  }
+  saveData();finRenderAll();
+  if(curRoute==='money')finRenderMoney();
+}
+
+/* ── action handlers ───────────────────────────────────────────────────── */
+function finSetCat(txnId,catId){
+  FIN.setCategory(appData,txnId,catId,'user',finNow());
+  saveData();finRenderAll();
+}
+function finReview(txnId){
+  FIN.markReviewed(appData,txnId,finNow());
+  saveData();finRenderMoney();
+}
+function finSplitPrompt(txnId){
+  var f=finState(),t=f.txns[txnId];
+  if(!t)return;
+  var raw=prompt('Split '+finM(t.amountCents)+' — one part per line as "amount category", e.g.\n-300 Business supplies\n-200 Groceries\nParts must sum to the total.');
+  if(!raw)return;
+  var cats=FIN.listCategories(appData);
+  var parts=raw.split('\n').map(function(l){
+    var m=l.trim().match(/^(-?\d+(?:\.\d{1,2})?)\s+(.+)$/);
+    if(!m)return null;
+    var name=m[2].toLowerCase();
+    var cat=cats.find(function(c){return c.name.toLowerCase().indexOf(name)>=0;});
+    return{amountCents:Math.round(Number(m[1])*100),categoryId:cat?cat.id:'cat_uncat',
+      domain:cat&&cat.domain!=='BOTH'?cat.domain:t.domain};
+  }).filter(Boolean);
+  var r=FIN.setSplits(appData,txnId,parts,finNow());
+  if(!r.ok){showToast('Split rejected: '+r.reason+(r.expected!=null?' (parts must sum to '+finM(r.expected)+')':''));return;}
+  saveData();finRenderMoney();showToast('Split saved');
+}
+function finConfirmTransfer(a,b,key){
+  var r=FIN.pairTransfer(appData,a,b,finNow());
+  if(r.ok)FIN.dismissInbox(appData,key,finNow());
+  else showToast('Could not pair: '+r.reason);
+  saveData();finRenderMoney();
+}
+function finAckPrice(streamId,key){
+  FIN.ackPriceChange(appData,streamId,finNow());
+  FIN.dismissInbox(appData,key,finNow());
+  saveData();finRenderMoney();
+}
+function finDismiss(key){
+  FIN.dismissInbox(appData,key,finNow());
+  saveData();finRenderMoney();
+}
+function finMarkMissed(expId){
+  FIN.markExpectedMissed(appData,expId,finNow());
+  saveData();finRenderAll();
+}
+function finCancelExpected(expId){
+  FIN.cancelExpected(appData,expId,finNow());
+  saveData();finRenderAll();
+}
+function finMatchPick(expId){
+  var sel=document.getElementById('finMatch_'+expId);
+  if(!sel)return;
+  FIN.markExpectedReceived(appData,expId,sel.value,finNow());
+  saveData();finRenderMoney();showToast('Payment matched');
+}
+function finDollars(inputId){
+  var el=document.getElementById(inputId);
+  var v=Number(String(el&&el.value||'').replace(/[$,\s]/g,''));
+  return isFinite(v)?Math.round(v*100):NaN;
+}
+function finAddTxn(){
+  var amt=finDollars('finTxAmt');
+  if(!isFinite(amt)||!amt){showToast('Amount required — negative for money out');return;}
+  var r=FIN.addManualTxn(appData,{
+    accountId:document.getElementById('finTxAcc').value,
+    date:document.getElementById('finTxDate').value,
+    amountCents:amt,
+    name:document.getElementById('finTxName').value||'Manual entry'
+  },finNow());
+  if(!r.ok){showToast('Not added: '+r.reason);return;}
+  saveData();finRenderMoney();
+}
+function finImportCsv(){
+  var r=FIN.importCsv(appData,document.getElementById('finCsvAcc').value,
+    document.getElementById('finCsvText').value,finNow());
+  var st=document.getElementById('finCsvStatus');
+  if(!r.ok){if(st)st.textContent='Import failed: '+r.reason;return;}
+  if(st)st.textContent='Imported '+r.result.added+' rows'+(r.errors.length?' · '+r.errors.length+' skipped':'');
+  saveData();finRenderMoney();
+}
+function finAddAccount(){
+  var open=finDollars('finAccOpen');
+  var r=FIN.addAccount(appData,{
+    name:document.getElementById('finAccName').value,
+    kind:document.getElementById('finAccKind').value,
+    domain:document.getElementById('finAccDom').value,
+    businessId:document.getElementById('finAccDom').value==='WORK'?'PVI':null,
+    openingBalanceCents:isFinite(open)?open:0
+  },finNow());
+  if(!r.ok){showToast('Not added: '+r.reason);return;}
+  saveData();finRenderMoney();
+}
+function finArchiveAcc(id){
+  if(!confirm('Archive this account? Its history stays; it just leaves the lists.'))return;
+  FIN.archiveAccount(appData,id,finNow());
+  saveData();finRenderMoney();
+}
+function finAddExpected(){
+  var amt=finDollars('finExpAmt');
+  if(!isFinite(amt)||amt<=0){showToast('Amount required');return;}
+  var r=FIN.addExpected(appData,{
+    label:document.getElementById('finExpLabel').value||'Expected payment',
+    direction:document.getElementById('finExpDir').value,
+    amountCents:amt,
+    expectedDate:document.getElementById('finExpDate').value||null,
+    domain:document.getElementById('finExpDom').value
+  },finNow());
+  if(!r.ok){showToast('Not added: '+r.reason);return;}
+  saveData();finRenderMoney();
+}
+function finAddBizExpected(){
+  var amt=finDollars('finBExpAmt');
+  if(!isFinite(amt)||amt<=0){showToast('Amount required');return;}
+  var r=FIN.addExpected(appData,{
+    label:document.getElementById('finBExpLabel').value||'Customer check',
+    direction:'in',amountCents:amt,
+    expectedDate:document.getElementById('finBExpDate').value||null,
+    method:'check',domain:'WORK',businessId:'PVI'
+  },finNow());
+  if(!r.ok){showToast('Not added: '+r.reason);return;}
+  saveData();finRenderBiz();
+}
+function finSetBudget(month,catId,val){
+  var v=Number(String(val).replace(/[$,\s]/g,''));
+  FIN.budgetSet(appData,month,catId,val===''?null:Math.round(v*100),{},finNow());
+  saveData();finRenderMoney();
+}
+function finMute(streamId){
+  FIN.muteStream(appData,streamId,true,finNow());
+  saveData();finRenderMoney();
+}
+function finDebtSim(debtId){
+  var extra=finDollars('finDx_'+debtId);
+  var out=document.getElementById('finDo_'+debtId);
+  var p=FIN.payoffPlan(appData,debtId,isFinite(extra)?extra:0,finNow());
+  if(!out)return;
+  if(!p.ok){out.textContent='?';return;}
+  if(!p.baseline.paysOff){out.textContent='Minimum payment never pays this off — interest outruns it.';return;}
+  out.textContent=p.plan.months+' mo (was '+p.baseline.months+') · saves '+finM(p.interestSavedCents||0)+' interest';
+}
+function finAddDebt(){
+  var bal=finDollars('finDebtBal'),mn=finDollars('finDebtMin');
+  var apr=Number(document.getElementById('finDebtApr').value);
+  var r=FIN.upsertDebt(appData,{
+    name:document.getElementById('finDebtName').value,
+    balanceCents:isFinite(bal)?bal:0,
+    aprBps:isFinite(apr)?Math.round(apr*100):0,
+    minPaymentCents:isFinite(mn)?mn:0,dueDay:15,domain:'LIFE'
+  },finNow());
+  if(!r.ok){showToast('Not added: '+r.reason);return;}
+  saveData();finRenderMoney();
+}
+function finAddGoal(){
+  var t=finDollars('finGoalTarget');
+  var r=FIN.upsertGoal(appData,{
+    name:document.getElementById('finGoalName').value,
+    targetCents:isFinite(t)?t:0,
+    deadline:document.getElementById('finGoalDate').value||null
+  },finNow());
+  if(!r.ok){showToast('Not added: '+r.reason);return;}
+  saveData();finRenderMoney();
+}
+function finWhatIfSpend(){
+  var amt=finDollars('finWhatIfAmt');
+  var out=document.getElementById('finWhatIfOut');
+  if(!isFinite(amt)||amt<=0){if(out)out.textContent='Enter an amount.';return;}
+  var sim=FIN.whatIf(appData,[{type:'spend',amountCents:amt,label:'What-if purchase'}],{domain:'LIFE',days:_finHorizon},finNow());
+  if(out)out.innerHTML='Ends '+finM(sim.projectedEndingCents)+' ('+finMS(sim.diffEndingCents)+') · lowest point '+finM(sim.projectedMinCents)+
+    ' · risk <b>'+sim.riskLevel+'</b>. Nothing was actually spent.';
+}
+
+/* ── boot ──────────────────────────────────────────────────────────────── */
+function finBoot(){
+  if(!appData||!appData.lastDate){setTimeout(finBoot,150);return;}
+  var now=finNow();
+  finState();
+  FIN.compact(appData,now);
+  FIN.detectRecurring(appData,now);
+  FIN.matchExpected(appData,now);
+  FIN.netWorthSnapshot(appData,now);
+  saveData();
+  finRenderHome();
+  finRenderSettings();
+  if(finBizConfigured())finPull(true);
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden&&finBizConfigured())finPull(true);
+  });
+  /* Same 5-minute cadence as business work and Growth Point 1. */
+  setInterval(function(){
+    if(finBizConfigured())finPull(true);
+  },5*60000);
+  /* A fresh day gets a fresh snapshot even if the app never reloads. */
+  setInterval(function(){FIN.netWorthSnapshot(appData,finNow());},60*60000);
+}
+
 wobBoot();
 gp1Boot();
+finBoot();
 
 azBoot();
 </script>

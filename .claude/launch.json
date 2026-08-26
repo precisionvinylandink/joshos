@@ -2,16 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "joshos-desktop-static",
+      "name": "joshos-desktop",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8742", "--directory", "desktop/src"],
-      "port": 8742
-    },
-    {
-      "name": "joshos-ios-static",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8743", "--directory", "ios"],
-      "port": 8743
+      "runtimeArgs": ["-m", "http.server", "8123", "--directory", "desktop/src"],
+      "port": 8123
     }
   ]
 }

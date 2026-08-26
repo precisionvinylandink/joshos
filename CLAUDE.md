@@ -4,7 +4,7 @@ This is joshOS, a personal daily operating system for Josh Sonnenberg.
 
 ## Architecture
 
-**Single-file design.** The entire desktop app lives in `desktop/src/index.html` (~330KB). All CSS, all JavaScript, all HTML pages are in this one file. Do not split it into separate files unless explicitly asked.
+**Single-file design.** The entire desktop app lives in `desktop/src/index.html` (~560KB). All CSS, all JavaScript, all HTML pages are in this one file. Do not split it into separate files unless explicitly asked.
 
 The iOS app lives entirely in `ios/index.html`. Same principle.
 
@@ -76,9 +76,11 @@ const SB_KEY = 'sb_publishable_…'; // publishable key — safe to ship, grants
   is debounced write-through. Both no-op when signed out — personal state is never
   written unauthenticated.
 
-> ⚠️ Free-tier Supabase allows **2 active projects**. `joshos-sync` and
-> `precision-vinyl` occupy both. `murphy-crew-store` was paused to make room
-> (2026-08-11); restoring it would pause one of these.
+> ⚠️ The org runs **more than two active Supabase projects** (verified
+> 2026-08-26: `precision-vinyl`, `joshos-sync`, `jobos`, `ados`, `dynamicQR`
+> active; `precision-os`, `joshos-timelog`, `murphy-crew-store` paused) — the
+> old "free tier allows 2" note was stale. Still: never create a new project
+> for data that needs to JOIN something in `precision-vinyl`.
 
 **Retired:** `timelog`, `daily_scorecard`, `joshos_theme`, `joshos_data` all carried an
 `allow_anon` policy (ALL / public / `true`) and were world-readable and writable with a
@@ -128,10 +130,35 @@ extracted by `desktop/test/growth-point-1.test.js`.
 
 Sources per generator are tabulated in §4.5 of the contract.
 
+### Financial Engine (Money / Business Money)
+The shared financial domain model for both lenses — LIFE (personal) and WORK
+(business). Lives in the marked block `FIN-ENGINE:BEGIN … END` inside
+`index.html` — DOM-free and clock-injectable like WOB/GP1, extracted by
+`desktop/test/financial-engine.test.js`. Full contract:
+[`docs/FINANCIAL_ENGINE.md`](docs/FINANCIAL_ENGINE.md).
+
+- **State** rides `appData.finance` (created lazily by `FIN.ensure`), integer
+  cents everywhere, `YYYY-MM-DD` UTC dates. Every record carries
+  `domain: 'LIFE'|'WORK'`, `businessId`, `source`, `sourceId`.
+- **One canonical config.** Every threshold lives in `FIN.CFG` — never
+  scatter a tolerance, window or confidence cut anywhere else.
+- **Business facts arrive over the bridge** (`GET /finance`, scope
+  `finance:read` → `joshos_finance_snapshot()` in `precision-vinyl`) as
+  reference + display snapshot keyed by `externalId`. JoshOS derives expected
+  payments from open receivables; a fresh snapshot always beats local edits,
+  and MRR is carried separately from cash.
+- **Precedence:** user override > user rule > system rule > provider hint >
+  AI suggestion. Retro rule runs never touch a reviewed transaction.
+- **Bank sync (Plaid)** is server-side only: schema is applied on
+  `joshos-sync`; `supabase/functions/joshos-plaid/index.ts` is ported but
+  NOT deployed (needs credentials — see `docs/FINANCIAL_ENGINE.md` §7).
+- **Sandbox** (`FIN.sandboxEnter/Exit`) stashes the real books untouched and
+  restores them exactly. Sandbox and real data are never mixed.
+
 Full contract: [`docs/WORKOS_BRIDGE_CONTRACT.md`](docs/WORKOS_BRIDGE_CONTRACT.md).
 
 ```bash
-node desktop/test/workos-bridge.test.js && node desktop/test/order-execution.test.js && node desktop/test/growth-point-1.test.js
+node desktop/test/workos-bridge.test.js && node desktop/test/order-execution.test.js && node desktop/test/growth-point-1.test.js && node desktop/test/financial-engine.test.js
 ```
 
 ## Do Not
@@ -145,6 +172,10 @@ node desktop/test/workos-bridge.test.js && node desktop/test/order-execution.tes
   reference and react to it
 - Do not identify a business record by name, email or title — only by `externalId`
 - Do not scatter Growth Point 1 numbers through the code — they live only in `GP1.GOAL`
+- Do not scatter Financial Engine thresholds — they live only in `FIN.CFG`
+- Do not let a typed financial number survive a live business snapshot — live beats manual
+- Do not count MRR as cash, mix sandbox with real money data, or let a WORK
+  query return LIFE transactions (and vice versa)
 - Do not count historical subscribers toward Growth Point 1 — only currently active ones
 - Do not add Printware Supply Co., Stefania Vending, Elgin Sign & Banner, JoshOS
   or JobOS as Growth Point 1 generators; they are dissolved or not for sale this year

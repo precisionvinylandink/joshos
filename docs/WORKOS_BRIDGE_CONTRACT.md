@@ -252,6 +252,61 @@ would change nothing above it.
 A failed read **never** becomes a zero. The last good figures stay on screen
 and the status line says the reading is stale, with the reason.
 
+## 4.6 Business finance snapshot (`GET /finance`) — added 2026-08-26
+
+The cash view of the business for the JoshOS Financial Engine
+(`FIN-ENGINE` block; see [`FINANCIAL_ENGINE.md`](FINANCIAL_ENGINE.md)).
+
+```
+GET {BRIDGE_URL}/finance
+Authorization: Bearer <token with scope finance:read>
+```
+
+The aggregation lives in the database as `joshos_finance_snapshot()` —
+same reasoning as §4.5: "what counts as an open receivable" is a business
+metric definition and belongs beside the tables it reads. The handler only
+authorizes and forwards.
+
+**Response**
+
+```jsonc
+{
+  "receivables":   [ { "externalId", "externalTable", "business", "label",
+                       "number", "totalCents", "paidCents", "remainingCents",
+                       "status", "issuedAt", "dueDate", "paidAt" } ],
+  "payments":      [ /* settled, last 90 days */ ],
+  "subscriptions": [ /* active only; mrrCents is RUN RATE, never cash */ ],
+  "obligations":   [ /* active cpg_cash_obligations */ ],
+  "serverTime":    "2026-08-26T01:39:04Z"
+}
+```
+
+Rules, all enforced and tested on the JoshOS side
+(`desktop/test/financial-engine.test.js`, Test 15):
+
+1. **Reference, never a copy.** JoshOS stores each item keyed by
+   `(externalTable, externalId)` as a display snapshot and derives an
+   *expected payment* from each open receivable. It never creates an
+   invoice, and this endpoint never returns customer names, emails or line
+   items — the document number is the display identity.
+2. **The snapshot is authoritative.** A receivable that shrinks, settles or
+   disappears server-side updates/closes its derived expected payment on the
+   next read, whatever was typed locally. Live beats manual, always.
+3. **Amounts are integer cents.** `remainingCents` is the receivable — never
+   the invoice total.
+4. **Confidence is honest.** A due date ⇒ 0.8; no due date ⇒ 0.5. The
+   forecast treats these as scenario inputs, not facts.
+5. **MRR is not cash** and is carried separately; it can never enter a cash
+   forecast as an inflow event.
+6. Same freshness/failure discipline as §4.5: polled (boot, focus, 5-minute
+   background), a failed read keeps the last good figures on screen and says
+   so, and errors are never rendered as zeros.
+
+Scopes after this addition: `work:read` · `events:write` · `metrics:read` ·
+`finance:read`. The `joshos-desktop` token carries all four; `workos-sync`
+deliberately does **not** carry `finance:read` (least privilege — the WorkOS
+event consumer has its own database).
+
 ## 5. JoshOS → WorkOS
 
 ```
