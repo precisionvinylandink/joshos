@@ -2193,6 +2193,9 @@ const SB_URL='https://lavbxjegicshhfvytapb.supabase.co';
 /* Publishable key. Safe to ship: it grants nothing on its own — every table is
    RLS-scoped to auth.uid(), so data is only reachable with a signed-in session. */
 const SB_KEY='sb_publishable_qVrrcHmlp8g19P08nOWqOQ_bdrDZ9LH';
+/* The deployed web app. Email confirmation links must land HERE, not on the
+   project's Site URL default — see JAUTH.signUp. */
+const APP_URL='https://joshos-timelog.vercel.app';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    JOSHOS-AUTH:BEGIN — account + session
@@ -2235,7 +2238,14 @@ const JAUTH=(function(){
     store(s);return s;
   }
   async function signUp(email,password){
-    const j=await call('signup',{email:email,password:password});
+    /* State the confirmation destination explicitly. Without redirect_to,
+       GoTrue falls back to the project Site URL — which bit us in production
+       when it was still the localhost default and a local dev server (AdOS)
+       answered on :3000. Web contexts return to their own origin (so
+       localhost dev still works); Electron (file://) returns to the deployed
+       app. The origin must also be in the Supabase redirect allow-list. */
+    const dest=(typeof location!=='undefined'&&/^https?:$/.test(location.protocol))?location.origin:APP_URL;
+    const j=await call('signup?redirect_to='+encodeURIComponent(dest),{email:email,password:password});
     /* With email confirmation on, signup returns a user but no session. */
     if(j.access_token){store(stamp(j));return{session:j,confirmed:true};}
     return{session:null,confirmed:false,user:j.user||j};
