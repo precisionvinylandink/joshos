@@ -12409,6 +12409,7 @@ function ccRender(){
   host.innerHTML=html;
   paintIcons(host);
   ccPaintBars(host);
+  ccBadge();
 }
 /* Bars are drawn from data-pct so no width arithmetic lives in a template. */
 function ccPaintBars(root){
@@ -13278,7 +13279,18 @@ function ccImportCommit(){
 }
 
 /* ── Home surface ───────────────────────────────────────────────────────── */
+/* The sidebar badge counts what is genuinely wrong — unpaid charges past their
+   due date. Not a notification count, and hidden entirely when there are none. */
+function ccBadge(){
+  var el=document.getElementById('bdCosts');
+  if(!el)return;
+  var n=CC.overdue(appData,ccNow()).length;
+  el.textContent=n;
+  el.style.display=n?'':'none';
+  el.title=n+' overdue cost'+(n===1?'':'s');
+}
 function ccRenderHome(){
+  ccBadge();
   var host=document.getElementById('homeCC');
   if(!host)return;
   var b=CC.briefing(appData,ccNow());
