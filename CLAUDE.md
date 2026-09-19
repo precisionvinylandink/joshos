@@ -155,10 +155,44 @@ The shared financial domain model for both lenses — LIFE (personal) and WORK
 - **Sandbox** (`FIN.sandboxEnter/Exit`) stashes the real books untouched and
   restores them exactly. Sandbox and real data are never mixed.
 
+### Cost Center (shared business costs)
+The other half of the money question. Growth Point 1 answers what comes in; the
+Cost Center answers **what it costs to keep the whole ecosystem alive** across
+Precision Vinyl & Ink, Chicago Promotional Group, Dynamic QR and shared
+overhead. Lives in the marked block `COST-CENTER:BEGIN … END` inside
+`index.html` — DOM-free and clock-injectable like WOB/GP1/FIN, extracted by
+`desktop/test/cost-center.test.js`.
+
+- **State** rides `appData.costs` (created lazily by `CC.ensure`), so it syncs
+  through the existing `joshos_state` row. No new table, no migration.
+- **One canonical record per cost.** A cost shared by three businesses is ONE
+  expense with an allocation model — never three copies. Duplicating it turns a
+  shared $200 bill into $600 of phantom overhead.
+- **Allocation must be exact.** Percent splits use largest-remainder so the
+  parts always sum to the whole, to the cent. A split that does not total 100%
+  (or fixed parts that miss the expense total) is refused at save time and
+  shown in red, never silently rounded away.
+- **Money is integer cents, parsed by string arithmetic** (`CC.parseMoney`).
+  Never `parseFloat(x)*100` — `19.99*100` is `1998.9999999999998`.
+- **Expected ≠ actual.** A recorded payment snapshots the expected amount AND
+  the allocation as they stood. Editing an expense changes the future only;
+  it can never rewrite recorded history.
+- **Estimates are labelled.** Only `billing.model === 'FIXED'` is a commitment;
+  METERED / TIERED / UNKNOWN are carried in their own bucket with a confidence
+  and a source, and the UI says "est".
+- **One-time costs never enter the run rate** — they are not what next month
+  costs.
+- **One canonical config.** Every threshold lives in `CC.CFG`.
+
+Businesses are `PVI`, `CPG`, `DQR`, `SHARED` — ids deliberately shared with the
+Financial Engine's `businessId`, so a cost and a transaction agree on who owns
+what. JoshOS owns costs; JobOS remains the production system and is never
+reached into directly.
+
 Full contract: [`docs/WORKOS_BRIDGE_CONTRACT.md`](docs/WORKOS_BRIDGE_CONTRACT.md).
 
 ```bash
-node desktop/test/workos-bridge.test.js && node desktop/test/order-execution.test.js && node desktop/test/growth-point-1.test.js && node desktop/test/financial-engine.test.js
+node desktop/test/workos-bridge.test.js && node desktop/test/order-execution.test.js && node desktop/test/growth-point-1.test.js && node desktop/test/financial-engine.test.js && node desktop/test/cost-center.test.js
 ```
 
 ## Do Not
@@ -173,6 +207,10 @@ node desktop/test/workos-bridge.test.js && node desktop/test/order-execution.tes
 - Do not identify a business record by name, email or title — only by `externalId`
 - Do not scatter Growth Point 1 numbers through the code — they live only in `GP1.GOAL`
 - Do not scatter Financial Engine thresholds — they live only in `FIN.CFG`
+- Do not scatter Cost Center thresholds — they live only in `CC.CFG`
+- Do not duplicate a shared cost per business — one record, one allocation
+- Do not let an expense edit rewrite a recorded payment's expected amount
+- Do not present a metered or estimated cost as a committed one
 - Do not let a typed financial number survive a live business snapshot — live beats manual
 - Do not count MRR as cash, mix sandbox with real money data, or let a WORK
   query return LIFE transactions (and vice versa)

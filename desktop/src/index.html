@@ -1208,6 +1208,121 @@ body.locked #sb,body.locked #content,body.locked .topbar{filter:blur(7px);pointe
   .fin-row{flex-wrap:wrap}
   .fin-amt{min-width:0}
 }
+
+/* ═══════════════ COST CENTER ═══════════════ */
+.cc-hero{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s5);margin-bottom:var(--s5)}
+.cc-hero-v{font-size:2.6rem;font-weight:600;letter-spacing:var(--tr-tight);line-height:1.05;color:var(--text);font-variant-numeric:tabular-nums;margin-top:var(--s2)}
+.cc-hero-u{font-size:1rem;font-weight:500;color:var(--text-muted);margin-left:6px;letter-spacing:0}
+.cc-hero-sub{font-size:var(--fs-sm);color:var(--text-dim);margin-top:var(--s2);line-height:var(--lh-body)}
+.cc-est{color:var(--accent2)}
+.cc-split{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:var(--s4);margin-top:var(--s5);padding-top:var(--s4);border-top:1px solid var(--border)}
+.cc-splitcell.shared{opacity:.85}
+.cc-splitv{font-size:1.25rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text)}
+.cc-splitl{font-size:var(--fs-xs);color:var(--text-dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cc-splitbar{height:3px;background:var(--surface3);border-radius:99px;overflow:hidden;margin:6px 0 4px}
+.cc-splitbar span{display:block;height:100%;background:var(--accent);border-radius:99px}
+.cc-splitcell.shared .cc-splitbar span{background:var(--text-muted)}
+.cc-splitm{font-size:var(--fs-xs);color:var(--text-muted);font-variant-numeric:tabular-nums}
+
+.cc-empty{border:1px dashed var(--border-strong);border-radius:var(--r-lg);padding:var(--s6);text-align:center;color:var(--text-dim)}
+.cc-empty h3{font-size:var(--fs-lg);font-weight:650;color:var(--text);margin-bottom:var(--s2)}
+.cc-empty p{font-size:var(--fs-sm);line-height:var(--lh-body);max-width:56ch;margin:0 auto var(--s4)}
+.cc-err{border:1px solid var(--danger,#e5484d);border-radius:var(--radius);padding:var(--s4);color:var(--text);font-size:var(--fs-sm)}
+.cc-note{font-size:var(--fs-sm);color:var(--text-dim);line-height:var(--lh-body);border-left:2px solid var(--accent2);padding-left:var(--s3);margin-bottom:var(--s5)}
+
+.cc-alert{display:flex;align-items:baseline;gap:var(--s3);padding:8px 0;border-bottom:1px solid var(--border);font-size:var(--fs-sm)}
+.cc-alert:last-child{border-bottom:none}
+.cc-alert-t{font-weight:550;color:var(--text);flex:0 0 auto}
+.cc-alert-d{color:var(--text-muted);flex:1 1 auto;min-width:0}
+.cc-alert.high .cc-alert-t{color:var(--danger,#e5484d)}
+.cc-alert.medium .cc-alert-t{color:var(--accent2)}
+
+.cc-quick{display:flex;flex-wrap:wrap;gap:var(--s2);align-items:center;padding:var(--s3);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:var(--s3)}
+.cc-quick .inp,.cc-quick .sel{width:auto;flex:1 1 128px;min-width:0}
+.cc-quick .inp[type=date]{flex:0 0 150px}
+.cc-quick #ccQName{flex:2 1 180px}
+.cc-quick .btn{flex:0 0 auto}
+.cc-quick-msg{font-size:var(--fs-sm);margin-bottom:var(--s3);min-height:0}
+.cc-quick-msg.bad{color:var(--danger,#e5484d)}
+
+.cc-filters{display:flex;flex-wrap:wrap;gap:var(--s2);align-items:center;margin-bottom:var(--s4)}
+/* .inp/.sel are width:100% by default, which would stack one filter per row. */
+.cc-filters .inp,.cc-filters .sel{width:auto;flex:0 1 auto;min-width:112px;max-width:190px;font-size:var(--fs-sm)}
+.cc-filters .inp[type=date]{min-width:140px}
+.cc-filters>#ccQ{flex:1 1 200px;max-width:none}
+
+.cc-tbl{border:1px solid var(--border);border-radius:var(--radius);overflow-x:auto}
+.cc-th,.cc-tr{display:grid;grid-template-columns:minmax(180px,2.2fr) 1fr .8fr 1fr .8fr .8fr .9fr .7fr;gap:var(--s3);align-items:center;padding:8px var(--s4);font-size:var(--fs-sm);min-width:880px}
+.cc-tbl.vend .cc-th,.cc-tbl.vend .cc-tr{grid-template-columns:minmax(180px,2fr) .7fr .8fr .9fr 1.2fr 1.2fr 1fr}
+.cc-tbl.hist .cc-th,.cc-tbl.hist .cc-tr{grid-template-columns:.9fr minmax(180px,2fr) 1fr .8fr .8fr .8fr .9fr .9fr .7fr;min-width:980px}
+.cc-th{background:var(--surface2);border-bottom:1px solid var(--border);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:var(--tr-wide);color:var(--text-muted);font-weight:500;position:sticky;top:0}
+.cc-tr{border-bottom:1px solid var(--border)}
+.cc-tr:last-child{border-bottom:none}
+.cc-tr:hover{background:var(--surface2)}
+.cc-tr.dim{opacity:.55}
+.cc-tr>span,.cc-th>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cc-th .r,.cc-tr .r{text-align:right}
+.cc-c1 a{color:var(--text);text-decoration:none;border-bottom:1px solid transparent}
+.cc-c1 a:hover{border-bottom-color:var(--accent);color:var(--accent)}
+.cc-tbl .mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+
+.cc-var{font-family:var(--font-mono);font-size:var(--fs-xs);font-variant-numeric:tabular-nums}
+.cc-var.over{color:var(--accent2)}
+.cc-var.under{color:var(--accent)}
+.cc-var.even{color:var(--text-muted)}
+
+.cc-chart{display:flex;align-items:flex-end;gap:var(--s2);height:140px;margin-top:var(--s3)}
+.cc-bar{flex:1 1 0;display:flex;flex-direction:column;justify-content:flex-end;height:100%;min-width:0}
+.cc-bar-stack{display:flex;flex-direction:column;justify-content:flex-end;height:100%;gap:1px}
+.cc-bar-com{display:block;background:var(--accent);border-radius:2px 2px 0 0;min-height:0}
+.cc-bar-est{display:block;background:var(--accent2);opacity:.55;border-radius:2px 2px 0 0}
+.cc-bar-com[data-bar="0"],.cc-bar-est[data-bar="0"]{display:none}
+.cc-bar-l{font-size:var(--fs-xs);color:var(--text-muted);text-align:center;margin-top:5px;white-space:nowrap;overflow:hidden}
+.cc-legend{display:flex;gap:var(--s4);font-size:var(--fs-xs);color:var(--text-muted);margin-top:var(--s3)}
+.cc-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.cc-legend .k-com{background:var(--accent)}
+.cc-legend .k-est{background:var(--accent2);opacity:.55}
+
+.cc-hz{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:var(--s2);margin-bottom:var(--s4)}
+.cc-hzb{display:flex;flex-direction:column;gap:2px;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:var(--s3);cursor:pointer;font:inherit;color:var(--text-dim)}
+.cc-hzb:hover{border-color:var(--border-strong)}
+.cc-hzb.on{border-color:var(--accent);background:var(--accent-a08)}
+.cc-hzd{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:var(--tr-wide);color:var(--text-muted)}
+.cc-hzv{font-size:var(--fs-lg);font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+.cc-hzm{font-size:var(--fs-xs);color:var(--text-muted)}
+
+.cc-mrow{display:grid;grid-template-columns:110px 1fr 90px 30px;gap:var(--s3);align-items:center;padding:5px 0;font-size:var(--fs-sm)}
+.cc-mrl{color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cc-mrb{height:6px;background:var(--surface3);border-radius:99px;overflow:hidden}
+.cc-mrb i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.cc-mrv{text-align:right;font-variant-numeric:tabular-nums}
+
+.cc-form{display:grid;grid-template-columns:1fr 1fr;gap:0 var(--s4)}
+.cc-form .field{margin-bottom:var(--s3)}
+.cc-formerr{border:1px solid var(--danger,#e5484d);background:var(--danger-a12,rgba(229,72,77,.12));border-radius:var(--radius);padding:var(--s3);margin-bottom:var(--s4);font-size:var(--fs-sm);color:var(--text)}
+.cc-formerr ul{margin:6px 0 0;padding-left:18px}
+.cc-allocmode{display:flex;gap:var(--s2);margin-bottom:var(--s3);flex-wrap:wrap}
+.cc-allocrows{display:flex;flex-direction:column;gap:var(--s2);margin-bottom:var(--s2)}
+.cc-allocrow{display:grid;grid-template-columns:1fr 110px 16px 32px;gap:var(--s2);align-items:center}
+.cc-allocu{color:var(--text-muted);font-size:var(--fs-sm)}
+.cc-allocok{font-size:var(--fs-sm);color:var(--accent);margin-top:var(--s2)}
+.cc-allocbad{font-size:var(--fs-sm);color:var(--danger,#e5484d);margin-top:var(--s2)}
+
+.cc-impsum{display:flex;gap:var(--s4);font-size:var(--fs-sm);margin:var(--s3) 0}
+.cc-impsum .ok{color:var(--accent)}
+.cc-impsum .bad{color:var(--danger,#e5484d)}
+.cc-imptbl{width:100%;border-collapse:collapse;font-size:var(--fs-xs);margin-bottom:var(--s3)}
+.cc-imptbl th,.cc-imptbl td{text-align:left;padding:4px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+.cc-imptbl th{color:var(--text-muted);text-transform:uppercase;letter-spacing:var(--tr-wide);font-weight:500}
+
+@media (max-width:900px){
+  .cc-form{grid-template-columns:1fr}
+  .cc-hero-v{font-size:2rem}
+  .cc-quick .inp,.cc-quick .sel,.cc-quick .btn{flex:1 1 100%;width:100%}
+  .cc-filters .inp,.cc-filters .sel{flex:1 1 45%;max-width:none}
+  .cc-hz{grid-template-columns:repeat(2,1fr)}
+  .cc-mrow{grid-template-columns:90px 1fr 80px 24px}
+}
 </style>
 </head>
 <body>
@@ -1261,6 +1376,7 @@ body.locked #sb,body.locked #content,body.locked .topbar{filter:blur(7px);pointe
       <div class="ni" role="link" tabindex="0" onclick="goTo('scorecard',this)"><span class="ni-ico" data-ico="target"></span>Scorecard</div>
       <div class="ni" role="link" tabindex="0" onclick="goTo('timelog',this)"><span class="ni-ico" data-ico="clock"></span>Time Log</div>
       <div class="ni" role="link" tabindex="0" onclick="goTo('bizmoney',this)"><span class="ni-ico" data-ico="bank"></span>Business Money</div>
+      <div class="ni" role="link" tabindex="0" onclick="goTo('costcenter',this)"><span class="ni-ico" data-ico="coins"></span>Cost Center<span class="badge" id="bdCosts" style="display:none">0</span></div>
     </div>
     <div class="sb-sec">
       <div class="sb-lbl">Life</div>
@@ -1311,6 +1427,9 @@ body.locked #sb,body.locked #content,body.locked .topbar{filter:blur(7px);pointe
 
           <!-- MONEY — cash, the week ahead, and what needs review -->
           <div id="homeFin"></div>
+
+          <!-- COST CENTER — what the ecosystem costs to keep alive -->
+          <div id="homeCC"></div>
 
           <div class="mstrip" id="homeMetrics"></div>
 
@@ -2068,6 +2187,37 @@ body.locked #sb,body.locked #content,body.locked .topbar{filter:blur(7px);pointe
       </div>
     </div>
 
+
+    <!-- COST CENTER — the shared business cost layer. PVI, CPG, Dynamic QR and
+         the overhead that carries all three. One canonical record per cost,
+         allocated — never duplicated per business. -->
+    <div class="page" id="page-costcenter">
+      <div class="ph">
+        <div class="ph-main">
+          <h2>Cost Center</h2>
+          <p>What the whole ecosystem costs to keep alive, and who carries it. Every figure is computed from the costs you have entered &mdash; estimates are labelled as estimates.</p>
+        </div>
+        <div class="ph-actions">
+          <button class="btn primary" onclick="ccOpenExpense()"><span data-ico="plus"></span>Add expense</button>
+        </div>
+      </div>
+      <div class="pb">
+        <div class="wrap">
+          <div class="fin-tabs">
+            <button class="fin-tab active" data-tab="overview" onclick="ccTabGo('overview',this)">Overview</button>
+            <button class="fin-tab" data-tab="expenses" onclick="ccTabGo('expenses',this)">Expenses</button>
+            <button class="fin-tab" data-tab="recurring" onclick="ccTabGo('recurring',this)">Recurring</button>
+            <button class="fin-tab" data-tab="vendors" onclick="ccTabGo('vendors',this)">Vendors</button>
+            <button class="fin-tab" data-tab="forecast" onclick="ccTabGo('forecast',this)">Forecast</button>
+            <button class="fin-tab" data-tab="history" onclick="ccTabGo('history',this)">History</button>
+          </div>
+          <div id="ccBody"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ov" id="ccOv" role="dialog" aria-modal="true" aria-label="Cost Center"><div class="modal" id="ccModal"></div></div>
+
     <!-- GARDEN — the other world. Full bleed, no OS chrome. -->
     <div class="page bleed" id="page-garden">
       <div id="gWrap">
@@ -2416,6 +2566,7 @@ const ROUTES=[
   {id:'scorecard',  label:'Scorecard',       ico:'target',   group:'Work'},
   {id:'timelog',    label:'Time Log',        ico:'clock',    group:'Work'},
   {id:'bizmoney',   label:'Business Money',  ico:'bank',     group:'Work'},
+  {id:'costcenter', label:'Cost Center',     ico:'coins',    group:'Work'},
   {id:'growth',     label:'Growth & Habits', ico:'trend',    group:'Life'},
   {id:'calendar',   label:'Calendar',        ico:'calendar', group:'Life'},
   {id:'visionboard',label:'Vision Board',    ico:'compass',  group:'Life'},
@@ -2440,7 +2591,7 @@ function goTo(id,el){
   document.querySelectorAll('#mnav .mn').forEach(b=>b.classList.toggle('active',b.dataset.mroute===id));
   if(window.innerWidth<=820)toggleSidebar(false);
   const body=page.querySelector('.pb,.tl-content,.ai-msgs');if(body)body.scrollTop=0;
-  if(id==='dashboard'){renderHome();finRenderHome();}
+  if(id==='dashboard'){renderHome();finRenderHome();ccRenderHome();}
   /* Growth Point 1 polls only while it is the page being looked at; the
      5-minute background read keeps Home fresh the rest of the time. */
   if(id==='growthpoint'){gp1RenderPage();gp1Fetch(gp1Month(),true);gp1StartPolling();}
@@ -2448,6 +2599,7 @@ function goTo(id,el){
   if(id==='timelog'){renderTLTimeline();updateTLBadge();}
   if(id==='money'){finRenderMoney();if(finBizConfigured())finPull(true);}
   if(id==='bizmoney'){finRenderBiz();if(finBizConfigured())finPull(true);}
+  if(id==='costcenter')ccRender();
   if(id==='scorecard')renderScorecard();
   if(id==='growth'){renderGrowthStats();renderGrowthTrend();renderGrowthSystems();renderGrowthEntries();}
   if(id==='calendar'){renderCal();renderFocusBlocks();renderCalAhead();}
@@ -3255,7 +3407,9 @@ function localHasContent(){
     || Object.keys(appData.scorecard||{}).length
     || ((appData.assist||{}).dump||[]).length
     || Object.keys((appData.finance||{}).accounts||{}).length
-    || Object.keys((appData.finance||{}).txns||{}).length);
+    || Object.keys((appData.finance||{}).txns||{}).length
+    || Object.keys((appData.costs||{}).expenses||{}).length
+    || Object.keys((appData.costs||{}).payments||{}).length);
 }
 
 /* Strip device-local and oversized fields before the state goes to the cloud. */
@@ -10841,9 +10995,2334 @@ function finBoot(){
   setInterval(function(){FIN.netWorthSnapshot(appData,finNow());},60*60000);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   COST-CENTER:BEGIN — the Shared Business Cost Center
+
+   The other half of the money question. Growth Point 1 answers "how much is
+   coming in"; this answers "what does it cost to keep the whole ecosystem
+   alive if revenue were $0 tomorrow" — across Precision Vinyl & Ink, Chicago
+   Promotional Group, Dynamic QR and the shared overhead that carries all of
+   them.
+
+   WHAT THIS OWNS. Costs. Every expense JoshOS knows about, its vendor, its
+   category, its recurrence, its allocation across the businesses, what it was
+   expected to be, what it actually was, and every number derived from those.
+
+   WHAT THIS DOES NOT OWN. Jobs, quotes, invoices, proofs, production. Those
+   live in JobOS and in the business system of record. A cost here may
+   REFERENCE a business record by externalId; it never authors one.
+
+   ONE CANONICAL EXPENSE. A cost shared by three businesses is ONE record with
+   an allocation model — never three copies. Duplicating it is how a shared
+   $200 bill becomes $600 of phantom overhead.
+
+   MONEY IS INTEGER CENTS. Always. Decimal strings are parsed into cents by
+   string arithmetic (parseMoney), never by parseFloat×100 — 19.99*100 is
+   1998.9999999999998 and a cost center that rounds that is a cost center that
+   lies. Nothing downstream ever sees a float dollar.
+
+   ESTIMATES ARE LABELLED. A metered vendor's projection is carried with its
+   billing model and confidence and is never summed into the same number as a
+   committed fixed cost without saying so.
+
+   PURITY. DOM-free and clock-injectable (`now` is always passed in) so
+   desktop/test/cost-center.test.js can extract this exact block and execute
+   it under Node — the same harness as WOB / GP1 / FIN. Do not reach for
+   document/window/fetch inside the engine; all I/O and rendering live in the
+   glue below the END marker.
+   ═══════════════════════════════════════════════════════════════════════════ */
+var CC=(function(){
+'use strict';
+
+/* ── Canonical config — the only place these numbers exist ──────────────── */
+var CFG={
+  DUE_SOON_DAYS:7,          // an occurrence this close reads 'due', not 'expected'
+  OVERDUE_LOOKBACK_DAYS:180,// how far back unpaid occurrences are still chased
+  FORECAST_HORIZONS:[30,60,90,180,365],
+  MAX_OCCURRENCES:520,      // safety rail: one expense cannot flood a window
+  AUDIT_CAP:300,
+  VARIANCE_ALERT_PCT:10,    // |variance| beyond this is worth surfacing
+  IMPORT_MAX_ROWS:2000,
+  MAX_CENTS:1e15,           // beyond this integer cents stop being exact
+  NAME_MAX:80,
+  NOTE_MAX:500,
+  DAYS_PER_MONTH:365/12     // annualization constant, used nowhere else
+};
+
+/* ── The business entities. Four identities, one ecosystem. ───────────────
+   Ids match the businessId strings the Financial Engine already writes
+   ('PVI', 'CPG'), so a cost and a transaction agree on who owns what. */
+var SEED_BUSINESSES=[
+  ['PVI','Precision Vinyl & Ink','PVI','business'],
+  ['CPG','Chicago Promotional Group','CPG','business'],
+  ['DQR','Dynamic QR','QR','business'],
+  ['SHARED','Shared / JoshOS','Shared','shared']
+];
+
+/* ── Cost types ─────────────────────────────────────────────────────────── */
+var COST_TYPES=[
+  ['fixed','Fixed overhead'],
+  ['variable','Variable cost'],
+  ['shared','Shared cost'],
+  ['business','Business-specific'],
+  ['onetime','One-time cost'],
+  ['subscription','Subscription'],
+  ['infrastructure','Infrastructure'],
+  ['professional','Professional service'],
+  ['equipment','Equipment'],
+  ['repair','Repair'],
+  ['tax','Tax-related'],
+  ['processing','Payment processing'],
+  ['advertising','Advertising & marketing'],
+  ['other','Other']
+];
+
+/* ── Category seed ── stable ids; ensure() adds missing, never overwrites.
+   The set is extensible: addCategory() takes any new name at runtime. ───── */
+var SEED_CATEGORIES=[
+  ['cc_rent','Rent','facilities'],
+  ['cc_utilities','Utilities','facilities'],
+  ['cc_office','Office','facilities'],
+  ['cc_phone','Phone','comms'],
+  ['cc_internet','Internet','comms'],
+  ['cc_email','Email','comms'],
+  ['cc_sms','SMS','comms'],
+  ['cc_software','Software','technology'],
+  ['cc_saas','SaaS','technology'],
+  ['cc_infrastructure','Infrastructure','technology'],
+  ['cc_hosting','Hosting','technology'],
+  ['cc_database','Database','technology'],
+  ['cc_ai_api','AI / API','technology'],
+  ['cc_domain','Domain','technology'],
+  ['cc_advertising','Advertising','growth'],
+  ['cc_equipment','Equipment','operations'],
+  ['cc_repairs','Repairs','operations'],
+  ['cc_insurance','Insurance','administration'],
+  ['cc_professional','Professional Services','administration'],
+  ['cc_banking','Banking','administration'],
+  ['cc_processing','Payment Processing','administration'],
+  ['cc_taxes','Taxes','administration'],
+  ['cc_other','Other','other']
+];
+
+/* ── Recurrence ─────────────────────────────────────────────────────────── */
+var FREQS={
+  once:      {label:'One-time',      days:null, months:0},
+  weekly:    {label:'Weekly',        days:7,    months:0},
+  biweekly:  {label:'Every 2 weeks', days:14,   months:0},
+  monthly:   {label:'Monthly',       days:null, months:1},
+  quarterly: {label:'Quarterly',     days:null, months:3},
+  semiannual:{label:'Every 6 months',days:null, months:6},
+  annual:    {label:'Annually',      days:null, months:12},
+  custom:    {label:'Custom',        days:null, months:0}   // uses customDays
+};
+
+/* Billing models for infrastructure and anything else that does not bill a
+   flat number. Only FIXED is a commitment; the rest are estimates and the
+   engine keeps them in their own bucket so the UI can say so. */
+var BILLING_MODELS={FIXED:1,METERED:1,TIERED:1,UNKNOWN:1};
+var CONFIDENCES={high:0.9,medium:0.6,low:0.3};
+var STATUSES={planned:1,active:1,cancelled:1,archived:1};
+var METHODS={card:1,ach:1,check:1,cash:1,transfer:1,autopay:1,other:1};
+
+/* ── Clock & date helpers ───────────────────────────────────────────────────
+   Same contract as FIN: dates are plain 'YYYY-MM-DD' compared
+   lexicographically, and all arithmetic goes through UTC so a timezone can
+   never shift a cost across a day boundary. */
+function clock(now){
+  var d=(now instanceof Date)?now:new Date(now||0);
+  if(isNaN(d.getTime()))d=new Date(0);
+  return d;
+}
+function iso(now){return clock(now).toISOString();}
+function dayOf(now){return iso(now).slice(0,10);}
+function pad2(n){return(n<10?'0':'')+n;}
+function dayMs(day){return Date.UTC(Number(day.slice(0,4)),Number(day.slice(5,7))-1,Number(day.slice(8,10)));}
+function addDays(day,n){return new Date(dayMs(day)+n*864e5).toISOString().slice(0,10);}
+function daysBetween(a,b){return Math.round((dayMs(b)-dayMs(a))/864e5);}
+function monthOf(day){return String(day||'').slice(0,7);}
+function isDay(s){return typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s);}
+function realDay(s){return isDay(s)&&new Date(dayMs(s)).toISOString().slice(0,10)===s;}
+function lastDayOfMonth(y,m){return new Date(Date.UTC(y,m,0)).getUTCDate();} // m is 1-based
+/* Month arithmetic that clamps into short months. Always computed from the
+   ORIGINAL anchor, never iteratively — so a Jan-31 subscription bills
+   Feb 28 and then Mar 31 again, rather than drifting to the 28th forever. */
+function addMonthsClamped(day,n){
+  var y=Number(day.slice(0,4)),m=Number(day.slice(5,7)),d=Number(day.slice(8,10));
+  var t=(m-1)+n,ny=y+Math.floor(t/12),nm=((t%12)+12)%12+1;
+  return ny+'-'+pad2(nm)+'-'+pad2(Math.min(d,lastDayOfMonth(ny,nm)));
+}
+function monthsBetween(a,b){
+  return (Number(b.slice(0,4))-Number(a.slice(0,4)))*12+(Number(b.slice(5,7))-Number(a.slice(5,7)));
+}
+function monthLabel(mk){
+  var M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return M[Number(mk.slice(5,7))-1]+' '+mk.slice(0,4);
+}
+
+/* ── Money ── integer cents; formatting is the ONE place dollars appear ── */
+function cents(n){n=Number(n);return isFinite(n)?Math.round(n):0;}
+function fmt(c,opts){
+  opts=opts||{};
+  var v=cents(c),neg=v<0,a=Math.abs(v);
+  var s='$'+Math.floor(a/100).toLocaleString('en-US')+'.'+('0'+(a%100)).slice(-2);
+  if(opts.round)s='$'+Math.round(a/100).toLocaleString('en-US');
+  if(neg)s='−'+s;
+  else if(opts.sign&&v>0)s='+'+s;
+  return s;
+}
+/* Decimal text → integer cents, by STRING arithmetic. Never parseFloat×100:
+   19.99*100 is 1998.9999999999998 in IEEE-754 and a cost center that rounds
+   that has already lost the argument. Accepts '$1,234.56', '(12.00)', '-5'. */
+function parseMoney(v){
+  if(v===null||v===undefined)return{ok:false,reason:'empty'};
+  if(typeof v==='number'){
+    if(!isFinite(v))return{ok:false,reason:'malformed'};
+    return parseMoney(v.toFixed(2));
+  }
+  var s=String(v).trim().replace(/[$\s,]/g,'');
+  if(!s)return{ok:false,reason:'empty'};
+  var neg=false;
+  if(/^\(.*\)$/.test(s)){neg=true;s=s.slice(1,-1);}
+  if(s.charAt(0)==='-'){neg=true;s=s.slice(1);}
+  else if(s.charAt(0)==='+')s=s.slice(1);
+  if(s===''||s==='.'||!/^\d*(\.\d*)?$/.test(s))return{ok:false,reason:'malformed'};
+  var p=s.split('.'),whole=p[0]||'0',frac=p[1]||'';
+  if(frac.length>2)return{ok:false,reason:'too_precise'};
+  frac=(frac+'00').slice(0,2);
+  var n=Number(whole)*100+Number(frac);
+  if(!isFinite(n)||n>CFG.MAX_CENTS)return{ok:false,reason:'too_large'};
+  return{ok:true,cents:neg?-n:n};
+}
+
+/* ── Small utilities ────────────────────────────────────────────────────── */
+function values(o){return Object.keys(o||{}).map(function(k){return o[k];});}
+function nextId(c,prefix){c.seq=(c.seq||0)+1;return prefix+'_'+c.seq.toString(36);}
+function trim(s,max){return String(s==null?'':s).trim().slice(0,max);}
+function slug(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();}
+function pct(part,whole){return whole?Math.round(part/whole*1000)/10:0;}
+
+/* ── State root ── appData.costs, created lazily like appData.finance ───── */
+function ensure(app){
+  if(!app.costs||typeof app.costs!=='object'||Array.isArray(app.costs))app.costs={};
+  var c=app.costs;
+  if(!c.v)c.v=1;
+  ['businesses','categories','vendors','expenses','payments'].forEach(function(k){
+    if(!c[k]||typeof c[k]!=='object'||Array.isArray(c[k]))c[k]={};
+  });
+  if(!Array.isArray(c.audit))c.audit=[];
+  if(!c.seq)c.seq=0;
+  SEED_BUSINESSES.forEach(function(b){
+    if(!c.businesses[b[0]])c.businesses[b[0]]={id:b[0],name:b[1],short:b[2],kind:b[3],system:true,archived:false};
+  });
+  SEED_CATEGORIES.forEach(function(k){
+    if(!c.categories[k[0]])c.categories[k[0]]={id:k[0],name:k[1],group:k[2],system:true,archived:false};
+  });
+  return c;
+}
+
+function audit(c,kind,ref,prev,next,now){
+  c.audit.unshift({at:iso(now),kind:kind,ref:ref,prev:prev===undefined?null:prev,next:next===undefined?null:next});
+  if(c.audit.length>CFG.AUDIT_CAP)c.audit.length=CFG.AUDIT_CAP;
+}
+
+/* ── Businesses ─────────────────────────────────────────────────────────── */
+function listBusinesses(app,opts){
+  var c=ensure(app);opts=opts||{};
+  return values(c.businesses)
+    .filter(function(b){return opts.includeArchived||!b.archived;})
+    .sort(function(a,b){
+      if(a.kind!==b.kind)return a.kind==='shared'?1:-1;   // shared sorts last
+      return a.name<b.name?-1:1;
+    });
+}
+function addBusiness(app,b,now){
+  var c=ensure(app);
+  var name=trim(b&&b.name,CFG.NAME_MAX);
+  if(!name)return{ok:false,reason:'name_required'};
+  var id=trim(b.id,24).toUpperCase().replace(/[^A-Z0-9_]/g,'')||('B'+(c.seq+1));
+  if(c.businesses[id])return{ok:false,reason:'exists'};
+  c.businesses[id]={id:id,name:name,short:trim(b.short,12)||id,
+    kind:b.kind==='shared'?'shared':'business',system:false,archived:false};
+  audit(c,'business.add',id,null,name,now);
+  return{ok:true,id:id};
+}
+
+/* ── Categories ─────────────────────────────────────────────────────────── */
+function listCategories(app,opts){
+  var c=ensure(app);opts=opts||{};
+  return values(c.categories)
+    .filter(function(k){return opts.includeArchived||!k.archived;})
+    .sort(function(a,b){return a.name<b.name?-1:1;});
+}
+function addCategory(app,k,now){
+  var c=ensure(app);
+  var name=trim(k&&k.name,CFG.NAME_MAX);
+  if(!name)return{ok:false,reason:'name_required'};
+  var dup=values(c.categories).filter(function(x){return slug(x.name)===slug(name);})[0];
+  if(dup)return{ok:true,id:dup.id,existing:true};
+  var id=k.id||nextId(c,'cc');
+  c.categories[id]={id:id,name:name,group:trim(k.group,24)||'other',system:false,archived:false};
+  audit(c,'category.add',id,null,name,now);
+  return{ok:true,id:id};
+}
+/* Resolve a category by id OR by name, creating it when asked. The importer
+   and the fast-entry form both lean on this. */
+function resolveCategory(app,ref,create,now){
+  var c=ensure(app);
+  if(!ref)return null;
+  if(c.categories[ref])return ref;
+  var hit=values(c.categories).filter(function(x){return slug(x.name)===slug(ref);})[0];
+  if(hit)return hit.id;
+  if(!create)return null;
+  var r=addCategory(app,{name:ref},now);
+  return r.ok?r.id:null;
+}
+
+/* ── Vendors ────────────────────────────────────────────────────────────── */
+function upsertVendor(app,v,now){
+  var c=ensure(app);
+  var name=trim(v&&v.name,CFG.NAME_MAX);
+  if(!name)return{ok:false,reason:'name_required'};
+  var hit=values(c.vendors).filter(function(x){return slug(x.name)===slug(name);})[0];
+  if(hit){
+    if(v.note!==undefined)hit.note=trim(v.note,CFG.NOTE_MAX);
+    if(v.url!==undefined)hit.url=trim(v.url,200);
+    return{ok:true,id:hit.id,existing:true};
+  }
+  var id=v.id||nextId(c,'ven');
+  c.vendors[id]={id:id,name:name,note:trim(v.note,CFG.NOTE_MAX),url:trim(v.url,200),
+    archived:false,createdAt:iso(now)};
+  audit(c,'vendor.add',id,null,name,now);
+  return{ok:true,id:id};
+}
+function listVendors(app,opts){
+  var c=ensure(app);opts=opts||{};
+  return values(c.vendors)
+    .filter(function(v){return opts.includeArchived||!v.archived;})
+    .sort(function(a,b){return a.name<b.name?-1:1;});
+}
+function vendorName(c,id){var v=c.vendors[id];return v?v.name:'';}
+
+/* Everything the vendor view needs, computed — never stored. */
+function vendorSummary(app,now){
+  var c=ensure(app),today=dayOf(now);
+  return listVendors(app).map(function(v){
+    var mine=values(c.expenses).filter(function(e){return e.vendorId===v.id&&e.status!=='archived';});
+    var active=mine.filter(function(e){return e.status==='active';});
+    var monthly=0,businesses={};
+    active.forEach(function(e){
+      monthly+=monthlyCents(e);
+      Object.keys(allocate(e,e.expectedCents||0)).forEach(function(b){businesses[b]=1;});
+    });
+    var pays=values(c.payments).filter(function(p){return mine.some(function(e){return e.id===p.expenseId;});})
+      .sort(function(a,b){return a.paidDate<b.paidDate?1:-1;});
+    var next=null;
+    active.forEach(function(e){
+      var d=nextDue(e,now);
+      if(d&&(!next||d<next.dueDate))next={dueDate:d,expenseId:e.id,amountCents:e.expectedCents||0};
+    });
+    return{
+      id:v.id,name:v.name,url:v.url,note:v.note,
+      activeCount:active.length,totalCount:mine.length,
+      recurringCount:active.filter(function(e){return e.recurring;}).length,
+      monthlyCents:monthly,annualizedCents:monthly*12,
+      lastPayment:pays[0]||null,
+      nextExpected:next,
+      businessIds:Object.keys(businesses).sort(),
+      today:today
+    };
+  }).sort(function(a,b){return b.monthlyCents-a.monthlyCents||(a.name<b.name?-1:1);});
+}
+
+/* ── Allocation ─────────────────────────────────────────────────────────────
+   A shared cost is ONE record split across businesses. Splitting must be
+   EXACT: the parts always sum to the whole, to the cent. Percentages use the
+   largest-remainder method, so $100.00 across three equal businesses is
+   33.34 / 33.33 / 33.33 and never 99.99. */
+function normalizeAllocation(a){
+  a=a||{};
+  var mode=a.mode==='percent'||a.mode==='fixed'?a.mode:'single';
+  /* Deliberately NOT defaulting to SHARED here: a record that never named a
+     business must stay visibly unassigned so validateAllocation can say so.
+     addExpense defaults only when `allocation` was not supplied at all. */
+  if(mode==='single')return{mode:'single',businessId:a.businessId||null,parts:[]};
+  var parts=(a.parts||[]).map(function(p){
+    return{businessId:p.businessId,
+           pct:p.pct===undefined?null:Number(p.pct),
+           amountCents:p.amountCents===undefined?null:cents(p.amountCents)};
+  }).filter(function(p){return !!p.businessId;});
+  return{mode:mode,businessId:null,parts:parts};
+}
+function allocate(exp,amountCents){
+  var a=normalizeAllocation(exp&&exp.allocation),total=cents(amountCents),out={};
+  if(a.mode==='single'||!a.parts.length){out[a.businessId||'SHARED']=total;return out;}
+  /* ^ an unassigned cost still lands somewhere, so a total is never quietly
+       short; validateAllocation is what makes the omission loud. */
+  if(a.mode==='fixed'){
+    a.parts.forEach(function(p){out[p.businessId]=(out[p.businessId]||0)+cents(p.amountCents);});
+    return out;
+  }
+  /* Percent. Work in basis points so 33.33% is exact input, then hand out the
+     leftover cents to the largest remainders. */
+  var sign=total<0?-1:1,mag=Math.abs(total),rows=[],floorSum=0;
+  a.parts.forEach(function(p){
+    var bps=Math.round(Number(p.pct||0)*100);
+    var exact=mag*bps/10000,fl=Math.floor(exact);
+    rows.push({id:p.businessId,fl:fl,rem:exact-fl});
+    floorSum+=fl;
+  });
+  var left=mag-floorSum;
+  var order=rows.slice().sort(function(x,y){return y.rem-x.rem;});
+  for(var i=0;left>0&&order.length;i++,left--)order[i%order.length].fl++;
+  rows.forEach(function(r){out[r.id]=(out[r.id]||0)+r.fl*sign;});
+  return out;
+}
+/* Allocation problems the UI must make obvious. Never silently wrong totals. */
+function validateAllocation(app,exp){
+  var c=ensure(app),a=normalizeAllocation(exp&&exp.allocation),problems=[];
+  function known(id){return !!c.businesses[id];}
+  if(a.mode==='single'){
+    if(!a.businessId)problems.push({code:'missing_business',detail:'No business assigned'});
+    else if(!known(a.businessId))problems.push({code:'unknown_business',detail:a.businessId+' is not a business'});
+    if(exp&&exp.costType==='shared'&&a.businessId&&a.businessId!=='SHARED')
+      problems.push({code:'shared_unallocated',detail:'Marked shared but charged wholly to '+a.businessId});
+    return{ok:!problems.length,problems:problems};
+  }
+  if(!a.parts.length){problems.push({code:'missing_business',detail:'Split selected but no businesses added'});return{ok:false,problems:problems};}
+  var seen={};
+  a.parts.forEach(function(p){
+    if(!known(p.businessId))problems.push({code:'unknown_business',detail:p.businessId+' is not a business'});
+    if(seen[p.businessId])problems.push({code:'duplicate_business',detail:p.businessId+' appears twice'});
+    seen[p.businessId]=1;
+  });
+  if(a.mode==='percent'){
+    var bps=0,bad=false;
+    a.parts.forEach(function(p){
+      var v=Number(p.pct);
+      if(!isFinite(v)||v<0){bad=true;return;}
+      bps+=Math.round(v*100);
+    });
+    if(bad)problems.push({code:'bad_percent',detail:'A share is missing or negative'});
+    else if(bps!==10000)
+      problems.push({code:'percent_not_100',detail:'Shares total '+(bps/100)+'%, not 100%',
+                     deltaBps:bps-10000});
+  }else{
+    var sum=0;
+    a.parts.forEach(function(p){sum+=cents(p.amountCents);});
+    var target=cents(exp&&exp.expectedCents);
+    if(sum!==target)
+      problems.push({code:'fixed_mismatch',detail:'Parts total '+fmt(sum)+', expense is '+fmt(target),
+                     deltaCents:sum-target});
+  }
+  return{ok:!problems.length,problems:problems};
+}
+
+/* ── Recurrence ─────────────────────────────────────────────────────────── */
+function recurrenceOf(exp){
+  var r=(exp&&exp.recurrence)||{};
+  var freq=FREQS[r.freq]?r.freq:'once';
+  return{freq:freq,
+         interval:Math.max(1,Math.round(Number(r.interval)||1)),
+         customDays:Math.max(1,Math.round(Number(r.customDays)||30))};
+}
+function recurrenceLabel(exp){
+  var r=recurrenceOf(exp);
+  if(!exp||!exp.recurring||r.freq==='once')return 'One-time';
+  if(r.freq==='custom')return 'Every '+(r.customDays*r.interval)+' days';
+  if(r.interval===1)return FREQS[r.freq].label;
+  return 'Every '+r.interval+'× '+FREQS[r.freq].label.toLowerCase();
+}
+/* The nth scheduled date, counted from the expense's own anchor. */
+function occurrenceAt(exp,n){
+  var r=recurrenceOf(exp),start=exp.startDate,spec=FREQS[r.freq];
+  if(r.freq==='once')return start;
+  if(r.freq==='custom')return addDays(start,r.customDays*r.interval*n);
+  if(spec.months)return addMonthsClamped(start,spec.months*r.interval*n);
+  return addDays(start,spec.days*r.interval*n);
+}
+/* Analytic jump so a weekly cost running since 2019 does not cost 400
+   iterations to reach today. */
+function firstIndexNear(exp,from){
+  var r=recurrenceOf(exp),spec=FREQS[r.freq];
+  if(r.freq==='once')return 0;
+  var k;
+  if(spec.months)k=Math.floor(monthsBetween(exp.startDate,from)/(spec.months*r.interval));
+  else{
+    var step=(r.freq==='custom'?r.customDays:spec.days)*r.interval;
+    k=Math.floor(daysBetween(exp.startDate,from)/step);
+  }
+  return Math.max(0,(isFinite(k)?k:0)-1);
+}
+function occurrences(exp,from,to){
+  var out=[];
+  if(!exp||!realDay(exp.startDate)||!realDay(from)||!realDay(to)||from>to)return out;
+  var r=recurrenceOf(exp);
+  if(!exp.recurring||r.freq==='once'){
+    if(exp.startDate>=from&&exp.startDate<=to)out.push(exp.startDate);
+    return out;
+  }
+  var n=firstIndexNear(exp,from),guard=0,d;
+  while(guard++<CFG.MAX_OCCURRENCES*4){
+    d=occurrenceAt(exp,n);
+    if(d>to)break;
+    if(exp.endDate&&realDay(exp.endDate)&&d>exp.endDate)break;
+    if(d>=from&&d>=exp.startDate){
+      out.push(d);
+      if(out.length>=CFG.MAX_OCCURRENCES)break;
+    }
+    n++;
+  }
+  return out;
+}
+/* The next scheduled date on or after today — pure schedule, ignoring
+   payments. Overdue work is a separate question (see `overdue`). */
+function nextDue(exp,now){
+  if(!exp||!realDay(exp.startDate))return null;
+  var today=dayOf(now);
+  if(exp.endDate&&realDay(exp.endDate)&&exp.endDate<today)return null;
+  var r=recurrenceOf(exp);
+  if(!exp.recurring||r.freq==='once')return exp.startDate>=today?exp.startDate:null;
+  var n=firstIndexNear(exp,today),guard=0,d;
+  while(guard++<CFG.MAX_OCCURRENCES*4){
+    d=occurrenceAt(exp,n);
+    if(d>=today){
+      if(exp.endDate&&realDay(exp.endDate)&&d>exp.endDate)return null;
+      return d;
+    }
+    n++;
+  }
+  return null;
+}
+/* Monthly run rate. One-time costs contribute NOTHING — they are not what it
+   costs to keep the lights on next month. */
+function monthlyCents(exp){
+  if(!exp)return 0;
+  var r=recurrenceOf(exp);
+  if(!exp.recurring||r.freq==='once')return 0;
+  var amt=cents(exp.expectedCents);
+  var spec=FREQS[r.freq];
+  if(spec.months)return Math.round(amt/(spec.months*r.interval));
+  var days=(r.freq==='custom'?r.customDays:spec.days)*r.interval;
+  return Math.round(amt*CFG.DAYS_PER_MONTH/days);
+}
+function annualCents(exp){return monthlyCents(exp)*12;}
+/* A cost is an ESTIMATE unless its vendor bills a flat, known figure. */
+function isEstimated(exp){
+  var m=exp&&exp.billing&&exp.billing.model;
+  return !!(m&&m!=='FIXED');
+}
+
+/* ── Expenses ───────────────────────────────────────────────────────────── */
+function normalizeBilling(b){
+  b=b||{};
+  return{model:BILLING_MODELS[b.model]?b.model:'FIXED',
+         confidence:CONFIDENCES[b.confidence]?b.confidence:'high',
+         source:trim(b.source,120),
+         note:trim(b.note,CFG.NOTE_MAX)};
+}
+function validateExpense(app,e){
+  var errors=[];
+  var c=ensure(app);
+  if(!trim(e&&e.name,CFG.NAME_MAX))errors.push({field:'name',code:'required'});
+  var amt=cents(e&&e.expectedCents);
+  if(!isFinite(amt)||amt<0)errors.push({field:'expectedCents',code:'negative'});
+  if(amt>CFG.MAX_CENTS)errors.push({field:'expectedCents',code:'too_large'});
+  if(!realDay(e&&e.startDate))errors.push({field:'startDate',code:'invalid_date'});
+  if(e&&e.endDate&&!realDay(e.endDate))errors.push({field:'endDate',code:'invalid_date'});
+  if(e&&e.endDate&&realDay(e.endDate)&&realDay(e.startDate)&&e.endDate<e.startDate)
+    errors.push({field:'endDate',code:'before_start'});
+  if(e&&e.categoryId&&!c.categories[e.categoryId])errors.push({field:'categoryId',code:'unknown'});
+  if(e&&e.vendorId&&!c.vendors[e.vendorId])errors.push({field:'vendorId',code:'unknown'});
+  if(e&&e.status&&!STATUSES[e.status])errors.push({field:'status',code:'unknown'});
+  if(e&&e.recurring&&recurrenceOf(e).freq==='once')errors.push({field:'recurrence',code:'recurring_without_frequency'});
+  var al=validateAllocation(app,e);
+  al.problems.forEach(function(p){errors.push({field:'allocation',code:p.code,detail:p.detail});});
+  return{ok:!errors.length,errors:errors};
+}
+function shapeExpense(app,c,e,id,now,prev){
+  var r=recurrenceOf(e);
+  var recurring=e.recurring===undefined?(prev?prev.recurring:r.freq!=='once'):!!e.recurring;
+  return{
+    id:id,
+    name:trim(e.name,CFG.NAME_MAX),
+    description:trim(e.description,CFG.NOTE_MAX),
+    vendorId:e.vendorId||null,
+    categoryId:e.categoryId||'cc_other',
+    costType:COST_TYPES.some(function(t){return t[0]===e.costType;})?e.costType:'fixed',
+    status:STATUSES[e.status]?e.status:'active',
+    expectedCents:cents(e.expectedCents),
+    currency:'USD',
+    recurring:recurring,
+    recurrence:{freq:r.freq,interval:r.interval,customDays:r.customDays},
+    startDate:e.startDate,
+    endDate:e.endDate&&realDay(e.endDate)?e.endDate:null,
+    paymentMethod:METHODS[e.paymentMethod]?e.paymentMethod:'other',
+    allocation:normalizeAllocation(e.allocation),
+    billing:normalizeBilling(e.billing),
+    notes:trim(e.notes,CFG.NOTE_MAX),
+    externalRef:trim(e.externalRef,80)||null,
+    createdAt:prev?prev.createdAt:iso(now),
+    updatedAt:iso(now)
+  };
+}
+function addExpense(app,e,now){
+  var c=ensure(app);
+  e=e||{};
+  if(e.vendor&&!e.vendorId){
+    var v=upsertVendor(app,{name:e.vendor},now);
+    if(v.ok)e.vendorId=v.id;
+  }
+  if(e.category&&!e.categoryId)e.categoryId=resolveCategory(app,e.category,true,now);
+  if(!e.startDate)e.startDate=dayOf(now);
+  /* No allocation supplied at all → shared overhead. An allocation supplied
+     WITH an empty business is a different thing: that is an omission, and the
+     validator below refuses it. */
+  if(e.allocation===undefined||e.allocation===null)e.allocation={mode:'single',businessId:'SHARED'};
+  var check=validateExpense(app,e);
+  if(!check.ok)return{ok:false,reason:'invalid',errors:check.errors};
+  var id=e.id||nextId(c,'exp');
+  if(c.expenses[id])return{ok:false,reason:'exists'};
+  c.expenses[id]=shapeExpense(app,c,e,id,now,null);
+  audit(c,'expense.add',id,null,c.expenses[id].name+' '+fmt(c.expenses[id].expectedCents),now);
+  return{ok:true,id:id,expense:c.expenses[id]};
+}
+/* Editing an expense changes the FUTURE. It never rewrites a recorded
+   payment: each payment carries the expected figure that was true when it was
+   made, so raising a subscription's price today cannot retroactively erase
+   last year's variance. */
+function updateExpense(app,id,patch,now){
+  var c=ensure(app),prev=c.expenses[id];
+  if(!prev)return{ok:false,reason:'not_found'};
+  patch=patch||{};
+  if(patch.vendor&&!patch.vendorId){
+    var v=upsertVendor(app,{name:patch.vendor},now);
+    if(v.ok)patch.vendorId=v.id;
+  }
+  if(patch.category&&!patch.categoryId)patch.categoryId=resolveCategory(app,patch.category,true,now);
+  var merged={};
+  Object.keys(prev).forEach(function(k){merged[k]=prev[k];});
+  ['name','description','vendorId','categoryId','costType','status','expectedCents',
+   'recurring','recurrence','startDate','endDate','paymentMethod','allocation',
+   'billing','notes','externalRef'].forEach(function(k){
+    if(patch[k]!==undefined)merged[k]=patch[k];
+  });
+  var check=validateExpense(app,merged);
+  if(!check.ok)return{ok:false,reason:'invalid',errors:check.errors};
+  var next=shapeExpense(app,c,merged,id,now,prev);
+  c.expenses[id]=next;
+  if(prev.expectedCents!==next.expectedCents)
+    audit(c,'expense.amount',id,fmt(prev.expectedCents),fmt(next.expectedCents),now);
+  else audit(c,'expense.update',id,prev.name,next.name,now);
+  return{ok:true,id:id,expense:next};
+}
+function setExpenseStatus(app,id,status,now){
+  var c=ensure(app),e=c.expenses[id];
+  if(!e)return{ok:false,reason:'not_found'};
+  if(!STATUSES[status])return{ok:false,reason:'bad_status'};
+  var prev=e.status;
+  e.status=status;e.updatedAt=iso(now);
+  if(status==='archived')e.archivedAt=iso(now);
+  audit(c,'expense.status',id,prev,status,now);
+  return{ok:true,id:id,status:status};
+}
+/* Nothing is hard-deleted while it has history. An expense with recorded
+   payments can only be archived — deleting it would delete the ledger. */
+function deleteExpense(app,id,now){
+  var c=ensure(app),e=c.expenses[id];
+  if(!e)return{ok:false,reason:'not_found'};
+  var pays=values(c.payments).filter(function(p){return p.expenseId===id;});
+  if(pays.length)return{ok:false,reason:'has_payments',count:pays.length};
+  delete c.expenses[id];
+  audit(c,'expense.delete',id,e.name,null,now);
+  return{ok:true};
+}
+function getExpense(app,id){return ensure(app).expenses[id]||null;}
+
+function listExpenses(app,filters,now){
+  var c=ensure(app);filters=filters||{};
+  var rows=values(c.expenses);
+  if(!filters.includeArchived)rows=rows.filter(function(e){return e.status!=='archived';});
+  if(filters.status)rows=rows.filter(function(e){return e.status===filters.status;});
+  if(filters.vendorId)rows=rows.filter(function(e){return e.vendorId===filters.vendorId;});
+  if(filters.categoryId)rows=rows.filter(function(e){return e.categoryId===filters.categoryId;});
+  if(filters.costType)rows=rows.filter(function(e){return e.costType===filters.costType;});
+  if(filters.recurring!==undefined)rows=rows.filter(function(e){return !!e.recurring===!!filters.recurring;});
+  if(filters.businessId)rows=rows.filter(function(e){
+    return Object.keys(allocate(e,e.expectedCents||0)).indexOf(filters.businessId)>=0;});
+  if(filters.q){
+    var q=slug(filters.q);
+    rows=rows.filter(function(e){
+      return slug(e.name).indexOf(q)>=0||slug(e.description).indexOf(q)>=0
+          || slug(vendorName(c,e.vendorId)).indexOf(q)>=0;
+    });
+  }
+  var dir=filters.desc?-1:1;
+  var key=filters.sort||'monthly';
+  rows.sort(function(a,b){
+    if(key==='name')return (a.name<b.name?-1:1)*dir;
+    if(key==='amount')return (cents(a.expectedCents)-cents(b.expectedCents))*dir;
+    if(key==='next'){
+      var x=nextDue(a,now)||'9999-12-31',y=nextDue(b,now)||'9999-12-31';
+      return (x<y?-1:x>y?1:0)*dir;
+    }
+    return (monthlyCents(b)-monthlyCents(a))*(filters.desc?-1:1);
+  });
+  return rows;
+}
+
+/* ── Payments ── the actuals. Append-only history. ──────────────────────── */
+function paymentKey(expenseId,dueDate){return expenseId+'@'+dueDate;}
+function paymentFor(c,expenseId,dueDate){
+  return values(c.payments).filter(function(p){
+    return p.expenseId===expenseId&&p.dueDate===dueDate;})[0]||null;
+}
+/* Record what actually happened. `expectedCents` is SNAPSHOT here, not read
+   through to the expense later — that is the whole point of Phase 7. */
+function recordPayment(app,p,now){
+  var c=ensure(app);
+  p=p||{};
+  var e=c.expenses[p.expenseId];
+  if(!e)return{ok:false,reason:'unknown_expense'};
+  var errors=[];
+  var amt=cents(p.actualCents);
+  if(p.actualCents===undefined||p.actualCents===null)errors.push({field:'actualCents',code:'required'});
+  else if(!isFinite(amt))errors.push({field:'actualCents',code:'malformed'});
+  else if(amt>CFG.MAX_CENTS)errors.push({field:'actualCents',code:'too_large'});
+  var paidDate=p.paidDate||dayOf(now);
+  if(!realDay(paidDate))errors.push({field:'paidDate',code:'invalid_date'});
+  var dueDate=p.dueDate||paidDate;
+  if(!realDay(dueDate))errors.push({field:'dueDate',code:'invalid_date'});
+  if(errors.length)return{ok:false,reason:'invalid',errors:errors};
+  var existing=paymentFor(c,p.expenseId,dueDate);
+  if(existing&&!p.replace)return{ok:false,reason:'already_recorded',id:existing.id};
+  var id=existing?existing.id:nextId(c,'pay');
+  var expected=p.expectedCents===undefined?cents(e.expectedCents):cents(p.expectedCents);
+  c.payments[id]={
+    id:id,expenseId:e.id,dueDate:dueDate,paidDate:paidDate,
+    /* The expected figure AS IT STOOD. Editing the expense later never
+       touches this, so historical variance stays historical. */
+    expectedCents:expected,
+    actualCents:amt,
+    currency:'USD',
+    method:METHODS[p.method]?p.method:e.paymentMethod||'other',
+    /* Allocation is snapshotted too — re-splitting a cost next year must not
+       rewrite which business carried last year's bill. */
+    allocation:allocate(e,amt),
+    categoryId:e.categoryId,vendorId:e.vendorId,
+    note:trim(p.note,CFG.NOTE_MAX),
+    createdAt:existing?existing.createdAt:iso(now),
+    updatedAt:iso(now)
+  };
+  audit(c,existing?'payment.amend':'payment.add',id,
+        existing?fmt(existing.actualCents):null,fmt(amt),now);
+  return{ok:true,id:id,payment:c.payments[id],variance:variance(c.payments[id])};
+}
+function updatePayment(app,id,patch,now){
+  var c=ensure(app),p=c.payments[id];
+  if(!p)return{ok:false,reason:'not_found'};
+  patch=patch||{};
+  if(patch.actualCents!==undefined){
+    var a=cents(patch.actualCents);
+    if(!isFinite(a)||a>CFG.MAX_CENTS)return{ok:false,reason:'invalid',errors:[{field:'actualCents',code:'malformed'}]};
+    audit(c,'payment.amend',id,fmt(p.actualCents),fmt(a),now);
+    p.actualCents=a;
+    var e=c.expenses[p.expenseId];
+    if(e)p.allocation=allocate(e,a);
+  }
+  if(patch.paidDate!==undefined){
+    if(!realDay(patch.paidDate))return{ok:false,reason:'invalid',errors:[{field:'paidDate',code:'invalid_date'}]};
+    p.paidDate=patch.paidDate;
+  }
+  if(patch.method!==undefined&&METHODS[patch.method])p.method=patch.method;
+  if(patch.note!==undefined)p.note=trim(patch.note,CFG.NOTE_MAX);
+  p.updatedAt=iso(now);
+  return{ok:true,id:id,payment:p,variance:variance(p)};
+}
+function removePayment(app,id,now){
+  var c=ensure(app),p=c.payments[id];
+  if(!p)return{ok:false,reason:'not_found'};
+  delete c.payments[id];
+  audit(c,'payment.remove',id,fmt(p.actualCents),null,now);
+  return{ok:true};
+}
+/* Expected vs actual. A missing actual is NOT a zero variance — it is no
+   variance at all, and the caller must be able to tell the difference. */
+function variance(p){
+  if(!p||p.actualCents===undefined||p.actualCents===null)
+    return{hasActual:false,expectedCents:p?cents(p.expectedCents):0,actualCents:null,
+           varianceCents:null,variancePct:null};
+  var exp=cents(p.expectedCents),act=cents(p.actualCents),d=act-exp;
+  return{hasActual:true,expectedCents:exp,actualCents:act,varianceCents:d,
+         variancePct:exp?Math.round(d/exp*1000)/10:null};
+}
+function listPayments(app,filters){
+  var c=ensure(app);filters=filters||{};
+  var rows=values(c.payments);
+  if(filters.expenseId)rows=rows.filter(function(p){return p.expenseId===filters.expenseId;});
+  if(filters.from)rows=rows.filter(function(p){return p.paidDate>=filters.from;});
+  if(filters.to)rows=rows.filter(function(p){return p.paidDate<=filters.to;});
+  if(filters.vendorId)rows=rows.filter(function(p){return p.vendorId===filters.vendorId;});
+  if(filters.categoryId)rows=rows.filter(function(p){return p.categoryId===filters.categoryId;});
+  if(filters.businessId)rows=rows.filter(function(p){return (p.allocation||{})[filters.businessId]!==undefined;});
+  return rows.sort(function(a,b){return a.paidDate<b.paidDate?1:a.paidDate>b.paidDate?-1:0;});
+}
+
+/* ── The schedule ── every occurrence in a window, with its derived status.
+   Upcoming, overdue, forecast and history all read from this one function, so
+   they can never disagree about what is due when. ───────────────────────── */
+function occurrenceStatus(exp,dueDate,pay,today){
+  if(exp.status==='cancelled')return 'cancelled';
+  if(exp.status==='archived')return 'archived';
+  if(pay)return 'paid';
+  if(exp.status==='planned')return 'planned';
+  if(dueDate<today)return 'overdue';
+  if(daysBetween(today,dueDate)<=CFG.DUE_SOON_DAYS)return 'due';
+  return 'expected';
+}
+function bucketOf(exp){
+  var r=recurrenceOf(exp);
+  if(!exp.recurring||r.freq==='once')return 'oneTime';
+  if(exp.costType==='variable')return 'variable';
+  if(isEstimated(exp))return 'expected';
+  return 'committed';
+}
+function schedule(app,from,to,now,opts){
+  var c=ensure(app),today=dayOf(now),rows=[];
+  opts=opts||{};
+  values(c.expenses).forEach(function(e){
+    if(!opts.includeArchived&&(e.status==='archived'||e.status==='cancelled'))return;
+    occurrences(e,from,to).forEach(function(d){
+      var pay=paymentFor(c,e.id,d);
+      var amount=pay?cents(pay.actualCents):cents(e.expectedCents);
+      rows.push({
+        key:paymentKey(e.id,d),
+        expenseId:e.id,name:e.name,
+        vendorId:e.vendorId,vendor:vendorName(c,e.vendorId),
+        categoryId:e.categoryId,category:(c.categories[e.categoryId]||{}).name||'',
+        costType:e.costType,
+        dueDate:d,
+        expectedCents:pay?cents(pay.expectedCents):cents(e.expectedCents),
+        actualCents:pay?cents(pay.actualCents):null,
+        amountCents:amount,
+        paidDate:pay?pay.paidDate:null,
+        paymentId:pay?pay.id:null,
+        variance:pay?variance(pay):variance(null),
+        status:occurrenceStatus(e,d,pay,today),
+        bucket:bucketOf(e),
+        estimate:isEstimated(e),
+        billingModel:(e.billing||{}).model||'FIXED',
+        recurring:!!e.recurring,
+        recurrenceLabel:recurrenceLabel(e),
+        allocation:pay?(pay.allocation||allocate(e,amount)):allocate(e,amount)
+      });
+    });
+  });
+  rows.sort(function(a,b){
+    return a.dueDate<b.dueDate?-1:a.dueDate>b.dueDate?1:(a.name<b.name?-1:a.name>b.name?1:0);
+  });
+  return rows;
+}
+function upcoming(app,days,now){
+  var today=dayOf(now);
+  return schedule(app,today,addDays(today,days||30),now).filter(function(r){
+    return r.status==='due'||r.status==='expected';
+  });
+}
+function overdue(app,now){
+  var today=dayOf(now);
+  return schedule(app,addDays(today,-CFG.OVERDUE_LOOKBACK_DAYS),addDays(today,-1),now)
+    .filter(function(r){return r.status==='overdue';});
+}
+
+/* ── Run rate ── "what does it cost to keep this running?" ─────────────────
+   Every ACTIVE recurring cost, normalized to a month, allocated across the
+   businesses that carry it. One-time costs are deliberately excluded: they
+   are not what next month costs. Committed and estimated are kept apart so
+   the answer never dresses a metered guess up as a commitment. */
+function runRate(app,now){
+  var c=ensure(app),byBusiness={};
+  listBusinesses(app).forEach(function(b){
+    byBusiness[b.id]={businessId:b.id,name:b.name,short:b.short,kind:b.kind,
+                      monthlyCents:0,committedCents:0,estimatedCents:0,count:0};
+  });
+  function row(id){
+    if(!byBusiness[id])byBusiness[id]={businessId:id,name:id,short:id,kind:'business',
+      monthlyCents:0,committedCents:0,estimatedCents:0,count:0};
+    return byBusiness[id];
+  }
+  var committed=0,estimated=0,count=0;
+  values(c.expenses).forEach(function(e){
+    if(e.status!=='active')return;
+    var m=monthlyCents(e);
+    if(!m)return;
+    var est=isEstimated(e);
+    if(est)estimated+=m;else committed+=m;
+    count++;
+    var parts=allocate(e,m);
+    Object.keys(parts).forEach(function(bid){
+      var r=row(bid);
+      r.monthlyCents+=parts[bid];
+      if(est)r.estimatedCents+=parts[bid];else r.committedCents+=parts[bid];
+      r.count++;
+    });
+  });
+  var monthly=committed+estimated;
+  var rows=values(byBusiness).sort(function(a,b){
+    if(a.kind!==b.kind)return a.kind==='shared'?1:-1;
+    return b.monthlyCents-a.monthlyCents;
+  });
+  rows.forEach(function(r){r.annualizedCents=r.monthlyCents*12;r.sharePct=pct(r.monthlyCents,monthly);});
+  return{
+    committedCents:committed,estimatedCents:estimated,
+    monthlyCents:monthly,annualizedCents:monthly*12,
+    recurringCount:count,byBusiness:rows,
+    asOf:dayOf(now)
+  };
+}
+
+/* ── Forecast ── deterministic. No AI, no curve fitting, no invention. ───── */
+function forecast(app,days,now){
+  days=Math.max(1,Math.round(days||30));
+  var today=dayOf(now),to=addDays(today,days);
+  var rows=schedule(app,today,to,now).filter(function(r){
+    return r.status!=='paid'&&r.status!=='planned'&&r.status!=='cancelled';
+  });
+  var b={committedCents:0,expectedCents:0,variableCents:0,oneTimeCents:0};
+  var byBusiness={},byMonth={},byCategory={};
+  listBusinesses(app).forEach(function(x){byBusiness[x.id]={businessId:x.id,name:x.name,short:x.short,amountCents:0};});
+  rows.forEach(function(r){
+    var amt=cents(r.expectedCents);
+    b[r.bucket+'Cents']+=amt;
+    var mk=monthOf(r.dueDate);
+    if(!byMonth[mk])byMonth[mk]={month:mk,label:monthLabel(mk),amountCents:0,
+      committedCents:0,estimatedCents:0,count:0};
+    byMonth[mk].amountCents+=amt;
+    if(r.estimate)byMonth[mk].estimatedCents+=amt;else byMonth[mk].committedCents+=amt;
+    byMonth[mk].count++;
+    byCategory[r.categoryId]=(byCategory[r.categoryId]||0)+amt;
+    Object.keys(r.allocation).forEach(function(bid){
+      if(!byBusiness[bid])byBusiness[bid]={businessId:bid,name:bid,short:bid,amountCents:0};
+      byBusiness[bid].amountCents+=r.allocation[bid];
+    });
+  });
+  var total=b.committedCents+b.expectedCents+b.variableCents+b.oneTimeCents;
+  return{
+    days:days,from:today,to:to,
+    committedCents:b.committedCents,
+    expectedCents:b.expectedCents,
+    variableCents:b.variableCents,
+    oneTimeCents:b.oneTimeCents,
+    projectedTotalCents:total,
+    /* Everything that is not a flat committed charge is an estimate, and the
+       UI is expected to label it. */
+    estimatedPortionCents:b.expectedCents+b.variableCents,
+    byBusiness:values(byBusiness).sort(function(x,y){return y.amountCents-x.amountCents;}),
+    byMonth:values(byMonth).sort(function(x,y){return x.month<y.month?-1:1;}),
+    byCategory:byCategory,
+    events:rows,
+    count:rows.length
+  };
+}
+function horizons(app,now){
+  return CFG.FORECAST_HORIZONS.map(function(d){
+    var f=forecast(app,d,now);
+    return{days:d,projectedTotalCents:f.projectedTotalCents,
+           committedCents:f.committedCents,estimatedPortionCents:f.estimatedPortionCents,
+           count:f.count};
+  });
+}
+/* Twelve calendar months ahead, one bar per month. */
+function forecast12(app,now){
+  var f=forecast(app,370,now),today=dayOf(now),out=[],seen={};
+  f.byMonth.forEach(function(m){seen[m.month]=m;});
+  var y=Number(today.slice(0,4)),mo=Number(today.slice(5,7));
+  for(var i=0;i<12;i++){
+    var t=(mo-1)+i,mk=(y+Math.floor(t/12))+'-'+pad2(((t%12)+12)%12+1);
+    out.push(seen[mk]||{month:mk,label:monthLabel(mk),amountCents:0,
+      committedCents:0,estimatedCents:0,count:0});
+  }
+  return out;
+}
+
+/* ── Dashboard ── every number derived from records, none invented. ─────── */
+function dashboard(app,now){
+  var c=ensure(app),today=dayOf(now),mk=monthOf(today);
+  var mStart=mk+'-01',mEnd=mk+'-'+pad2(lastDayOfMonth(Number(mk.slice(0,4)),Number(mk.slice(5,7))));
+  var rr=runRate(app,now);
+  var monthRows=schedule(app,mStart,mEnd,now);
+  var actual=0,expectedToDate=0,varianceCents=0,paidCount=0;
+  listPayments(app,{from:mStart,to:mEnd}).forEach(function(p){
+    actual+=cents(p.actualCents);
+    expectedToDate+=cents(p.expectedCents);
+    varianceCents+=cents(p.actualCents)-cents(p.expectedCents);
+    paidCount++;
+  });
+  var remaining=0;
+  monthRows.forEach(function(r){
+    if(r.status==='paid'||r.status==='planned'||r.status==='cancelled')return;
+    if(r.dueDate<today)return;              // an overdue bill is counted below
+    remaining+=cents(r.expectedCents);
+  });
+  var od=overdue(app,now),odCents=0;
+  od.forEach(function(r){odCents+=cents(r.expectedCents);});
+  var up=upcoming(app,30,now),upCents=0;
+  up.forEach(function(r){upCents+=cents(r.expectedCents);});
+  var f30=forecast(app,30,now);
+  var vend=vendorSummary(app,now);
+  return{
+    asOf:today,month:mk,monthLabel:monthLabel(mk),
+    /* What it costs to keep the ecosystem alive */
+    monthlyRunRateCents:rr.monthlyCents,
+    committedMonthlyCents:rr.committedCents,
+    estimatedMonthlyCents:rr.estimatedCents,
+    annualizedCents:rr.annualizedCents,
+    byBusiness:rr.byBusiness,
+    /* This month */
+    actualThisMonthCents:actual,
+    projectedThisMonthCents:actual+remaining+odCents,
+    remainingThisMonthCents:remaining,
+    varianceThisMonthCents:varianceCents,
+    variancePct:expectedToDate?Math.round(varianceCents/expectedToDate*1000)/10:null,
+    paidCount:paidCount,
+    /* What is coming */
+    upcoming:up,upcomingCents:upCents,
+    overdue:od,overdueCents:odCents,
+    forecast30:f30,
+    horizons:horizons(app,now),
+    forecast12:forecast12(app,now),
+    /* Health */
+    expenseCount:values(c.expenses).filter(function(e){return e.status==='active';}).length,
+    plannedCount:values(c.expenses).filter(function(e){return e.status==='planned';}).length,
+    vendorCount:vend.length,
+    topVendors:vend.slice(0,5),
+    alerts:alerts(app,now),
+    empty:!values(c.expenses).length
+  };
+}
+
+/* ── Alerts ── things that are actually wrong, not a notification feed. ─── */
+function alerts(app,now){
+  var c=ensure(app),out=[],today=dayOf(now);
+  overdue(app,now).forEach(function(r){
+    out.push({severity:'high',code:'overdue',ref:r.expenseId,
+      title:r.name+' is overdue',
+      detail:fmt(r.expectedCents)+' was due '+r.dueDate+' ('+Math.abs(daysBetween(today,r.dueDate))+'d ago)'});
+  });
+  values(c.expenses).forEach(function(e){
+    if(e.status==='archived'||e.status==='cancelled')return;
+    var al=validateAllocation(app,e);
+    al.problems.forEach(function(p){
+      out.push({severity:'high',code:'allocation',ref:e.id,
+        title:e.name+' has an allocation problem',detail:p.detail});
+    });
+  });
+  /* A recurring cost whose latest actual has drifted from expectation. */
+  values(c.expenses).forEach(function(e){
+    if(e.status!=='active'||!e.recurring)return;
+    var pays=listPayments(app,{expenseId:e.id});
+    if(!pays.length)return;
+    var v=variance(pays[0]);
+    if(!v.hasActual||!v.expectedCents)return;
+    if(Math.abs(v.variancePct)>=CFG.VARIANCE_ALERT_PCT)
+      out.push({severity:'medium',code:'variance',ref:e.id,
+        title:e.name+' billed '+(v.varianceCents>0?'above':'below')+' expectation',
+        detail:'Expected '+fmt(v.expectedCents)+', actual '+fmt(v.actualCents)+
+               ' ('+(v.variancePct>0?'+':'')+v.variancePct+'%)'});
+  });
+  var order={high:0,medium:1,low:2};
+  return out.sort(function(a,b){return order[a.severity]-order[b.severity];});
+}
+
+/* ── History ── every occurrence, filterable, with variance in place. ───── */
+function history(app,filters,now){
+  filters=filters||{};
+  var today=dayOf(now);
+  var from=realDay(filters.from)?filters.from:addDays(today,-365);
+  var to=realDay(filters.to)?filters.to:today;
+  var c=ensure(app);
+  var rows=schedule(app,from,to,now,{includeArchived:true});
+  if(filters.status)rows=rows.filter(function(r){return r.status===filters.status;});
+  if(filters.vendorId)rows=rows.filter(function(r){return r.vendorId===filters.vendorId;});
+  if(filters.categoryId)rows=rows.filter(function(r){return r.categoryId===filters.categoryId;});
+  if(filters.costType)rows=rows.filter(function(r){return r.costType===filters.costType;});
+  if(filters.recurring!==undefined)rows=rows.filter(function(r){return r.recurring===!!filters.recurring;});
+  if(filters.businessId)rows=rows.filter(function(r){return r.allocation[filters.businessId]!==undefined;});
+  if(filters.q){
+    var q=slug(filters.q);
+    rows=rows.filter(function(r){return slug(r.name).indexOf(q)>=0||slug(r.vendor).indexOf(q)>=0;});
+  }
+  var totals={expectedCents:0,actualCents:0,varianceCents:0,paid:0,unpaid:0};
+  rows.forEach(function(r){
+    totals.expectedCents+=cents(r.expectedCents);
+    if(r.actualCents!==null){
+      totals.actualCents+=cents(r.actualCents);
+      totals.varianceCents+=cents(r.actualCents)-cents(r.expectedCents);
+      totals.paid++;
+    }else totals.unpaid++;
+  });
+  rows.sort(function(a,b){return a.dueDate<b.dueDate?1:a.dueDate>b.dueDate?-1:0;});
+  return{from:from,to:to,rows:rows,totals:totals,count:rows.length};
+}
+
+/* ── CSV ────────────────────────────────────────────────────────────────── */
+function csvCell(v){
+  var s=v===null||v===undefined?'':String(v);
+  return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+}
+function csvRows(rows){return rows.map(function(r){return r.map(csvCell).join(',');}).join('\n');}
+function money(c){return (cents(c)/100).toFixed(2);}   // export only; never for maths
+
+function allocationText(app,e){
+  var a=normalizeAllocation(e.allocation);
+  if(a.mode==='single')return a.businessId||'SHARED';
+  return a.parts.map(function(p){
+    return p.businessId+':'+(a.mode==='percent'?(Number(p.pct)+'%'):money(p.amountCents));
+  }).join('; ');
+}
+function exportExpensesCsv(app,now){
+  var c=ensure(app);
+  var head=['id','name','vendor','category','cost_type','status','expected_amount','currency',
+            'recurring','frequency','interval','custom_days','start_date','end_date','next_due',
+            'monthly_equivalent','annualized','payment_method','allocation','billing_model',
+            'confidence','source','description','notes','created_at','updated_at'];
+  var rows=[head];
+  listExpenses(app,{includeArchived:true},now).forEach(function(e){
+    var r=recurrenceOf(e);
+    rows.push([e.id,e.name,vendorName(c,e.vendorId),(c.categories[e.categoryId]||{}).name||'',
+      e.costType,e.status,money(e.expectedCents),e.currency,e.recurring?'yes':'no',
+      r.freq,r.interval,r.freq==='custom'?r.customDays:'',e.startDate,e.endDate||'',
+      nextDue(e,now)||'',money(monthlyCents(e)),money(annualCents(e)),e.paymentMethod,
+      allocationText(app,e),(e.billing||{}).model||'FIXED',(e.billing||{}).confidence||'',
+      (e.billing||{}).source||'',e.description,e.notes,e.createdAt,e.updatedAt]);
+  });
+  return csvRows(rows);
+}
+function exportHistoryCsv(app,filters,now){
+  var h=history(app,filters,now);
+  var head=['due_date','name','vendor','category','cost_type','status','expected_amount',
+            'actual_amount','variance_amount','variance_pct','paid_date','recurrence','allocation'];
+  var rows=[head];
+  h.rows.forEach(function(r){
+    rows.push([r.dueDate,r.name,r.vendor,r.category,r.costType,r.status,
+      money(r.expectedCents),
+      r.actualCents===null?'':money(r.actualCents),
+      r.variance.hasActual?money(r.variance.varianceCents):'',
+      r.variance.hasActual&&r.variance.variancePct!==null?r.variance.variancePct:'',
+      r.paidDate||'',r.recurrenceLabel,
+      Object.keys(r.allocation).map(function(b){return b+':'+money(r.allocation[b]);}).join('; ')]);
+  });
+  return csvRows(rows);
+}
+function exportForecastCsv(app,days,now){
+  var f=forecast(app,days,now);
+  var head=['due_date','name','vendor','category','bucket','estimate','amount','billing_model','allocation'];
+  var rows=[head];
+  f.events.forEach(function(r){
+    rows.push([r.dueDate,r.name,r.vendor,r.category,r.bucket,r.estimate?'estimate':'committed',
+      money(r.expectedCents),r.billingModel,
+      Object.keys(r.allocation).map(function(b){return b+':'+money(r.allocation[b]);}).join('; ')]);
+  });
+  return csvRows(rows);
+}
+
+/* RFC4180-ish parser: quoted fields, doubled quotes, CRLF. */
+function parseCsv(text){
+  var rows=[],row=[],cur='',q=false,i,ch;
+  text=String(text||'').replace(/^﻿/,'');
+  for(i=0;i<text.length;i++){
+    ch=text.charAt(i);
+    if(q){
+      if(ch==='"'){
+        if(text.charAt(i+1)==='"'){cur+='"';i++;}
+        else q=false;
+      }else cur+=ch;
+    }else if(ch==='"')q=true;
+    else if(ch===','){row.push(cur);cur='';}
+    else if(ch==='\n'){row.push(cur);rows.push(row);row=[];cur='';}
+    else if(ch==='\r'){/* skip */}
+    else cur+=ch;
+  }
+  if(cur!==''||row.length){row.push(cur);rows.push(row);}
+  return rows.filter(function(r){return r.length&&r.join('').trim()!=='';});
+}
+/* Parse 'PVI:60%; CPG:40%' or 'PVI:120.00; SHARED:80.00' or just 'PVI'. */
+function parseAllocationText(app,s,expectedCents){
+  var c=ensure(app),txt=String(s||'').trim();
+  if(!txt)return{ok:true,allocation:{mode:'single',businessId:'SHARED'}};
+  if(txt.indexOf(':')<0&&txt.indexOf(';')<0){
+    var id=txt.toUpperCase();
+    if(!c.businesses[id])return{ok:false,reason:'unknown_business',detail:txt};
+    return{ok:true,allocation:{mode:'single',businessId:id}};
+  }
+  var parts=[],percent=null,bad=null;
+  txt.split(';').forEach(function(seg){
+    seg=seg.trim();if(!seg)return;
+    var bits=seg.split(':'),id=(bits[0]||'').trim().toUpperCase(),val=(bits[1]||'').trim();
+    if(!c.businesses[id]){bad=bad||{reason:'unknown_business',detail:id};return;}
+    if(/%$/.test(val)){
+      if(percent===false){bad=bad||{reason:'mixed_allocation',detail:seg};return;}
+      percent=true;
+      var n=Number(val.replace('%',''));
+      if(!isFinite(n)){bad=bad||{reason:'bad_percent',detail:seg};return;}
+      parts.push({businessId:id,pct:n});
+    }else{
+      if(percent===true){bad=bad||{reason:'mixed_allocation',detail:seg};return;}
+      percent=false;
+      var m=parseMoney(val);
+      if(!m.ok){bad=bad||{reason:'malformed_amount',detail:seg};return;}
+      parts.push({businessId:id,amountCents:m.cents});
+    }
+  });
+  if(bad)return{ok:false,reason:bad.reason,detail:bad.detail};
+  if(!parts.length)return{ok:false,reason:'empty_allocation',detail:txt};
+  return{ok:true,allocation:{mode:percent?'percent':'fixed',parts:parts}};
+}
+/* Validate every row BEFORE committing anything. A dry run (commit:false) is
+   the default: the caller sees exactly what would happen, then decides. */
+function importCsv(app,text,opts,now){
+  opts=opts||{};
+  var c=ensure(app);
+  var rows=parseCsv(text);
+  if(!rows.length)return{ok:false,reason:'empty',valid:[],invalid:[],imported:0,committed:false};
+  if(rows.length-1>CFG.IMPORT_MAX_ROWS)
+    return{ok:false,reason:'too_many_rows',limit:CFG.IMPORT_MAX_ROWS,valid:[],invalid:[],imported:0,committed:false};
+  var head=rows[0].map(function(h){return slug(h).replace(/\s+/g,'_');});
+  function col(r,names){
+    for(var i=0;i<names.length;i++){
+      var k=head.indexOf(names[i]);
+      if(k>=0&&r[k]!==undefined)return String(r[k]).trim();
+    }
+    return '';
+  }
+  var valid=[],invalid=[];
+  for(var i=1;i<rows.length;i++){
+    var r=rows[i],errors=[],line=i+1;
+    var name=col(r,['name','expense','expense_name','description']);
+    if(!name)errors.push({field:'name',code:'required'});
+    var amtRaw=col(r,['expected_amount','amount','cost','expected','monthly_amount']);
+    var amt=parseMoney(amtRaw);
+    if(!amt.ok)errors.push({field:'expected_amount',code:amt.reason,value:amtRaw});
+    else if(amt.cents<0)errors.push({field:'expected_amount',code:'negative',value:amtRaw});
+    var startRaw=col(r,['start_date','start','date','first_due']);
+    var start=startRaw||dayOf(now);
+    if(!realDay(start))errors.push({field:'start_date',code:'invalid_date',value:startRaw});
+    var endRaw=col(r,['end_date','end']);
+    if(endRaw&&!realDay(endRaw))errors.push({field:'end_date',code:'invalid_date',value:endRaw});
+    if(endRaw&&realDay(endRaw)&&realDay(start)&&endRaw<start)
+      errors.push({field:'end_date',code:'before_start',value:endRaw});
+    var freqRaw=slug(col(r,['frequency','freq','recurrence','billing_frequency']))||'';
+    var freqMap={'':'once','one time':'once',once:'once','one off':'once',
+      weekly:'weekly',biweekly:'biweekly','every 2 weeks':'biweekly','bi weekly':'biweekly',
+      monthly:'monthly',quarterly:'quarterly',semiannual:'semiannual','semi annual':'semiannual',
+      'every 6 months':'semiannual',annual:'annual',annually:'annual',yearly:'annual',custom:'custom'};
+    var freq=freqMap[freqRaw];
+    if(freq===undefined){errors.push({field:'frequency',code:'unknown',value:freqRaw});freq='once';}
+    var recRaw=slug(col(r,['recurring']));
+    var recurring=recRaw?(recRaw==='yes'||recRaw==='true'||recRaw==='y'||recRaw==='1'):freq!=='once';
+    if(recurring&&freq==='once')errors.push({field:'frequency',code:'recurring_without_frequency'});
+    var catRaw=col(r,['category']);
+    var vendorRaw=col(r,['vendor','supplier','merchant']);
+    var typeRaw=slug(col(r,['cost_type','type']));
+    var costType='fixed';
+    if(typeRaw){
+      var hit=COST_TYPES.filter(function(t){return t[0]===typeRaw||slug(t[1])===typeRaw;})[0];
+      if(hit)costType=hit[0];
+      else errors.push({field:'cost_type',code:'unknown',value:typeRaw});
+    }
+    var allocRaw=col(r,['allocation','business','businesses','business_allocation']);
+    var alloc=parseAllocationText(app,allocRaw,amt.ok?amt.cents:0);
+    if(!alloc.ok)errors.push({field:'allocation',code:alloc.reason,value:alloc.detail||allocRaw});
+    var billRaw=(col(r,['billing_model'])||'FIXED').toUpperCase();
+    if(!BILLING_MODELS[billRaw]){errors.push({field:'billing_model',code:'unknown',value:billRaw});billRaw='FIXED';}
+    var draft={
+      name:name,
+      description:col(r,['long_description','notes_description']),
+      vendor:vendorRaw||null,
+      category:catRaw||null,
+      costType:costType,
+      status:'active',
+      expectedCents:amt.ok?amt.cents:0,
+      recurring:recurring,
+      recurrence:{freq:freq,interval:Number(col(r,['interval']))||1,
+                  customDays:Number(col(r,['custom_days']))||30},
+      startDate:realDay(start)?start:dayOf(now),
+      endDate:endRaw&&realDay(endRaw)?endRaw:null,
+      paymentMethod:slug(col(r,['payment_method','method']))||'other',
+      allocation:alloc.ok?alloc.allocation:{mode:'single',businessId:'SHARED'},
+      billing:{model:billRaw,confidence:slug(col(r,['confidence']))||'high',
+               source:col(r,['source'])},
+      notes:col(r,['notes','note'])
+    };
+    /* Allocation totals are checked against the parsed amount, which the row
+       validator above may not have. Re-check with the real figure. */
+    if(!errors.length){
+      var probe=validateExpense(app,{
+        name:draft.name,expectedCents:draft.expectedCents,startDate:draft.startDate,
+        endDate:draft.endDate,status:draft.status,costType:draft.costType,
+        recurring:draft.recurring,recurrence:draft.recurrence,allocation:draft.allocation});
+      probe.errors.forEach(function(e){
+        /* vendor/category are resolved at commit time, so ignore those here */
+        if(e.field==='vendorId'||e.field==='categoryId')return;
+        errors.push(e);
+      });
+    }
+    if(errors.length)invalid.push({line:line,name:name||'(unnamed)',raw:r,errors:errors});
+    else valid.push({line:line,draft:draft});
+  }
+  var imported=0,failed=[];
+  if(opts.commit){
+    valid.forEach(function(v){
+      var res=addExpense(app,v.draft,now);
+      if(res.ok)imported++;
+      else failed.push({line:v.line,name:v.draft.name,errors:res.errors||[{code:res.reason}]});
+    });
+    failed.forEach(function(f){invalid.push(f);});
+  }
+  return{
+    ok:!invalid.length,
+    committed:!!opts.commit,
+    total:rows.length-1,
+    valid:valid,validCount:valid.length,
+    invalid:invalid,invalidCount:invalid.length,
+    imported:imported
+  };
+}
+
+/* ── Integrity ── invariants a cost centre must never violate ──────────── */
+function integrity(app){
+  var c=ensure(app),problems=[];
+  values(c.expenses).forEach(function(e){
+    if(cents(e.expectedCents)!==e.expectedCents)
+      problems.push({code:'non_integer_amount',ref:e.id,detail:e.name});
+    if(e.expectedCents<0)problems.push({code:'negative_amount',ref:e.id,detail:e.name});
+    if(e.vendorId&&!c.vendors[e.vendorId])
+      problems.push({code:'orphan_vendor',ref:e.id,detail:'vendor '+e.vendorId+' missing'});
+    if(e.categoryId&&!c.categories[e.categoryId])
+      problems.push({code:'orphan_category',ref:e.id,detail:'category '+e.categoryId+' missing'});
+    if(!realDay(e.startDate))problems.push({code:'bad_start_date',ref:e.id,detail:String(e.startDate)});
+    var al=validateAllocation(app,e);
+    al.problems.forEach(function(p){problems.push({code:'allocation_'+p.code,ref:e.id,detail:p.detail});});
+    /* The split must reconstruct the whole, exactly. */
+    var parts=allocate(e,e.expectedCents||0),sum=0;
+    Object.keys(parts).forEach(function(k){sum+=parts[k];});
+    if(al.ok&&sum!==cents(e.expectedCents))
+      problems.push({code:'allocation_sum',ref:e.id,
+        detail:'parts '+fmt(sum)+' vs expense '+fmt(e.expectedCents)});
+  });
+  values(c.payments).forEach(function(p){
+    if(!c.expenses[p.expenseId])
+      problems.push({code:'orphan_payment',ref:p.id,detail:'expense '+p.expenseId+' missing'});
+    if(cents(p.actualCents)!==p.actualCents)
+      problems.push({code:'non_integer_actual',ref:p.id,detail:String(p.actualCents)});
+    if(!realDay(p.paidDate))problems.push({code:'bad_paid_date',ref:p.id,detail:String(p.paidDate)});
+  });
+  return{ok:!problems.length,problems:problems};
+}
+
+/* ── Summary for other JoshOS surfaces (Home, Growth Point 1) ───────────── */
+function briefing(app,now){
+  var d=dashboard(app,now);
+  return{
+    monthlyRunRateCents:d.monthlyRunRateCents,
+    annualizedCents:d.annualizedCents,
+    overdueCount:d.overdue.length,overdueCents:d.overdueCents,
+    next7:upcoming(app,7,now),
+    alerts:d.alerts.slice(0,3),
+    empty:d.empty
+  };
+}
+
+return{
+  CFG:CFG,COST_TYPES:COST_TYPES,FREQS:FREQS,BILLING_MODELS:BILLING_MODELS,
+  STATUSES:STATUSES,METHODS:METHODS,CONFIDENCES:CONFIDENCES,
+  clock:clock,dayOf:dayOf,addDays:addDays,daysBetween:daysBetween,monthOf:monthOf,
+  monthLabel:monthLabel,addMonthsClamped:addMonthsClamped,realDay:realDay,
+  fmt:fmt,cents:cents,parseMoney:parseMoney,
+  ensure:ensure,
+  listBusinesses:listBusinesses,addBusiness:addBusiness,
+  listCategories:listCategories,addCategory:addCategory,resolveCategory:resolveCategory,
+  upsertVendor:upsertVendor,listVendors:listVendors,vendorSummary:vendorSummary,
+  normalizeAllocation:normalizeAllocation,allocate:allocate,validateAllocation:validateAllocation,
+  recurrenceOf:recurrenceOf,recurrenceLabel:recurrenceLabel,occurrences:occurrences,
+  occurrenceAt:occurrenceAt,nextDue:nextDue,monthlyCents:monthlyCents,annualCents:annualCents,
+  isEstimated:isEstimated,
+  validateExpense:validateExpense,addExpense:addExpense,updateExpense:updateExpense,
+  setExpenseStatus:setExpenseStatus,deleteExpense:deleteExpense,getExpense:getExpense,
+  listExpenses:listExpenses,
+  recordPayment:recordPayment,updatePayment:updatePayment,removePayment:removePayment,
+  listPayments:listPayments,paymentFor:paymentFor,variance:variance,
+  schedule:schedule,upcoming:upcoming,overdue:overdue,
+  runRate:runRate,forecast:forecast,horizons:horizons,forecast12:forecast12,
+  dashboard:dashboard,alerts:alerts,history:history,briefing:briefing,
+  parseCsv:parseCsv,parseAllocationText:parseAllocationText,importCsv:importCsv,
+  exportExpensesCsv:exportExpensesCsv,exportHistoryCsv:exportHistoryCsv,
+  exportForecastCsv:exportForecastCsv,
+  integrity:integrity
+};
+})();
+if(typeof window!=='undefined')window.CC=CC;
+/* COST-CENTER:END */
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COST CENTER — JoshOS glue (DOM-aware; deliberately outside the tested
+   engine above). Every number rendered here comes from CC. This layer does no
+   arithmetic of its own beyond laying out what the engine returned.
+   ═══════════════════════════════════════════════════════════════════════════ */
+function ccNow(){return new Date();}
+function ccState(){return CC.ensure(appData);}
+function ccM(c,round){return CC.fmt(c,{round:!!round});}
+function ccPct(n){return (n>0?'+':'')+n+'%';}
+var ccTab='overview';
+var ccFilters={q:'',businessId:'',categoryId:'',status:'',vendorId:'',costType:'',recurring:undefined};
+var ccHistFilters={};
+var ccForecastDays=90;
+var ccDraftAlloc=null;       // allocation being edited in the expense modal
+
+/* ── tabs ───────────────────────────────────────────────────────────────── */
+function ccTabGo(t,el){
+  ccTab=t;
+  document.querySelectorAll('#page-costcenter .fin-tab').forEach(function(b){
+    b.classList.toggle('active',b===el||b.dataset.tab===t);
+  });
+  ccRender();
+}
+function ccRender(){
+  var host=document.getElementById('ccBody');
+  if(!host)return;
+  var html;
+  try{
+    html=ccTab==='expenses'?ccVExpenses()
+        :ccTab==='recurring'?ccVRecurring()
+        :ccTab==='vendors'?ccVVendors()
+        :ccTab==='forecast'?ccVForecast()
+        :ccTab==='history'?ccVHistory()
+        :ccVOverview();
+  }catch(e){
+    /* A render failure must say so, not leave a blank page pretending to be
+       an empty cost centre. */
+    html='<div class="cc-err"><strong>The Cost Center could not render.</strong>'+
+         '<div class="muted" style="margin-top:6px">'+esc(e.message)+'</div></div>';
+    if(window.console)console.error('[CostCenter]',e);
+  }
+  host.innerHTML=html;
+  paintIcons(host);
+  ccPaintBars(host);
+}
+/* Bars are drawn from data-pct so no width arithmetic lives in a template. */
+function ccPaintBars(root){
+  (root||document).querySelectorAll('[data-bar]').forEach(function(el){
+    el.style.width=Math.max(0,Math.min(100,Number(el.dataset.bar)||0))+'%';
+  });
+}
+function ccEmpty(title,body,cta){
+  return '<div class="cc-empty"><h3>'+esc(title)+'</h3><p>'+body+'</p>'+(cta||'')+'</div>';
+}
+
+/* ── shared fragments ───────────────────────────────────────────────────── */
+function ccBizChip(alloc){
+  var ks=Object.keys(alloc||{}).filter(function(k){return alloc[k]!==0;});
+  if(!ks.length)return '';
+  if(ks.length===1)return '<span class="fin-chip">'+esc(ccBizShort(ks[0]))+'</span>';
+  return '<span class="fin-chip" title="'+esc(ks.map(function(k){
+    return ccBizShort(k)+' '+CC.fmt(alloc[k]);}).join(' · '))+'">split ×'+ks.length+'</span>';
+}
+function ccBizShort(id){var b=ccState().businesses[id];return b?b.short:id;}
+function ccBizName(id){var b=ccState().businesses[id];return b?b.name:id;}
+function ccStatusChip(s){
+  var cls=s==='overdue'?'bad':s==='due'?'warn':s==='paid'?'live':'';
+  return '<span class="fin-chip '+cls+'">'+esc(s)+'</span>';
+}
+function ccVarCell(v){
+  if(!v||!v.hasActual)return '<span class="cc-var muted">—</span>';
+  var cls=v.varianceCents>0?'over':v.varianceCents<0?'under':'even';
+  return '<span class="cc-var '+cls+'">'+CC.fmt(v.varianceCents,{sign:true})+
+    (v.variancePct===null?'':' <span class="muted">'+ccPct(v.variancePct)+'</span>')+'</span>';
+}
+function ccOccRow(r,opts){
+  opts=opts||{};
+  return '<div class="fin-row">'+
+    '<span class="fin-date">'+r.dueDate.slice(5)+'</span>'+
+    '<span class="fin-name"><a href="#" onclick="ccOpenExpense(\''+r.expenseId+'\');return false">'+esc(r.name)+'</a>'+
+      (r.vendor?' <span class="muted">· '+esc(r.vendor)+'</span>':'')+
+      ' '+ccBizChip(r.allocation)+
+      (r.estimate?' <span class="fin-chip warn" title="'+esc(r.billingModel)+' billing — this is an estimate, not a committed amount">est</span>':'')+
+    '</span>'+
+    (opts.showStatus===false?'':ccStatusChip(r.status))+
+    (opts.showVariance?'<span class="fin-acc">'+ccVarCell(r.variance)+'</span>':'')+
+    '<span class="fin-amt out">'+ccM(r.actualCents===null?r.expectedCents:r.actualCents)+'</span>'+
+    (opts.pay!==false&&r.status!=='paid'&&r.status!=='planned'
+      ?'<button class="btn ghost sm" onclick="ccOpenPayment(\''+r.expenseId+'\',\''+r.dueDate+'\')">Record</button>':'')+
+    '</div>';
+}
+
+/* ── OVERVIEW ───────────────────────────────────────────────────────────── */
+function ccVOverview(){
+  var now=ccNow(),d=CC.dashboard(appData,now);
+  if(d.empty)return ccEmpty('Nothing is being tracked yet',
+    'The Cost Center reports only what it actually holds — there is no demo data behind this screen. '+
+    'Add your first recurring cost (rent, Supabase, insurance, a subscription) and every number on this page, '+
+    'the forecast and the business split start working immediately.',
+    '<button class="btn primary" onclick="ccOpenExpense()"><span data-ico="plus"></span>Add the first expense</button> '+
+    '<button class="btn quiet" onclick="ccOpenImport()">Import a CSV</button>');
+
+  var h='';
+  /* The headline question. */
+  h+='<section class="cc-hero">'+
+    '<div class="eyebrow">What does it cost to keep this running?</div>'+
+    '<div class="cc-hero-v">'+ccM(d.monthlyRunRateCents)+'<span class="cc-hero-u">/month</span></div>'+
+    '<div class="cc-hero-sub">'+ccM(d.annualizedCents,true)+' a year if nothing changes. '+
+      ccM(d.committedMonthlyCents)+' committed'+
+      (d.estimatedMonthlyCents?' · <span class="cc-est">'+ccM(d.estimatedMonthlyCents)+' estimated</span>':'')+
+      '. Recurring costs only — one-time purchases are excluded.</div>';
+  /* Per-business breakdown, straight off the allocation engine. */
+  h+='<div class="cc-split">'+d.byBusiness.map(function(b){
+    return '<div class="cc-splitcell'+(b.kind==='shared'?' shared':'')+'">'+
+      '<div class="cc-splitv">'+ccM(b.monthlyCents,true)+'</div>'+
+      '<div class="cc-splitl">'+esc(b.name)+'</div>'+
+      '<div class="cc-splitbar"><span data-bar="'+b.sharePct+'"></span></div>'+
+      '<div class="cc-splitm">'+b.sharePct+'% · '+ccM(b.annualizedCents,true)+'/yr</div>'+
+      '</div>';
+  }).join('')+'</div></section>';
+
+  /* This month. */
+  h+='<div class="mstrip">'+
+    '<div class="metric"><div class="metric-v">'+ccM(d.actualThisMonthCents,true)+'</div>'+
+      '<div class="metric-l">Actual · '+esc(d.monthLabel)+'</div>'+
+      '<div class="metric-sub">'+d.paidCount+' payment'+(d.paidCount===1?'':'s')+' recorded</div></div>'+
+    '<div class="metric"><div class="metric-v dim">'+ccM(d.projectedThisMonthCents,true)+'</div>'+
+      '<div class="metric-l">Projected this month</div>'+
+      '<div class="metric-sub">'+ccM(d.remainingThisMonthCents,true)+' still to come</div></div>'+
+    '<div class="metric"><div class="metric-v '+(d.varianceThisMonthCents>0?'':'accent')+'">'+
+      CC.fmt(d.varianceThisMonthCents,{sign:true,round:true})+'</div>'+
+      '<div class="metric-l">Variance this month</div>'+
+      '<div class="metric-sub">'+(d.variancePct===null?'no actuals yet':ccPct(d.variancePct)+' vs expected')+'</div></div>'+
+    '<div class="metric"><div class="metric-v">'+ccM(d.upcomingCents,true)+'</div>'+
+      '<div class="metric-l">Next 30 days</div>'+
+      '<div class="metric-sub">'+d.upcoming.length+' charge'+(d.upcoming.length===1?'':'s')+'</div></div>'+
+    (d.overdue.length?'<div class="metric"><div class="metric-v" style="color:var(--danger,#e5484d)">'+
+      ccM(d.overdueCents,true)+'</div><div class="metric-l">Overdue</div>'+
+      '<div class="metric-sub">'+d.overdue.length+' unpaid</div></div>':'')+
+    '</div>';
+
+  if(d.alerts.length){
+    h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Needs attention</h3>'+
+      '<span class="sec-sub">real problems in the data, not a notification feed</span></div>';
+    h+=d.alerts.slice(0,8).map(function(a){
+      return '<div class="cc-alert '+esc(a.severity)+'">'+
+        '<span class="cc-alert-t">'+esc(a.title)+'</span>'+
+        '<span class="cc-alert-d">'+esc(a.detail)+'</span>'+
+        '<button class="btn ghost sm" onclick="ccOpenExpense(\''+a.ref+'\')">Open</button></div>';
+    }).join('')+'</section>';
+  }
+
+  if(d.overdue.length){
+    h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Overdue</h3>'+
+      '<span class="sec-sub">due in the past, no payment recorded</span></div>'+
+      d.overdue.map(function(r){return ccOccRow(r);}).join('')+'</section>';
+  }
+
+  h+='<div class="grid2">';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Coming due</h3>'+
+    '<span class="sec-sub">next 30 days</span></div>';
+  h+=d.upcoming.length?d.upcoming.slice(0,12).map(function(r){return ccOccRow(r);}).join('')
+    :'<p class="muted">Nothing scheduled in the next 30 days.</p>';
+  h+='</section>';
+
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Biggest vendors</h3>'+
+    '<span class="sec-sub">by monthly run rate</span></div>';
+  h+=d.topVendors.length?d.topVendors.map(function(v){
+    return '<div class="fin-row"><span class="fin-name"><a href="#" onclick="ccTabGo(\'vendors\');return false">'+
+      esc(v.name)+'</a> <span class="muted">'+v.activeCount+' cost'+(v.activeCount===1?'':'s')+'</span></span>'+
+      '<span class="fin-amt out">'+ccM(v.monthlyCents)+'/mo</span></div>';
+  }).join(''):'<p class="muted">No vendors yet.</p>';
+  h+='</section></div>';
+
+  /* Twelve months forward, committed vs estimated. */
+  var f12=d.forecast12,max=0;
+  f12.forEach(function(m){if(m.amountCents>max)max=m.amountCents;});
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Next 12 months</h3>'+
+    '<span class="sec-sub">scheduled charges — solid is committed, hatched is estimated</span></div>'+
+    '<div class="cc-chart">'+f12.map(function(m){
+      return '<div class="cc-bar" title="'+esc(m.label)+' — '+ccM(m.amountCents)+
+        ' ('+ccM(m.committedCents)+' committed, '+ccM(m.estimatedCents)+' estimated)">'+
+        '<div class="cc-bar-stack">'+
+          '<span class="cc-bar-est" data-bar="'+(max?m.estimatedCents/max*100:0)+'"></span>'+
+          '<span class="cc-bar-com" data-bar="'+(max?m.committedCents/max*100:0)+'"></span>'+
+        '</div>'+
+        '<div class="cc-bar-l">'+esc(m.label.slice(0,3))+'</div></div>';
+    }).join('')+'</div>'+
+    '<div class="cc-legend"><span><i class="k-com"></i>Committed</span><span><i class="k-est"></i>Estimated</span></div>'+
+    '</section>';
+  return h;
+}
+
+/* ── EXPENSES ───────────────────────────────────────────────────────────── */
+function ccFilterBar(){
+  var c=ccState();
+  function opts(list,sel,labelKey){
+    return '<option value="">All</option>'+list.map(function(x){
+      return '<option value="'+esc(x.id)+'"'+(sel===x.id?' selected':'')+'>'+esc(x[labelKey||'name'])+'</option>';
+    }).join('');
+  }
+  return '<div class="cc-filters">'+
+    '<input class="inp" id="ccQ" placeholder="Search name or vendor…" value="'+esc(ccFilters.q)+'" oninput="ccSetFilter(\'q\',this.value)">'+
+    '<select class="sel" onchange="ccSetFilter(\'businessId\',this.value)">'+opts(CC.listBusinesses(appData),ccFilters.businessId)+'</select>'+
+    '<select class="sel" onchange="ccSetFilter(\'categoryId\',this.value)">'+opts(CC.listCategories(appData),ccFilters.categoryId)+'</select>'+
+    '<select class="sel" onchange="ccSetFilter(\'vendorId\',this.value)">'+opts(CC.listVendors(appData),ccFilters.vendorId)+'</select>'+
+    '<select class="sel" onchange="ccSetFilter(\'costType\',this.value)"><option value="">Any type</option>'+
+      CC.COST_TYPES.map(function(t){return '<option value="'+t[0]+'"'+(ccFilters.costType===t[0]?' selected':'')+'>'+esc(t[1])+'</option>';}).join('')+'</select>'+
+    '<select class="sel" onchange="ccSetFilter(\'status\',this.value)"><option value="">Any status</option>'+
+      ['active','planned','cancelled','archived'].map(function(s){
+        return '<option value="'+s+'"'+(ccFilters.status===s?' selected':'')+'>'+s+'</option>';}).join('')+'</select>'+
+    '<select class="sel" onchange="ccSetFilter(\'recurring\',this.value)"><option value="">Recurring &amp; one-time</option>'+
+      '<option value="1"'+(ccFilters.recurring===true?' selected':'')+'>Recurring only</option>'+
+      '<option value="0"'+(ccFilters.recurring===false?' selected':'')+'>One-time only</option></select>'+
+    '<button class="btn ghost sm" onclick="ccClearFilters()">Clear</button>'+
+    '</div>';
+}
+function ccSetFilter(k,v){
+  if(k==='recurring')ccFilters.recurring=v===''?undefined:v==='1';
+  else ccFilters[k]=v;
+  if(ccFilters.status==='archived')ccFilters.includeArchived=true;else delete ccFilters.includeArchived;
+  ccRender();
+  if(k==='q'){var i=document.getElementById('ccQ');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length);}}
+}
+function ccClearFilters(){
+  ccFilters={q:'',businessId:'',categoryId:'',status:'',vendorId:'',costType:'',recurring:undefined};
+  ccRender();
+}
+function ccVExpenses(){
+  var now=ccNow(),c=ccState();
+  var rows=CC.listExpenses(appData,ccFilters,now);
+  var all=CC.listExpenses(appData,{},now);
+  var h=ccQuickAdd();
+  h+=ccFilterBar();
+  if(!all.length)return h+ccEmpty('No expenses yet',
+    'Use the row above for a fast add — a name, an amount, a business and a cadence is enough. '+
+    'Everything else (vendor, category, allocation, billing model) can be filled in afterwards.');
+  if(!rows.length)return h+ccEmpty('No expenses match these filters',
+    'Clear the filters to see all '+all.length+' tracked cost'+(all.length===1?'':'s')+'.');
+
+  var monthly=0;rows.forEach(function(e){monthly+=CC.monthlyCents(e);});
+  h+='<div class="mstrip"><div class="metric"><div class="metric-v">'+rows.length+'</div>'+
+    '<div class="metric-l">Expenses shown</div></div>'+
+    '<div class="metric"><div class="metric-v">'+ccM(monthly)+'</div><div class="metric-l">Monthly equivalent</div></div>'+
+    '<div class="metric"><div class="metric-v dim">'+ccM(monthly*12,true)+'</div><div class="metric-l">Annualized</div></div>'+
+    '<div class="metric" style="margin-left:auto;align-self:center">'+
+      '<button class="btn quiet sm" onclick="ccExport(\'expenses\')"><span data-ico="save"></span>Export CSV</button> '+
+      '<button class="btn quiet sm" onclick="ccOpenImport()">Import CSV</button></div>'+
+    '</div>';
+
+  h+='<div class="cc-tbl"><div class="cc-th">'+
+    '<span>Expense</span><span>Category</span><span>Business</span><span>Cadence</span>'+
+    '<span class="r">Expected</span><span class="r">Monthly</span><span>Next due</span><span></span></div>';
+  h+=rows.map(function(e){
+    var al=CC.validateAllocation(appData,e);
+    var next=CC.nextDue(e,now);
+    return '<div class="cc-tr'+(e.status!=='active'?' dim':'')+'">'+
+      '<span class="cc-c1"><a href="#" onclick="ccOpenExpense(\''+e.id+'\');return false">'+esc(e.name)+'</a>'+
+        (c.vendors[e.vendorId]?' <span class="muted">· '+esc(c.vendors[e.vendorId].name)+'</span>':'')+
+        (e.status!=='active'?' <span class="fin-chip">'+esc(e.status)+'</span>':'')+
+        (CC.isEstimated(e)?' <span class="fin-chip warn" title="'+esc(e.billing.model)+' billing">est</span>':'')+
+        (al.ok?'':' <span class="fin-chip bad" title="'+esc(al.problems[0].detail)+'">allocation</span>')+'</span>'+
+      '<span class="muted">'+esc((c.categories[e.categoryId]||{}).name||'—')+'</span>'+
+      '<span>'+ccBizChip(CC.allocate(e,e.expectedCents))+'</span>'+
+      '<span class="muted">'+esc(CC.recurrenceLabel(e))+'</span>'+
+      '<span class="r mono">'+ccM(e.expectedCents)+'</span>'+
+      '<span class="r mono">'+(CC.monthlyCents(e)?ccM(CC.monthlyCents(e)):'<span class="muted">—</span>')+'</span>'+
+      '<span class="mono muted">'+(next||'—')+'</span>'+
+      '<span class="r"><button class="btn ghost sm" onclick="ccOpenExpense(\''+e.id+'\')">Edit</button></span>'+
+      '</div>';
+  }).join('');
+  h+='</div>';
+  return h;
+}
+
+/* Fast entry — the common path in one row, no navigation. */
+function ccQuickAdd(){
+  var bs=CC.listBusinesses(appData);
+  var last=(appData.costs&&appData.costs.lastEntry)||{};
+  return '<form class="cc-quick" onsubmit="return ccQuickSubmit(event)">'+
+    '<input class="inp" id="ccQName" placeholder="Expense name" required>'+
+    '<input class="inp" id="ccQVendor" placeholder="Vendor" list="ccVendorList" value="'+esc(last.vendor||'')+'">'+
+    '<datalist id="ccVendorList">'+CC.listVendors(appData).map(function(v){
+      return '<option value="'+esc(v.name)+'">';}).join('')+'</datalist>'+
+    '<input class="inp mono" id="ccQAmt" placeholder="$0.00" inputmode="decimal" required style="max-width:110px">'+
+    '<select class="sel" id="ccQCat">'+CC.listCategories(appData).map(function(k){
+      return '<option value="'+esc(k.id)+'"'+(last.categoryId===k.id?' selected':'')+'>'+esc(k.name)+'</option>';}).join('')+'</select>'+
+    '<select class="sel" id="ccQBiz">'+bs.map(function(b){
+      return '<option value="'+esc(b.id)+'"'+((last.businessId||'SHARED')===b.id?' selected':'')+'>'+esc(b.short)+'</option>';}).join('')+'</select>'+
+    '<select class="sel" id="ccQFreq">'+Object.keys(CC.FREQS).filter(function(f){return f!=='custom';}).map(function(f){
+      return '<option value="'+f+'"'+((last.freq||'monthly')===f?' selected':'')+'>'+esc(CC.FREQS[f].label)+'</option>';}).join('')+'</select>'+
+    '<input class="inp mono" id="ccQDate" type="date" value="'+CC.dayOf(ccNow())+'" title="First due date">'+
+    '<button class="btn primary" type="submit"><span data-ico="plus"></span>Add</button>'+
+    '<button class="btn ghost" type="button" onclick="ccOpenExpense()" title="Full form — allocation, billing model, notes">More…</button>'+
+    '</form><div class="cc-quick-msg" id="ccQMsg"></div>';
+}
+function ccQuickSubmit(ev){
+  ev.preventDefault();
+  var msg=document.getElementById('ccQMsg');
+  var amt=CC.parseMoney(document.getElementById('ccQAmt').value);
+  if(!amt.ok){msg.textContent='That amount could not be read ('+amt.reason.replace(/_/g,' ')+'). Try 49.99';msg.className='cc-quick-msg bad';return false;}
+  var freq=document.getElementById('ccQFreq').value;
+  var biz=document.getElementById('ccQBiz').value;
+  var vendor=document.getElementById('ccQVendor').value.trim();
+  var cat=document.getElementById('ccQCat').value;
+  var r=CC.addExpense(appData,{
+    name:document.getElementById('ccQName').value,
+    vendor:vendor||null,categoryId:cat,
+    expectedCents:amt.cents,
+    recurring:freq!=='once',
+    recurrence:{freq:freq,interval:1},
+    startDate:document.getElementById('ccQDate').value||CC.dayOf(ccNow()),
+    costType:freq==='once'?'onetime':'fixed',
+    allocation:{mode:'single',businessId:biz}
+  },ccNow());
+  if(!r.ok){
+    msg.textContent=(r.errors||[]).map(function(e){return e.field+': '+(e.detail||e.code.replace(/_/g,' '));}).join(' · ')||r.reason;
+    msg.className='cc-quick-msg bad';return false;
+  }
+  /* Remember the shape of the last entry so the next one is one field away. */
+  var c=ccState();
+  c.lastEntry={vendor:vendor,categoryId:cat,businessId:biz,freq:freq};
+  saveData();
+  showToast('Added '+r.expense.name);
+  ccRender();
+  setTimeout(function(){var n=document.getElementById('ccQName');if(n)n.focus();},30);
+  return false;
+}
+
+/* ── RECURRING ──────────────────────────────────────────────────────────── */
+function ccVRecurring(){
+  var now=ccNow(),c=ccState();
+  var rows=CC.listExpenses(appData,{recurring:true,status:'active'},now);
+  if(!rows.length)return ccEmpty('No recurring costs yet',
+    'Recurring costs are what make the run rate and the forecast real. Add a monthly, quarterly or annual '+
+    'cost on the Expenses tab and it will appear here with its next due date.');
+  var rr=CC.runRate(appData,now);
+  var h='<div class="mstrip">'+
+    '<div class="metric"><div class="metric-v">'+ccM(rr.monthlyCents)+'</div><div class="metric-l">Monthly run rate</div></div>'+
+    '<div class="metric"><div class="metric-v dim">'+ccM(rr.committedCents)+'</div><div class="metric-l">Committed</div></div>'+
+    '<div class="metric"><div class="metric-v dim">'+ccM(rr.estimatedCents)+'</div><div class="metric-l">Estimated</div>'+
+      '<div class="metric-sub">metered or unknown billing</div></div>'+
+    '<div class="metric"><div class="metric-v">'+ccM(rr.annualizedCents,true)+'</div><div class="metric-l">Annualized</div></div>'+
+    '</div>';
+  h+='<div class="cc-tbl"><div class="cc-th"><span>Expense</span><span>Cadence</span><span>Billing</span>'+
+    '<span>Business</span><span class="r">Amount</span><span class="r">Monthly</span><span>Next due</span><span></span></div>';
+  h+=rows.map(function(e){
+    var pays=CC.listPayments(appData,{expenseId:e.id});
+    var v=pays.length?CC.variance(pays[0]):null;
+    var next=CC.nextDue(e,now);
+    return '<div class="cc-tr">'+
+      '<span class="cc-c1"><a href="#" onclick="ccOpenExpense(\''+e.id+'\');return false">'+esc(e.name)+'</a>'+
+        (c.vendors[e.vendorId]?' <span class="muted">· '+esc(c.vendors[e.vendorId].name)+'</span>':'')+
+        (v&&v.hasActual&&Math.abs(v.variancePct)>=CC.CFG.VARIANCE_ALERT_PCT
+          ?' <span class="fin-chip warn">last '+ccPct(v.variancePct)+'</span>':'')+'</span>'+
+      '<span class="muted">'+esc(CC.recurrenceLabel(e))+'</span>'+
+      '<span class="muted">'+esc(e.billing.model)+(CC.isEstimated(e)?' <span class="fin-chip warn">est</span>':'')+'</span>'+
+      '<span>'+ccBizChip(CC.allocate(e,e.expectedCents))+'</span>'+
+      '<span class="r mono">'+ccM(e.expectedCents)+'</span>'+
+      '<span class="r mono">'+ccM(CC.monthlyCents(e))+'</span>'+
+      '<span class="mono muted">'+(next||'—')+'</span>'+
+      '<span class="r">'+(next?'<button class="btn ghost sm" onclick="ccOpenPayment(\''+e.id+'\',\''+next+'\')">Record</button>':'')+'</span>'+
+      '</div>';
+  }).join('')+'</div>';
+  return h;
+}
+
+/* ── VENDORS ────────────────────────────────────────────────────────────── */
+function ccVVendors(){
+  var now=ccNow();
+  var vs=CC.vendorSummary(appData,now);
+  if(!vs.length)return ccEmpty('No vendors yet',
+    'A vendor is created automatically the first time you type its name on an expense. '+
+    'Once you have a few, this view shows what each one costs you per month and which businesses carry it.');
+  var h='<div class="cc-tbl vend"><div class="cc-th"><span>Vendor</span><span class="r">Active costs</span>'+
+    '<span class="r">Monthly</span><span class="r">Annualized</span><span>Last actual</span>'+
+    '<span>Next expected</span><span>Businesses</span></div>';
+  h+=vs.map(function(v){
+    return '<div class="cc-tr">'+
+      '<span class="cc-c1"><a href="#" onclick="ccFilterVendor(\''+v.id+'\');return false">'+esc(v.name)+'</a>'+
+        (v.recurringCount?' <span class="muted">'+v.recurringCount+' recurring</span>':'')+'</span>'+
+      '<span class="r mono">'+v.activeCount+'</span>'+
+      '<span class="r mono">'+ccM(v.monthlyCents)+'</span>'+
+      '<span class="r mono">'+ccM(v.annualizedCents,true)+'</span>'+
+      '<span class="mono muted">'+(v.lastPayment?v.lastPayment.paidDate+' '+ccM(v.lastPayment.actualCents):'—')+'</span>'+
+      '<span class="mono muted">'+(v.nextExpected?v.nextExpected.dueDate+' '+ccM(v.nextExpected.amountCents):'—')+'</span>'+
+      '<span>'+v.businessIds.map(function(b){return '<span class="fin-chip">'+esc(ccBizShort(b))+'</span>';}).join(' ')+'</span>'+
+      '</div>';
+  }).join('')+'</div>';
+  return h;
+}
+function ccFilterVendor(id){
+  ccFilters.vendorId=id;
+  ccTab='expenses';
+  document.querySelectorAll('#page-costcenter .fin-tab').forEach(function(b){
+    b.classList.toggle('active',b.dataset.tab==='expenses');});
+  ccRender();
+}
+
+/* ── FORECAST ───────────────────────────────────────────────────────────── */
+function ccSetForecast(d){ccForecastDays=Number(d);ccRender();}
+function ccVForecast(){
+  var now=ccNow();
+  var hz=CC.horizons(appData,now);
+  var f=CC.forecast(appData,ccForecastDays,now);
+  if(!CC.listExpenses(appData,{},now).length)return ccEmpty('Nothing to forecast',
+    'The forecast is generated from the costs you have entered — it does not model or guess. '+
+    'Add a recurring expense and its future charges appear here immediately.');
+  var h='<div class="cc-hz">'+hz.map(function(x){
+    return '<button class="cc-hzb'+(x.days===ccForecastDays?' on':'')+'" onclick="ccSetForecast('+x.days+')">'+
+      '<span class="cc-hzd">'+x.days+'d</span>'+
+      '<span class="cc-hzv">'+ccM(x.projectedTotalCents,true)+'</span>'+
+      '<span class="cc-hzm">'+x.count+' charge'+(x.count===1?'':'s')+'</span></button>';
+  }).join('')+'</div>';
+
+  h+='<div class="mstrip">'+
+    '<div class="metric"><div class="metric-v">'+ccM(f.projectedTotalCents,true)+'</div>'+
+      '<div class="metric-l">Projected total · '+f.days+' days</div>'+
+      '<div class="metric-sub">'+f.from+' → '+f.to+'</div></div>'+
+    '<div class="metric"><div class="metric-v dim">'+ccM(f.committedCents,true)+'</div><div class="metric-l">Committed</div></div>'+
+    '<div class="metric"><div class="metric-v dim">'+ccM(f.expectedCents,true)+'</div><div class="metric-l">Expected</div>'+
+      '<div class="metric-sub">metered / tiered / unknown</div></div>'+
+    '<div class="metric"><div class="metric-v dim">'+ccM(f.variableCents,true)+'</div><div class="metric-l">Variable</div></div>'+
+    '<div class="metric"><div class="metric-v dim">'+ccM(f.oneTimeCents,true)+'</div><div class="metric-l">One-time</div></div>'+
+    '<div class="metric" style="margin-left:auto;align-self:center">'+
+      '<button class="btn quiet sm" onclick="ccExport(\'forecast\')"><span data-ico="save"></span>Export CSV</button></div>'+
+    '</div>';
+  if(f.estimatedPortionCents)
+    h+='<p class="cc-note">'+ccM(f.estimatedPortionCents)+' of this projection ('+
+      Math.round(f.estimatedPortionCents/(f.projectedTotalCents||1)*100)+'%) is an <strong>estimate</strong> — '+
+      'metered, tiered or variable costs whose real invoice is not yet known. It is shown separately above and never '+
+      'presented as a committed figure.</p>';
+
+  h+='<div class="grid2">';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">By month</h3></div>';
+  var max=0;f.byMonth.forEach(function(m){if(m.amountCents>max)max=m.amountCents;});
+  h+=f.byMonth.map(function(m){
+    return '<div class="cc-mrow"><span class="cc-mrl">'+esc(m.label)+'</span>'+
+      '<span class="cc-mrb"><i data-bar="'+(max?m.amountCents/max*100:0)+'"></i></span>'+
+      '<span class="cc-mrv mono">'+ccM(m.amountCents,true)+'</span>'+
+      '<span class="muted" style="font-size:var(--fs-xs)">'+m.count+'</span></div>';
+  }).join('')||'<p class="muted">Nothing scheduled in this window.</p>';
+  h+='</section>';
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">By business</h3>'+
+    '<span class="sec-sub">shared costs split by allocation</span></div>';
+  var bmax=0;f.byBusiness.forEach(function(b){if(b.amountCents>bmax)bmax=b.amountCents;});
+  h+=f.byBusiness.map(function(b){
+    return '<div class="cc-mrow"><span class="cc-mrl">'+esc(b.name)+'</span>'+
+      '<span class="cc-mrb"><i data-bar="'+(bmax?b.amountCents/bmax*100:0)+'"></i></span>'+
+      '<span class="cc-mrv mono">'+ccM(b.amountCents,true)+'</span></div>';
+  }).join('');
+  h+='</section></div>';
+
+  h+='<section class="sec"><div class="sec-h"><h3 class="sec-t">Scheduled charges</h3>'+
+    '<span class="sec-sub">'+f.count+' in the next '+f.days+' days</span></div>';
+  h+=f.events.length?f.events.map(function(r){return ccOccRow(r);}).join('')
+    :'<p class="muted">Nothing scheduled in this window.</p>';
+  h+='</section>';
+  return h;
+}
+
+/* ── HISTORY ────────────────────────────────────────────────────────────── */
+function ccSetHist(k,v){
+  if(v==='')delete ccHistFilters[k];else ccHistFilters[k]=v;
+  ccRender();
+}
+function ccVHistory(){
+  var now=ccNow();
+  var hf={};Object.keys(ccHistFilters).forEach(function(k){hf[k]=ccHistFilters[k];});
+  var hist=CC.history(appData,hf,now);
+  var c=ccState();
+  function sel(id,list,cur,labelKey){
+    return '<select class="sel" onchange="ccSetHist(\''+id+'\',this.value)"><option value="">All</option>'+
+      list.map(function(x){return '<option value="'+esc(x.id)+'"'+(cur===x.id?' selected':'')+'>'+
+        esc(x[labelKey||'name'])+'</option>';}).join('')+'</select>';
+  }
+  var h='<div class="cc-filters">'+
+    '<input class="inp" type="date" value="'+esc(hist.from)+'" onchange="ccSetHist(\'from\',this.value)" title="From">'+
+    '<input class="inp" type="date" value="'+esc(hist.to)+'" onchange="ccSetHist(\'to\',this.value)" title="To">'+
+    sel('businessId',CC.listBusinesses(appData),ccHistFilters.businessId)+
+    sel('vendorId',CC.listVendors(appData),ccHistFilters.vendorId)+
+    sel('categoryId',CC.listCategories(appData),ccHistFilters.categoryId)+
+    '<select class="sel" onchange="ccSetHist(\'status\',this.value)"><option value="">Any status</option>'+
+      ['paid','overdue','due','expected','planned'].map(function(s){
+        return '<option value="'+s+'"'+(ccHistFilters.status===s?' selected':'')+'>'+s+'</option>';}).join('')+'</select>'+
+    '<select class="sel" onchange="ccSetHist(\'costType\',this.value)"><option value="">Any type</option>'+
+      CC.COST_TYPES.map(function(t){return '<option value="'+t[0]+'"'+(ccHistFilters.costType===t[0]?' selected':'')+'>'+esc(t[1])+'</option>';}).join('')+'</select>'+
+    '<button class="btn quiet sm" onclick="ccExport(\'history\')"><span data-ico="save"></span>Export CSV</button>'+
+    '</div>';
+  if(!hist.count)return h+ccEmpty('No history in this range',
+    'History shows every scheduled occurrence — paid and unpaid — for the dates above. '+
+    'Widen the range, or record a payment against an expense to start building it.');
+  h+='<div class="mstrip">'+
+    '<div class="metric"><div class="metric-v">'+ccM(hist.totals.actualCents,true)+'</div>'+
+      '<div class="metric-l">Actual paid</div><div class="metric-sub">'+hist.totals.paid+' payments</div></div>'+
+    '<div class="metric"><div class="metric-v dim">'+ccM(hist.totals.expectedCents,true)+'</div>'+
+      '<div class="metric-l">Expected</div><div class="metric-sub">'+hist.count+' occurrences</div></div>'+
+    '<div class="metric"><div class="metric-v">'+CC.fmt(hist.totals.varianceCents,{sign:true,round:true})+'</div>'+
+      '<div class="metric-l">Variance</div><div class="metric-sub">'+hist.totals.unpaid+' unpaid</div></div>'+
+    '</div>';
+  h+='<div class="cc-tbl hist"><div class="cc-th"><span>Due</span><span>Expense</span><span>Category</span>'+
+    '<span>Business</span><span class="r">Expected</span><span class="r">Actual</span>'+
+    '<span class="r">Variance</span><span>Paid</span><span></span></div>';
+  h+=hist.rows.map(function(r){
+    return '<div class="cc-tr">'+
+      '<span class="mono muted">'+r.dueDate+'</span>'+
+      '<span class="cc-c1"><a href="#" onclick="ccOpenExpense(\''+r.expenseId+'\');return false">'+esc(r.name)+'</a>'+
+        (r.vendor?' <span class="muted">· '+esc(r.vendor)+'</span>':'')+' '+ccStatusChip(r.status)+'</span>'+
+      '<span class="muted">'+esc(r.category||'—')+'</span>'+
+      '<span>'+ccBizChip(r.allocation)+'</span>'+
+      '<span class="r mono">'+ccM(r.expectedCents)+'</span>'+
+      '<span class="r mono">'+(r.actualCents===null?'<span class="muted">—</span>':ccM(r.actualCents))+'</span>'+
+      '<span class="r">'+ccVarCell(r.variance)+'</span>'+
+      '<span class="mono muted">'+(r.paidDate||'—')+'</span>'+
+      '<span class="r">'+(r.status==='paid'
+        ?'<button class="btn ghost sm" onclick="ccOpenPayment(\''+r.expenseId+'\',\''+r.dueDate+'\')">Amend</button>'
+        :(r.status==='planned'?'':'<button class="btn ghost sm" onclick="ccOpenPayment(\''+r.expenseId+'\',\''+r.dueDate+'\')">Record</button>'))+'</span>'+
+      '</div>';
+  }).join('')+'</div>';
+  return h;
+}
+
+/* ── EXPENSE EDITOR ─────────────────────────────────────────────────────── */
+function ccOv(html){
+  var ov=document.getElementById('ccOv');
+  document.getElementById('ccModal').innerHTML=html;
+  ov.classList.add('open');
+  paintIcons(ov);
+  var first=ov.querySelector('input,select,textarea');
+  if(first)setTimeout(function(){first.focus();},40);
+}
+function ccOvClose(){document.getElementById('ccOv').classList.remove('open');}
+
+function ccOpenExpense(id){
+  var now=ccNow(),c=ccState();
+  var e=id?CC.getExpense(appData,id):null;
+  ccDraftAlloc=e?JSON.parse(JSON.stringify(CC.normalizeAllocation(e.allocation)))
+                :{mode:'single',businessId:'SHARED',parts:[]};
+  var v=e&&c.vendors[e.vendorId]?c.vendors[e.vendorId].name:'';
+  var r=e?CC.recurrenceOf(e):{freq:'monthly',interval:1,customDays:30};
+  function opt(val,label,cur){return '<option value="'+esc(val)+'"'+(cur===val?' selected':'')+'>'+esc(label)+'</option>';}
+  var h='<h3>'+(e?'Edit expense':'New expense')+'</h3>'+
+    '<div class="modal-p">'+(e?'Changes apply to future charges. Payments already recorded keep the amount that was expected when they were made.'
+                             :'A cost shared by several businesses is one record with an allocation — never one record per business.')+'</div>'+
+    '<div id="ccFormErr" class="cc-formerr" hidden></div>'+
+    '<div class="cc-form">'+
+    '<div class="field"><label class="field-l" for="ccFName">Name</label>'+
+      '<input class="inp" id="ccFName" value="'+esc(e?e.name:'')+'" placeholder="e.g. Supabase Pro"></div>'+
+    '<div class="field"><label class="field-l" for="ccFVendor">Vendor</label>'+
+      '<input class="inp" id="ccFVendor" list="ccVendorList2" value="'+esc(v)+'" placeholder="e.g. Supabase">'+
+      '<datalist id="ccVendorList2">'+CC.listVendors(appData).map(function(x){
+        return '<option value="'+esc(x.name)+'">';}).join('')+'</datalist></div>'+
+    '<div class="field"><label class="field-l" for="ccFAmt">Expected amount</label>'+
+      '<input class="inp mono" id="ccFAmt" inputmode="decimal" value="'+(e?(e.expectedCents/100).toFixed(2):'')+'" placeholder="0.00"></div>'+
+    '<div class="field"><label class="field-l" for="ccFCat">Category</label>'+
+      '<select class="sel" id="ccFCat">'+CC.listCategories(appData).map(function(k){
+        return opt(k.id,k.name,e?e.categoryId:'cc_software');}).join('')+'</select></div>'+
+    '<div class="field"><label class="field-l" for="ccFType">Cost type</label>'+
+      '<select class="sel" id="ccFType">'+CC.COST_TYPES.map(function(t){
+        return opt(t[0],t[1],e?e.costType:'fixed');}).join('')+'</select></div>'+
+    '<div class="field"><label class="field-l" for="ccFStatus">Status</label>'+
+      '<select class="sel" id="ccFStatus">'+['planned','active','cancelled','archived'].map(function(s){
+        return opt(s,s,e?e.status:'active');}).join('')+'</select></div>'+
+    '<div class="field"><label class="field-l" for="ccFFreq">Frequency</label>'+
+      '<select class="sel" id="ccFFreq" onchange="ccFormFreq()">'+Object.keys(CC.FREQS).map(function(f){
+        return opt(f,CC.FREQS[f].label,r.freq);}).join('')+'</select></div>'+
+    '<div class="field"><label class="field-l" for="ccFInterval">Every</label>'+
+      '<input class="inp mono" id="ccFInterval" type="number" min="1" value="'+r.interval+'" title="Repeat every N periods"></div>'+
+    '<div class="field" id="ccFCustomWrap"'+(r.freq==='custom'?'':' hidden')+'>'+
+      '<label class="field-l" for="ccFCustom">Custom days</label>'+
+      '<input class="inp mono" id="ccFCustom" type="number" min="1" value="'+r.customDays+'"></div>'+
+    '<div class="field"><label class="field-l" for="ccFStart">First / next due</label>'+
+      '<input class="inp mono" id="ccFStart" type="date" value="'+esc(e?e.startDate:CC.dayOf(now))+'"></div>'+
+    '<div class="field"><label class="field-l" for="ccFEnd">Ends (optional)</label>'+
+      '<input class="inp mono" id="ccFEnd" type="date" value="'+esc(e&&e.endDate?e.endDate:'')+'"></div>'+
+    '<div class="field"><label class="field-l" for="ccFMethod">Payment method</label>'+
+      '<select class="sel" id="ccFMethod">'+Object.keys(CC.METHODS).map(function(m){
+        return opt(m,m,e?e.paymentMethod:'card');}).join('')+'</select></div>'+
+    '<div class="field"><label class="field-l" for="ccFBilling">Billing model</label>'+
+      '<select class="sel" id="ccFBilling" onchange="ccFormBilling()">'+Object.keys(CC.BILLING_MODELS).map(function(m){
+        return opt(m,m,e?e.billing.model:'FIXED');}).join('')+'</select></div>'+
+    '<div class="field" id="ccFConfWrap"'+(e&&CC.isEstimated(e)?'':' hidden')+'>'+
+      '<label class="field-l" for="ccFConf">Confidence</label>'+
+      '<select class="sel" id="ccFConf">'+Object.keys(CC.CONFIDENCES).map(function(k){
+        return opt(k,k,e?e.billing.confidence:'medium');}).join('')+'</select></div>'+
+    '<div class="field" id="ccFSrcWrap"'+(e&&CC.isEstimated(e)?'':' hidden')+'>'+
+      '<label class="field-l" for="ccFSrc">Estimate source</label>'+
+      '<input class="inp" id="ccFSrc" value="'+esc(e?e.billing.source:'')+'" placeholder="e.g. average of last 3 invoices"></div>'+
+    '</div>'+
+    '<div class="field"><label class="field-l">Business allocation</label><div id="ccAllocBox"></div></div>'+
+    '<div class="field"><label class="field-l" for="ccFNotes">Notes</label>'+
+      '<textarea class="ta" id="ccFNotes" rows="2" placeholder="Anything worth remembering about this cost">'+esc(e?e.notes:'')+'</textarea></div>'+
+    '<div class="modal-actions">'+
+      (e?'<button class="btn danger" onclick="ccDeleteExpense(\''+e.id+'\')">Delete</button>':'')+
+      '<span style="flex:1"></span>'+
+      '<button class="btn quiet" onclick="ccOvClose()">Cancel</button>'+
+      '<button class="btn primary" onclick="ccSaveExpense('+(e?'\''+e.id+'\'':'null')+')">'+(e?'Save changes':'Create expense')+'</button>'+
+    '</div>';
+  ccOv(h);
+  ccRenderAlloc();
+}
+function ccFormFreq(){
+  var f=document.getElementById('ccFFreq').value;
+  document.getElementById('ccFCustomWrap').hidden=(f!=='custom');
+}
+function ccFormBilling(){
+  var est=document.getElementById('ccFBilling').value!=='FIXED';
+  document.getElementById('ccFConfWrap').hidden=!est;
+  document.getElementById('ccFSrcWrap').hidden=!est;
+}
+/* The allocation editor. Its whole job is to make a wrong split impossible to
+   miss: the running total is shown and the save is refused until it is right. */
+function ccRenderAlloc(){
+  var box=document.getElementById('ccAllocBox');
+  if(!box)return;
+  var a=ccDraftAlloc,bs=CC.listBusinesses(appData);
+  var h='<div class="cc-allocmode">'+
+    ['single','percent','fixed'].map(function(m){
+      return '<button type="button" class="chip'+(a.mode===m?' on':'')+'" onclick="ccAllocMode(\''+m+'\')">'+
+        (m==='single'?'One business':m==='percent'?'Split by %':'Split by amount')+'</button>';
+    }).join('')+'</div>';
+  if(a.mode==='single'){
+    h+='<select class="sel" onchange="ccAllocSingle(this.value)">'+
+      '<option value="">— choose a business —</option>'+
+      bs.map(function(b){return '<option value="'+esc(b.id)+'"'+(a.businessId===b.id?' selected':'')+'>'+
+        esc(b.name)+'</option>';}).join('')+'</select>';
+    if(!a.businessId)h+='<div class="cc-allocbad">No business assigned — pick one, or use Shared / JoshOS for pure overhead.</div>';
+  }else{
+    var isPct=a.mode==='percent';
+    h+='<div class="cc-allocrows">'+a.parts.map(function(p,i){
+      return '<div class="cc-allocrow">'+
+        '<select class="sel" onchange="ccAllocSet('+i+',\'businessId\',this.value)">'+
+          bs.map(function(b){return '<option value="'+esc(b.id)+'"'+(p.businessId===b.id?' selected':'')+'>'+
+            esc(b.short)+'</option>';}).join('')+'</select>'+
+        '<input class="inp mono" inputmode="decimal" value="'+esc(isPct?(p.pct==null?'':p.pct)
+            :(p.amountCents==null?'':(p.amountCents/100).toFixed(2)))+'" '+
+          'placeholder="'+(isPct?'0':'0.00')+'" onchange="ccAllocSet('+i+',\''+(isPct?'pct':'amountCents')+'\',this.value)">'+
+        '<span class="cc-allocu">'+(isPct?'%':'$')+'</span>'+
+        '<button type="button" class="btn ghost sm" onclick="ccAllocDel('+i+')" aria-label="Remove">×</button>'+
+        '</div>';
+    }).join('')+'</div>'+
+    '<button type="button" class="btn quiet sm" onclick="ccAllocAdd()"><span data-ico="plus"></span>Add business</button>';
+    /* Live total against the amount in the form, not the stored one. */
+    var amt=CC.parseMoney((document.getElementById('ccFAmt')||{}).value||'0');
+    var probe={costType:(document.getElementById('ccFType')||{}).value,
+               expectedCents:amt.ok?amt.cents:0,allocation:a};
+    var val=CC.validateAllocation(appData,probe);
+    if(isPct){
+      var sum=0;a.parts.forEach(function(p){sum+=Number(p.pct)||0;});
+      h+='<div class="'+(val.ok?'cc-allocok':'cc-allocbad')+'">Total '+(Math.round(sum*100)/100)+'%'+
+         (val.ok?' — exact.':' — must be 100%.')+'</div>';
+    }else{
+      var s=0;a.parts.forEach(function(p){s+=CC.cents(p.amountCents);});
+      h+='<div class="'+(val.ok?'cc-allocok':'cc-allocbad')+'">Parts total '+CC.fmt(s)+
+         ' vs expense '+CC.fmt(probe.expectedCents)+(val.ok?' — exact.':' — these must match.')+'</div>';
+    }
+  }
+  box.innerHTML=h;
+  paintIcons(box);
+}
+function ccAllocMode(m){
+  var bs=CC.listBusinesses(appData);
+  if(m==='single')ccDraftAlloc={mode:'single',businessId:ccDraftAlloc.businessId||'SHARED',parts:[]};
+  else{
+    var parts=ccDraftAlloc.parts&&ccDraftAlloc.parts.length?ccDraftAlloc.parts
+      :[{businessId:ccDraftAlloc.businessId||bs[0].id,pct:100,amountCents:0}];
+    ccDraftAlloc={mode:m,businessId:null,parts:parts};
+  }
+  ccRenderAlloc();
+}
+function ccAllocSingle(v){ccDraftAlloc.businessId=v||null;ccRenderAlloc();}
+function ccAllocAdd(){
+  var bs=CC.listBusinesses(appData);
+  var used={};ccDraftAlloc.parts.forEach(function(p){used[p.businessId]=1;});
+  var free=bs.filter(function(b){return !used[b.id];})[0]||bs[0];
+  ccDraftAlloc.parts.push({businessId:free.id,pct:0,amountCents:0});
+  ccRenderAlloc();
+}
+function ccAllocDel(i){ccDraftAlloc.parts.splice(i,1);ccRenderAlloc();}
+function ccAllocSet(i,k,v){
+  var p=ccDraftAlloc.parts[i];if(!p)return;
+  if(k==='businessId')p.businessId=v;
+  else if(k==='pct')p.pct=v===''?null:Number(v);
+  else{var m=CC.parseMoney(v);p.amountCents=m.ok?m.cents:null;}
+  ccRenderAlloc();
+}
+function ccFormErr(list){
+  var box=document.getElementById('ccFormErr');
+  if(!box)return;
+  if(!list||!list.length){box.hidden=true;box.innerHTML='';return;}
+  box.hidden=false;
+  box.innerHTML='<strong>This could not be saved:</strong><ul>'+list.map(function(e){
+    return '<li>'+esc((e.field?e.field+' — ':'')+(e.detail||String(e.code||'').replace(/_/g,' ')))+'</li>';
+  }).join('')+'</ul>';
+}
+function ccReadForm(){
+  var amt=CC.parseMoney(document.getElementById('ccFAmt').value);
+  var freq=document.getElementById('ccFFreq').value;
+  return{
+    ok:amt.ok,amtReason:amt.reason,
+    payload:{
+      name:document.getElementById('ccFName').value,
+      vendor:document.getElementById('ccFVendor').value.trim()||null,
+      categoryId:document.getElementById('ccFCat').value,
+      costType:document.getElementById('ccFType').value,
+      status:document.getElementById('ccFStatus').value,
+      expectedCents:amt.ok?amt.cents:0,
+      recurring:freq!=='once',
+      recurrence:{freq:freq,
+        interval:Number(document.getElementById('ccFInterval').value)||1,
+        customDays:Number((document.getElementById('ccFCustom')||{}).value)||30},
+      startDate:document.getElementById('ccFStart').value,
+      endDate:document.getElementById('ccFEnd').value||null,
+      paymentMethod:document.getElementById('ccFMethod').value,
+      allocation:ccDraftAlloc,
+      billing:{model:document.getElementById('ccFBilling').value,
+        confidence:(document.getElementById('ccFConf')||{}).value||'high',
+        source:(document.getElementById('ccFSrc')||{}).value||''},
+      notes:document.getElementById('ccFNotes').value
+    }
+  };
+}
+function ccSaveExpense(id){
+  var f=ccReadForm();
+  if(!f.ok){ccFormErr([{field:'amount',detail:'could not be read ('+f.amtReason.replace(/_/g,' ')+') — try 49.99'}]);return;}
+  var r=id?CC.updateExpense(appData,id,f.payload,ccNow()):CC.addExpense(appData,f.payload,ccNow());
+  if(!r.ok){ccFormErr(r.errors||[{code:r.reason}]);return;}
+  if(!id){
+    var c=ccState();
+    c.lastEntry={vendor:f.payload.vendor,categoryId:f.payload.categoryId,
+      businessId:ccDraftAlloc.mode==='single'?ccDraftAlloc.businessId:null,freq:f.payload.recurrence.freq};
+  }
+  saveData();
+  ccOvClose();
+  showToast(id?'Saved '+r.expense.name:'Added '+r.expense.name);
+  ccRender();finRenderHome&&finRenderHome();
+}
+function ccDeleteExpense(id){
+  var e=CC.getExpense(appData,id);
+  if(!e)return;
+  var pays=CC.listPayments(appData,{expenseId:id});
+  if(pays.length){
+    if(!confirm('"'+e.name+'" has '+pays.length+' recorded payment'+(pays.length===1?'':'s')+
+      '. Deleting it would delete that history, so it will be ARCHIVED instead — hidden from active views but kept in History. Continue?'))return;
+    CC.setExpenseStatus(appData,id,'archived',ccNow());
+    saveData();ccOvClose();showToast('Archived '+e.name);ccRender();return;
+  }
+  if(!confirm('Delete "'+e.name+'" permanently? It has no recorded payments, so nothing is lost.'))return;
+  var r=CC.deleteExpense(appData,id,ccNow());
+  if(!r.ok){showToast('Could not delete: '+r.reason);return;}
+  saveData();ccOvClose();showToast('Deleted '+e.name);ccRender();
+}
+
+/* ── PAYMENT (the actual) ───────────────────────────────────────────────── */
+function ccOpenPayment(expenseId,dueDate){
+  var c=ccState(),e=CC.getExpense(appData,expenseId);
+  if(!e)return;
+  var existing=CC.paymentFor(c,expenseId,dueDate);
+  var h='<h3>'+(existing?'Amend payment':'Record payment')+'</h3>'+
+    '<div class="modal-p"><strong>'+esc(e.name)+'</strong> · due '+esc(dueDate)+
+      ' · expected <span class="mono">'+ccM(existing?existing.expectedCents:e.expectedCents)+'</span>'+
+      '<br><span class="muted">The expected figure is recorded as it stands today. Changing the expense later '+
+      'will not rewrite this payment.</span></div>'+
+    '<div id="ccPayErr" class="cc-formerr" hidden></div>'+
+    '<div class="cc-form">'+
+    '<div class="field"><label class="field-l" for="ccPAmt">Actual amount</label>'+
+      '<input class="inp mono" id="ccPAmt" inputmode="decimal" value="'+
+        (existing?(existing.actualCents/100).toFixed(2):(e.expectedCents/100).toFixed(2))+'"></div>'+
+    '<div class="field"><label class="field-l" for="ccPDate">Paid on</label>'+
+      '<input class="inp mono" id="ccPDate" type="date" value="'+esc(existing?existing.paidDate:CC.dayOf(ccNow()))+'"></div>'+
+    '<div class="field"><label class="field-l" for="ccPMethod">Method</label>'+
+      '<select class="sel" id="ccPMethod">'+Object.keys(CC.METHODS).map(function(m){
+        return '<option value="'+m+'"'+((existing?existing.method:e.paymentMethod)===m?' selected':'')+'>'+m+'</option>';}).join('')+'</select></div>'+
+    '</div>'+
+    '<div class="field"><label class="field-l" for="ccPNote">Note</label>'+
+      '<input class="inp" id="ccPNote" value="'+esc(existing?existing.note:'')+'" placeholder="e.g. includes the overage charge"></div>'+
+    '<div class="modal-actions">'+
+      (existing?'<button class="btn danger" onclick="ccRemovePayment(\''+existing.id+'\')">Remove</button>':'')+
+      '<span style="flex:1"></span>'+
+      '<button class="btn quiet" onclick="ccOvClose()">Cancel</button>'+
+      '<button class="btn primary" onclick="ccSavePayment(\''+expenseId+'\',\''+dueDate+'\')">'+
+        (existing?'Save':'Record payment')+'</button></div>';
+  ccOv(h);
+}
+function ccSavePayment(expenseId,dueDate){
+  var amt=CC.parseMoney(document.getElementById('ccPAmt').value);
+  var box=document.getElementById('ccPayErr');
+  if(!amt.ok){
+    box.hidden=false;
+    box.innerHTML='<strong>That amount could not be read</strong> ('+esc(amt.reason.replace(/_/g,' '))+'). Try 49.99';
+    return;
+  }
+  var r=CC.recordPayment(appData,{
+    expenseId:expenseId,dueDate:dueDate,actualCents:amt.cents,
+    paidDate:document.getElementById('ccPDate').value,
+    method:document.getElementById('ccPMethod').value,
+    note:document.getElementById('ccPNote').value,
+    replace:true
+  },ccNow());
+  if(!r.ok){
+    box.hidden=false;
+    box.innerHTML='<strong>Not recorded:</strong> '+esc((r.errors||[{code:r.reason}]).map(function(e){
+      return (e.field||'')+' '+String(e.code||'').replace(/_/g,' ');}).join(', '));
+    return;
+  }
+  saveData();
+  ccOvClose();
+  var v=r.variance;
+  showToast(v.varianceCents===0?'Recorded — exactly as expected'
+    :'Recorded — '+CC.fmt(v.varianceCents,{sign:true})+' vs expected'+
+      (v.variancePct===null?'':' ('+ccPct(v.variancePct)+')'));
+  ccRender();
+}
+function ccRemovePayment(id){
+  if(!confirm('Remove this recorded payment? The charge returns to unpaid.'))return;
+  CC.removePayment(appData,id,ccNow());
+  saveData();ccOvClose();showToast('Payment removed');ccRender();
+}
+
+/* ── CSV ────────────────────────────────────────────────────────────────── */
+function ccDownload(name,text){
+  try{
+    var blob=new Blob([text],{type:'text/csv;charset=utf-8;'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download=name;a.style.display='none';
+    document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(url);a.remove();},100);
+    showToast('Exported '+name);
+  }catch(err){showToast('Export failed: '+err.message);}
+}
+function ccExport(what){
+  var now=ccNow(),stamp=CC.dayOf(now);
+  if(what==='history')ccDownload('joshos-costs-history-'+stamp+'.csv',CC.exportHistoryCsv(appData,ccHistFilters,now));
+  else if(what==='forecast')ccDownload('joshos-costs-forecast-'+ccForecastDays+'d-'+stamp+'.csv',
+    CC.exportForecastCsv(appData,ccForecastDays,now));
+  else ccDownload('joshos-costs-'+stamp+'.csv',CC.exportExpensesCsv(appData,now));
+}
+function ccOpenImport(){
+  ccOv('<h3>Import expenses from CSV</h3>'+
+    '<div class="modal-p">Every row is checked before anything is written. You will see exactly which rows are '+
+    'valid and what is wrong with the rest, and nothing is saved until you confirm.</div>'+
+    '<div class="field"><label class="field-l">Columns</label>'+
+    '<p class="muted" style="font-size:var(--fs-sm);line-height:1.6">'+
+    '<code>name</code> and <code>expected_amount</code> are required. Optional: <code>vendor</code>, '+
+    '<code>category</code>, <code>cost_type</code>, <code>frequency</code> (once / weekly / biweekly / monthly / '+
+    'quarterly / semiannual / annual), <code>interval</code>, <code>start_date</code> (YYYY-MM-DD), '+
+    '<code>end_date</code>, <code>allocation</code>, <code>billing_model</code>, <code>notes</code>.<br>'+
+    'Allocation accepts <code>PVI</code>, or <code>PVI:60%; CPG:40%</code>, or <code>PVI:120.00; CPG:80.00</code>.</p></div>'+
+    '<div class="field"><label class="field-l" for="ccImpText">Paste CSV</label>'+
+    '<textarea class="ta" id="ccImpText" rows="8" placeholder="name,expected_amount,frequency,start_date,allocation&#10;Supabase Pro,25.00,monthly,2026-10-01,SHARED"></textarea></div>'+
+    '<div class="field"><input type="file" id="ccImpFile" accept=".csv,text/csv" onchange="ccImpFile(this)"></div>'+
+    '<div id="ccImpReport"></div>'+
+    '<div class="modal-actions"><span style="flex:1"></span>'+
+    '<button class="btn quiet" onclick="ccOvClose()">Cancel</button>'+
+    '<button class="btn" onclick="ccImportCheck()">Check rows</button>'+
+    '<button class="btn primary" id="ccImpGo" onclick="ccImportCommit()" disabled>Import</button></div>');
+}
+function ccImpFile(input){
+  var f=input.files&&input.files[0];
+  if(!f)return;
+  var rd=new FileReader();
+  rd.onload=function(){document.getElementById('ccImpText').value=rd.result;ccImportCheck();};
+  rd.onerror=function(){document.getElementById('ccImpReport').innerHTML='<div class="cc-formerr">Could not read that file.</div>';};
+  rd.readAsText(f);
+}
+function ccImportReport(r){
+  var h='<div class="cc-imp">'+
+    '<div class="cc-impsum"><span class="ok">'+r.validCount+' valid</span>'+
+    (r.invalidCount?'<span class="bad">'+r.invalidCount+' rejected</span>':'')+
+    '<span class="muted">'+r.total+' data row'+(r.total===1?'':'s')+'</span></div>';
+  if(r.invalidCount){
+    h+='<table class="cc-imptbl"><thead><tr><th>Row</th><th>Name</th><th>Problem</th></tr></thead><tbody>'+
+      r.invalid.slice(0,25).map(function(x){
+        return '<tr><td class="mono">'+x.line+'</td><td>'+esc(x.name||'—')+'</td><td>'+
+          esc(x.errors.map(function(e){
+            return (e.field?e.field+': ':'')+String(e.code||'').replace(/_/g,' ')+(e.value?' ("'+e.value+'")':'');
+          }).join(' · '))+'</td></tr>';
+      }).join('')+'</tbody></table>';
+    if(r.invalid.length>25)h+='<p class="muted">…and '+(r.invalid.length-25)+' more.</p>';
+    h+='<p class="muted">Rejected rows are never imported. Fix them in the source and re-check, or import the valid rows and add the rest by hand.</p>';
+  }
+  h+='</div>';
+  return h;
+}
+function ccImportCheck(){
+  var text=document.getElementById('ccImpText').value;
+  if(!text.trim()){document.getElementById('ccImpReport').innerHTML=
+    '<div class="cc-formerr">Paste some CSV, or choose a file.</div>';return null;}
+  var r=CC.importCsv(appData,text,{},ccNow());   // dry run — writes nothing
+  if(r.reason==='empty'||r.reason==='too_many_rows'){
+    document.getElementById('ccImpReport').innerHTML='<div class="cc-formerr">'+
+      (r.reason==='empty'?'No rows found.':'Too many rows (limit '+r.limit+').')+'</div>';
+    document.getElementById('ccImpGo').disabled=true;return null;
+  }
+  document.getElementById('ccImpReport').innerHTML=ccImportReport(r);
+  document.getElementById('ccImpGo').disabled=!r.validCount;
+  return r;
+}
+function ccImportCommit(){
+  var text=document.getElementById('ccImpText').value;
+  var r=CC.importCsv(appData,text,{commit:true},ccNow());
+  saveData();
+  document.getElementById('ccImpReport').innerHTML=ccImportReport(r)+
+    '<div class="'+(r.invalidCount?'cc-allocbad':'cc-allocok')+'">Imported '+r.imported+' expense'+
+    (r.imported===1?'':'s')+(r.invalidCount?'. '+r.invalidCount+' row'+(r.invalidCount===1?'':'s')+
+    ' were rejected and NOT imported.':'.')+'</div>';
+  document.getElementById('ccImpGo').disabled=true;
+  showToast('Imported '+r.imported+' expense'+(r.imported===1?'':'s'));
+  ccRender();
+}
+
+/* ── Home surface ───────────────────────────────────────────────────────── */
+function ccRenderHome(){
+  var host=document.getElementById('homeCC');
+  if(!host)return;
+  var b=CC.briefing(appData,ccNow());
+  if(b.empty){host.innerHTML='';return;}
+  host.innerHTML='<section class="sec"><div class="sec-h">'+
+    '<h2 class="sec-t">Cost of running</h2>'+
+    '<span class="sec-sub"><a href="#" onclick="mNav(\'costcenter\');return false">Cost Center</a></span></div>'+
+    '<div class="mstrip" style="border-bottom:none;margin-bottom:0;padding-bottom:0">'+
+    '<div class="metric"><div class="metric-v">'+ccM(b.monthlyRunRateCents,true)+'</div>'+
+      '<div class="metric-l">Per month</div></div>'+
+    '<div class="metric"><div class="metric-v dim">'+ccM(b.annualizedCents,true)+'</div>'+
+      '<div class="metric-l">Annualized</div></div>'+
+    (b.overdueCount?'<div class="metric"><div class="metric-v" style="color:var(--danger,#e5484d)">'+
+      ccM(b.overdueCents,true)+'</div><div class="metric-l">'+b.overdueCount+' overdue</div></div>':'')+
+    '<div class="metric"><div class="metric-v dim">'+b.next7.length+'</div>'+
+      '<div class="metric-l">Due in 7 days</div></div>'+
+    '</div></section>';
+  paintIcons(host);
+}
+
+/* ── boot ───────────────────────────────────────────────────────────────── */
+function ccBoot(){
+  if(!appData||!appData.lastDate){setTimeout(ccBoot,150);return;}
+  ccState();
+  /* An integrity problem in money data is not something to swallow. */
+  var ig=CC.integrity(appData);
+  if(!ig.ok&&window.console)console.warn('[CostCenter] integrity:',ig.problems);
+  ccRenderHome();
+  var ov=document.getElementById('ccOv');
+  if(ov)ov.addEventListener('click',function(e){if(e.target===ov)ccOvClose();});
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&ov&&ov.classList.contains('open'))ccOvClose();
+    /* ⌘/Ctrl-E from anywhere in the Cost Center opens a new expense. */
+    if((e.metaKey||e.ctrlKey)&&(e.key==='e'||e.key==='E')&&curRoute==='costcenter'){
+      e.preventDefault();ccOpenExpense();
+    }
+  });
+}
+
+
 wobBoot();
 gp1Boot();
 finBoot();
+ccBoot();
 
 azBoot();
 </script>
