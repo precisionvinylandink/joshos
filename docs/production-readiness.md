@@ -135,7 +135,17 @@ desktop/test/financial-engine.test.js   58 passed, 0 failed
 desktop/test/cost-center.test.js        77 passed, 0 failed
 ─────────────────────────────────────────────────────────
                                        237 passed, 0 failed
+
+desktop/test/authorization.test.js       8 passed, 0 failed   (live, networked)
 ```
+
+The authorization suite runs against the real `joshos-sync` project using the
+publishable key copied out of the shipped page. It confirms that an anonymous
+reader gets zero rows from every private table, that anonymous writes are
+refused by Postgres with an RLS violation rather than by the UI, that a forged
+JWT is rejected, that the sealed-credential table is unreachable, and that the
+four retired world-writable tables have not had their `allow_anon` policies
+restored.
 
 There is no lint or typecheck configuration in this repository — no ESLint
 config, no TypeScript for the client, no `lint` or `typecheck` npm script.

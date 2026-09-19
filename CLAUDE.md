@@ -195,6 +195,15 @@ Full contract: [`docs/WORKOS_BRIDGE_CONTRACT.md`](docs/WORKOS_BRIDGE_CONTRACT.md
 node desktop/test/workos-bridge.test.js && node desktop/test/order-execution.test.js && node desktop/test/growth-point-1.test.js && node desktop/test/financial-engine.test.js && node desktop/test/cost-center.test.js
 ```
 
+`desktop/test/authorization.test.js` is separate because it needs the network:
+it takes the publishable key straight out of the shipped `index.html` and tries
+to read and write every private table anonymously. Financial data is protected
+by RLS, not by the UI, and this is what proves it.
+
+```bash
+node desktop/test/authorization.test.js
+```
+
 ## Do Not
 - Do not use React, Vue, or any framework
 - Do not split index.html into multiple files

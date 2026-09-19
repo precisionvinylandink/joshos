@@ -77,6 +77,9 @@ Driven through the actual UI controls, against real records:
 19. [x] `CC.integrity()` clean
 20. [x] Zero console errors throughout
 21. [x] Mobile layout (375×812) verified
+22. [x] Production verified after deploy: HTTPS, Cost Center shipped, four
+        business entities and 23 categories present, nav reachable, auth gate
+        holding, and RLS confirmed to refuse anonymous reads and writes
 
 ## Quality gates
 
@@ -87,6 +90,10 @@ Driven through the actual UI controls, against real records:
   growth-point-1     36
   financial-engine   58
   cost-center        77
+
+Plus a live, networked authorization suite against the real database:
+
+  authorization       8   (RLS enforcement, anonymous read/write, forged JWT)
 ```
 
 All three `<script>` blocks in the shipped file parse cleanly under Node.
