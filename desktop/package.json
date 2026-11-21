@@ -1,7 +1,7 @@
 {
   "name": "joshos-desktop",
   "version": "1.0.0",
-  "description": "joshOS — Personal Daily Operating System (macOS Electron App)",
+  "description": "joshOS: Personal Daily Operating System (macOS Electron App)",
   "main": "main.js",
   "author": "Josh Sonnenberg <josh@precisionvinylandink.com>",
   "scripts": {

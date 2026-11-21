@@ -284,7 +284,7 @@ async function run() {
     const production = cal.find((c) => c.stage === 'production');
     ok(production, 'production block exists on the calendar');
     eq(production.rush, true, 'structurally identifiable as rush');
-    ok(/^RUSH — /.test(production.title), 'and visually: ' + production.title);
+    ok(/^RUSH · /.test(production.title), 'and visually: ' + production.title);
     ok(production.title.indexOf('Production') >= 0, 'names the stage');
     ok(production.title.indexOf('Fixture Construction LLC') >= 0, 'names the customer');
   });
@@ -476,7 +476,7 @@ async function run() {
     after.forEach((a) => eq(a.rush, true, `${a.kind} now rush`));
     eq(after.find((a) => a.kind === 'stage_artwork_proof').startAt,
        days(T0, 20 - RUSH_LEAD), 'and the schedule tightened');
-    ok(/^RUSH — /.test(after[0].title), 'titles updated too');
+    ok(/^RUSH · /.test(after[0].title), 'titles updated too');
   });
 
   await check('a rush downgrade actually clears the flag', () => {
