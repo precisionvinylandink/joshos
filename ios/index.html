@@ -14,7 +14,7 @@
 <title>joshOS Time</title>
 <style>
 /* ═══════════════════════════════════════════════════════════
-   JoshOS — iOS capture surface.
+   JoshOS - iOS capture surface.
    Same tokens, type and accent as the desktop OS so the two
    read as one product. This screen has one job: log the hour.
    ═══════════════════════════════════════════════════════════ */
@@ -130,20 +130,20 @@ textarea::placeholder{color:var(--text-muted)}
 </div>
 <div class="sum-block">
   <div class="sum-card">
-    <span class="sum-val" id="sumPct">—</span>
+    <span class="sum-val" id="sumPct">–</span>
     <span class="sum-lbl">Today</span>
     <div class="sum-bar"><div class="sum-fill" id="sumFill"></div></div>
   </div>
   <div class="sum-card">
-    <span class="sum-val wh sm" id="sumGrade">—</span>
+    <span class="sum-val wh sm" id="sumGrade">–</span>
     <span class="sum-lbl">Scorecard</span>
   </div>
   <div class="sum-card">
-    <span class="sum-val or" id="sumStreak">—</span>
+    <span class="sum-val or" id="sumStreak">–</span>
     <span class="sum-lbl">Streak</span>
   </div>
   <div class="sum-card">
-    <span class="sum-val or" id="sumWins">—</span>
+    <span class="sum-val or" id="sumWins">–</span>
     <span class="sum-lbl">Wins</span>
   </div>
 </div>
@@ -174,8 +174,8 @@ function tick(){
   document.getElementById('tDate').textContent=n.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   var already=entries[h],isAlert=HOURS.indexOf(h)>=0&&m>=15&&m<=17;
   var p=document.getElementById('tPrompt');
-  if(already)p.innerHTML='Logged &#10003; &mdash; <b>update it?</b>';
-  else if(isAlert)p.innerHTML='&#9201; <b>Time check &mdash; what are you doing?</b>';
+  if(already)p.innerHTML='Logged &#10003; · <b>update it?</b>';
+  else if(isAlert)p.innerHTML='&#9201; <b>Time check: what are you doing?</b>';
   else p.innerHTML='What are you doing <b>right now?</b>';
   var inp=document.getElementById('inp');
   if(already&&!inp.value)inp.value=already.text||'';
@@ -233,7 +233,7 @@ function fetchSummary(){
     var pct=d.completionPct||0;
     var pe=document.getElementById('sumPct');if(pe)pe.textContent=pct+'%';
     var fe=document.getElementById('sumFill');if(fe)fe.style.width=pct+'%';
-    var ge=document.getElementById('sumGrade');if(ge)ge.textContent=d.grade||'—';
+    var ge=document.getElementById('sumGrade');if(ge)ge.textContent=d.grade||'–';
     var se=document.getElementById('sumStreak');if(se)se.textContent=(d.streak||0)+'d';
     var we=document.getElementById('sumWins');if(we)we.textContent=d.wins||0;
   })
@@ -287,7 +287,7 @@ function checkNotif(){
   var n=new Date(),h=n.getHours(),m=n.getMinutes();
   if(HOURS.indexOf(h)<0||m<15||m>17||lastNotif===h)return;
   lastNotif=h;
-  var notif=new Notification('joshOS',{body:fh(h)+' — What are you doing right now?',tag:'jt',requireInteraction:true});
+  var notif=new Notification('joshOS',{body:fh(h)+': What are you doing right now?',tag:'jt',requireInteraction:true});
   notif.onclick=function(){window.focus();notif.close();};
 }
 
