@@ -4222,7 +4222,15 @@ async function authLogout(){
   location.reload();
 }
 function authBoot(){
-  if(JAUTH.hasSession()){authEnter();return;}
+  /* init() renders through functions defined in the LATER script blocks
+     (Growth Point 1, Money, Cost Center, Garden). Entering before the document
+     has parsed them throws mid-init and skips the cloud pull and sync loop, so
+     wait for DOMContentLoaded: the same timing a fresh sign-in already has. */
+  if(JAUTH.hasSession()){
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',authEnter,{once:true});
+    else authEnter();
+    return;
+  }
   document.body.classList.add('locked');
   const g=document.getElementById('authGate');
   if(g)g.classList.add('show');
